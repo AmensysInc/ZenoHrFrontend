@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 export default function Home() {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   const [showAddOrdersLink, setShowAddOrdersLink] = useState(false);
-
+/*
   useEffect(() => {
     const result = axios.get("http://localhost:8082/employees");
     result
@@ -15,6 +15,17 @@ export default function Home() {
       })
       .catch((error) => console.log(error));
   }, []);
+*/
+  
+useEffect(() => {
+  const result = api.get("/employees");
+  result
+    .then((response) => {
+      setUsers(response.data);
+    })
+    .catch((error) => console.log(error));
+}, []);
+
 
   const handleViewOrders = (employeeId) => {
     navigate(`/orders`, { state: { employeeId } });

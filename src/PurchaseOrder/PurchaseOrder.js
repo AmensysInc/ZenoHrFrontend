@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import axios from "axios";
+import { useLocation } from "react-router-dom";
+import api from "../api";
 
 export default function PurchaseOrder() {
   const [users, setUsers] = useState([]);
@@ -11,12 +11,23 @@ export default function PurchaseOrder() {
   useEffect(() => {
     loadUsers();
   }, []);
-
+/*
   const loadUsers = async () => {
     const result = await axios.get(
       `http://localhost:8082/employees/${employeeId}/orders`
     );
     const details = await axios.get(`http://localhost:8082/employees/${employeeId}`);
+    console.log(details);
+    setUsers(result.data);
+    setUserDetail({ first: details.data.firstName, last: details.data.lastName });
+  };
+*/
+
+  const loadUsers = async () => {
+    const result = await api.get(
+      `/employees/${employeeId}/orders`
+    );
+    const details = await api.get(`/employees/${employeeId}`);
     console.log(details);
     setUsers(result.data);
     setUserDetail({ first: details.data.firstName, last: details.data.lastName });
