@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import api from "../api";
 
 export default function Home() {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   const [showAddOrdersLink, setShowAddOrdersLink] = useState(false);
@@ -15,9 +15,9 @@ export default function Home() {
       })
       .catch((error) => console.log(error));
   }, []);
-*/
   
 useEffect(() => {
+  fetchData();
   const result = api.get("/employees");
   result
     .then((response) => {
@@ -25,6 +25,20 @@ useEffect(() => {
     })
     .catch((error) => console.log(error));
 }, []);
+*/
+
+useEffect(() => {
+  fetchData();
+}, [])
+const fetchData = async () => {
+  try {
+    const response = await fetch(`${apiUrl}/employees`);
+    const jsonData = await response.json();
+    setUsers(jsonData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
 
 
   const handleViewOrders = (employeeId) => {

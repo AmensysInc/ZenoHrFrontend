@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import api from "../api";
 
 export default function PurchaseOrder() {
+  const apiUrls = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   let location = useLocation();
@@ -21,7 +21,6 @@ export default function PurchaseOrder() {
     setUsers(result.data);
     setUserDetail({ first: details.data.firstName, last: details.data.lastName });
   };
-*/
 
   const loadUsers = async () => {
     const result = await api.get(
@@ -33,6 +32,33 @@ export default function PurchaseOrder() {
     setUserDetail({ first: details.data.firstName, last: details.data.lastName });
   };
 
+  const loadUsers = async () => {
+    const result = await fetch(
+      `${apiUrls}/employees/${employeeId}/orders`
+    );
+    const details = await fetch(`${apiUrls}/employees/${employeeId}`);
+    console.log(details);
+    setUsers(result.data);
+    setUserDetail({ first: details.data.firstName, last: details.data.lastName });
+  };
+*/  
+  const loadUsers = async () => {
+    try {
+      const result = await fetch(`${apiUrls}/employees/${employeeId}/orders`);
+      const details = await fetch(`${apiUrls}/employees/${employeeId}`);
+      const resultData = await result.json();
+      const detailsData = await details.json();
+      console.log(detailsData);
+      setUsers(resultData);
+      setUserDetail({
+        first: detailsData.firstName,
+        last: detailsData.lastName,
+      });
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+  
   return (
     <div className="container">
       <div className="py-4">
