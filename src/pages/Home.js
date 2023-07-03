@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
+import Pagination from "react-bootstrap/Pagination";
 
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   const [showAddOrdersLink, setShowAddOrdersLink] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 /*
   useEffect(() => {
     const result = axios.get("http://localhost:8082/employees");
@@ -44,6 +47,14 @@ const fetchData = async () => {
   const handleViewOrders = (employeeId) => {
     navigate(`/orders`, { state: { employeeId } });
     setShowAddOrdersLink(true);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   return (
@@ -106,6 +117,21 @@ const fetchData = async () => {
           Add Orders
         </NavLink>
       )}
+      <div className="pagination-container">
+        <Pagination>
+          {Array.from({ length: Math.ceil(users.length / itemsPerPage) }).map(
+            (item, index) => (
+              <Pagination.Item
+                key={index}
+                active={index + 1 === currentPage}
+                onClick={() => paginate(index + 1)}
+              >
+                {index + 1}
+              </Pagination.Item>
+            )
+          )}
+        </Pagination>
+      </div>
     </div>
   );
 }
