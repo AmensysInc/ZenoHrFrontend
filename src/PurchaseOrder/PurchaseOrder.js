@@ -3,13 +3,18 @@ import { useLocation } from "react-router-dom";
 import Pagination from "react-bootstrap/Pagination";
 
 export default function PurchaseOrder() {
+
   const apiUrls = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
   const [userDetail, setUserDetail] = useState({});
+
   let location = useLocation();
   const { employeeId } = location.state;
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  
   useEffect(() => {
     loadUsers();
   }, []);

@@ -5,15 +5,17 @@ import Home from "./pages/Home";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AddUser from "./Employee/Employee";
 import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
+import AddOrder from "./PurchaseOrder/AddOrder";
 
 function App() {
   return (
     <div className="App">
       <Router>
-        <Navbar />
+        <Navbar/>
         <Routes>
           <Route exact path="/" element={<Home />} />
           <Route exact path="/adduser" element={<AddUser/>} />
+          <Route exact path="/addorder" element={<AddOrder/>} />
           <Route exact path="/orders" element={<PurchaseOrder />} />
         </Routes>
       </Router>
