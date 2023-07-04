@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import Pagination from "react-bootstrap/Pagination";
 
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -8,52 +7,33 @@ export default function Home() {
   const navigate = useNavigate();
   const [showAddOrdersLink, setShowAddOrdersLink] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-/*
+  const itemsPerPage = 10;
+
   useEffect(() => {
-    const result = axios.get("http://localhost:8082/employees");
-    result
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => console.log(error));
+    fetchData();
   }, []);
-  
-useEffect(() => {
-  fetchData();
-  const result = api.get("/employees");
-  result
-    .then((response) => {
-      setUsers(response.data);
-    })
-    .catch((error) => console.log(error));
-}, []);
-*/
 
-useEffect(() => {
-  fetchData();
-}, [])
-const fetchData = async () => {
-  try {
-    const response = await fetch(`${apiUrl}/employees`);
-    const jsonData = await response.json();
-    setUsers(jsonData);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-};
-
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/employees`);
+      const jsonData = await response.json();
+      setUsers(jsonData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const handleViewOrders = (employeeId) => {
     navigate(`/orders`, { state: { employeeId } });
     setShowAddOrdersLink(true);
   };
-  
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(users.length / itemsPerPage);
 
-  const paginate = (pageNumber) => {
+  const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
@@ -73,13 +53,14 @@ const fetchData = async () => {
               <th scope="col">Visa StartDate</th>
               <th scope="col">Visa EndDate</th>
               <th scope="col">Working Status</th>
+              <th scope="col">View Orders</th>
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
-              users.map((employee, index) => (
+            {currentUsers.length > 0 ? (
+              currentUsers.map((employee, index) => (
                 <tr key={index}>
-                  <th scope="row">{index + 1}</th>
+                  <th scope="row">{indexOfFirstItem + index + 1}</th>
                   <td>{employee.firstName}</td>
                   <td>{employee.lastName}</td>
                   <td>{employee.emailID}</td>
@@ -89,11 +70,6 @@ const fetchData = async () => {
                   <td>{employee.visaStartDate}</td>
                   <td>{employee.visaExpiryDate}</td>
                   <td>{employee.onBench ? "Yes" : "No"}</td>
-                  {employee.length === 0 && (
-                    <tr>
-                      <td colSpan="8">No record found</td>
-                    </tr>
-                  )}
                   <td>
                     <button
                       className="btn btn-primary"
@@ -106,35 +82,34 @@ const fetchData = async () => {
               ))
             ) : (
               <tr>
-                <td colSpan="10">No users found</td>
+                <td colSpan="11">No users found</td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+      <div className="pagination">
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+          (page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={currentPage === page ? "active" : ""}
+            >
+              {page}
+            </button>
+          )
+        )}
       </div>
       {showAddOrdersLink && (
         <NavLink className="btn btn-outline-light" to="/addorders">
           Add Orders
         </NavLink>
       )}
-      <div className="pagination-container">
-        <Pagination>
-          {Array.from({ length: Math.ceil(users.length / itemsPerPage) }).map(
-            (item, index) => (
-              <Pagination.Item
-                key={index}
-                active={index + 1 === currentPage}
-                onClick={() => paginate(index + 1)}
-              >
-                {index + 1}
-              </Pagination.Item>
-            )
-          )}
-        </Pagination>
-      </div>
     </div>
   );
 }
+
 
 
 // import React, { useEffect, useState } from "react";

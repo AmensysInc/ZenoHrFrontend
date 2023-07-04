@@ -9,7 +9,7 @@ export default function Navbar() {
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">
-            Quick HR-MS
+            Quick HRMS
           </Link>
           <button
             className="navbar-toggler"
@@ -25,11 +25,11 @@ export default function Navbar() {
 
           {location.pathname !== "/orders" ? (
             <Link className="btn btn-outline-light" to="/adduser">
-              Add User
+              Add Employee
             </Link>
           ) : (
             <Link className="btn btn-outline-light" to="/addorder">
-              Add Order
+              Add PurchaseOrder
             </Link>
           )}
         </div>

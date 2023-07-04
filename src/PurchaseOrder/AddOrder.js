@@ -31,7 +31,7 @@ export default function AddOrder() {
 
   return (
     <div className="form-container">
-          <h2 className="text-center m-4">Register Order</h2>
+          <h2 className="text-center m-4">New PurchaseOrder</h2>
           <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
           <div className="form-group">

@@ -41,7 +41,7 @@ export default function AddUser() {
 
   return (
     <div className="form-container">
-          <h2 className="text-center m-4">Register User</h2>
+          <h2 className="text-center m-4">Add Employee</h2>
 
           <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
