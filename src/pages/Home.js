@@ -28,9 +28,15 @@ export default function Home() {
     setShowAddOrdersLink(true);
   };
 
+  const handleViewTracking = (employeeId) => {
+    navigate("/tracking", { state: { employeeId } });
+
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+  // const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+  const currentUsers = Array.isArray(users) ? users.slice(indexOfFirstItem, indexOfLastItem) : [];
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
@@ -40,6 +46,7 @@ export default function Home() {
   return (
     <div className="container">
       <div className="py-4">
+        <h4 className="text-center">Employee details</h4>
         <table className="table border shadow">
           <thead>
             <tr>
@@ -77,6 +84,12 @@ export default function Home() {
                     >
                       View Orders
                     </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() =>handleViewTracking(employee.employeeID)}
+                    >
+                      View Tracking
+                    </button>
                   </td>
                 </tr>
               ))
@@ -105,6 +118,7 @@ export default function Home() {
         <NavLink className="btn btn-outline-light" to="/addorders">
           Add Orders
         </NavLink>
+        
       )}
     </div>
   );

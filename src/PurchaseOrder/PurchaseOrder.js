@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 export default function PurchaseOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [orders, setOrders] = useState([]);
-  const [userDetail, setUserDetail] = useState({});
+  const [userDetail, setUserDetail] = useState({}); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -45,7 +45,7 @@ export default function PurchaseOrder() {
   return (
     <div className="container">
       <div className="py-4">
-        {userDetail.first} {userDetail.last}
+        <h4 className="text-center">{userDetail.first} {userDetail.last}</h4>
         <table className="table border shadow">
           <thead>
             <tr>

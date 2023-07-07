@@ -2,35 +2,34 @@ import React, { useState } from 'react';
 import axios from "axios";
 import { Link, useNavigate,} from "react-router-dom";
 
-export default function AddOrder() {
-
+export default function AddWithHoldTracking() {
   let navigate = useNavigate();
 
-  const [orders, setOrders] = useState({
+  const [tracking, setTrackings] = useState({
     employeeId: "",
-    dateOfJoining : "",
-    projectEndDate : "",
-    billRate : "",
-    endClientName : "",
-    vendorPhoneNo : "",
-    vendorEmailId : ""
+    month : "",
+    actualHours : "",
+    actualRate : "",
+    paidHours : "",
+    paidRate : "",
+
   });
 
-  const { employeeId, dateOfJoining, projectEndDate, billRate, endClientName, vendorPhoneNo, vendorEmailId} = orders;
+  const { employeeId, month, actualHours, actualRate, paidHours, paidRate} = tracking;
 
   const onInputChange = (e) => {
-    setOrders({ ...orders, [e.target.name]: e.target.value });
+    setTrackings({ ...tracking, [e.target.name]: e.target.value });
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    await axios.post(`http://localhost:8082/employees/${employeeId}/orders`, orders);
+    await axios.post(`http://localhost:8082/employees/${employeeId}/trackings`, tracking);
     navigate("/");
   };
 
   return (
     <div className="form-container">
-          <h2 className="text-center m-4">Add New PurchaseOrder</h2>
+          <h2 className="text-center m-4">Add New WithHoldTracking</h2>
           <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
           <div className="form-group">
@@ -47,79 +46,66 @@ export default function AddOrder() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="dateOfJoining">
+              <label htmlFor="month">
               </label>
               <input
                 type={"text"}
                 className="form-control"
-                placeholder="Date Of Joining"
-                name="dateOfJoining"
-                value={dateOfJoining}
+                placeholder="Month"
+                name="month"
+                value={month}
                 onChange={(e) => onInputChange(e)}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="projectEndDate">
+              <label htmlFor="actualHours">
               </label>
               <input
                 type={"text"}
                 className="form-control"
-                placeholder="Project End Date"
-                name="projectEndDate"
-                value={projectEndDate}
+                placeholder="Actual Hours"
+                name="actualHours"
+                value={actualHours}
                 onChange={(e) => onInputChange(e)}
               />
             </div>
             </div>
             <div className="form-group">
-              <label htmlFor="billRate">
+              <label htmlFor="actualRate">
               </label>
               <input
                 type={"text"}
                 className="form-control"
-                placeholder="Bill Rate"
-                name="billRate"
-                value={billRate}
+                placeholder="Actual Rate"
+                name="actualRate"
+                value={actualRate}
                 onChange={(e) => onInputChange(e)}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="endClientName">
+              <label htmlFor="paidHours">
               </label>
               <input
                 type={"text"}
                 className="form-control"
-                placeholder="End Client Name"
-                name="endClientName"
-                value={endClientName}
+                placeholder="Paid Hours"
+                name="paidHours"
+                value={paidHours}
                 onChange={(e) => onInputChange(e)}
                 required
               />
               </div>
               <div className="form-group">
-              <label htmlFor="vendorPhoneNo">
+              <label htmlFor="paidRate">
               </label>
               <input
                 type={"text"}
                 className="form-control"
-                placeholder="Vendor PhoneNo"
-                name="vendorPhoneNo"
-                value={vendorPhoneNo}
-                onChange={(e) => onInputChange(e)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="vendorEmailId">
-              </label>
-              <input
-                type={"text"}
-                className="form-control"
-                placeholder="Vendor EmailId"
-                name="vendorEmailId"
-                value={vendorEmailId}
+                placeholder="Paid Rate"
+                name="paidRate"
+                value={paidRate}
                 onChange={(e) => onInputChange(e)}
                 required
               />
@@ -135,4 +121,3 @@ export default function AddOrder() {
         </div>
   )
 }
-
