@@ -1,40 +1,3 @@
-// import axios from "axios";
-// import React, { useEffect, useState } from "react";
-// import { Link, useLocation, useNavigate } from "react-router-dom";
-// import DatePicker from "react-datepicker";
-// import "react-datepicker/dist/react-datepicker.css";
-
-
-// export default function EditEmployee() {
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const employeeId = location.state.employeeId;
-
-//   const [employee, setEmployee] = useState({
-//     firstName: "",
-//     lastName: "",
-//     emailID: "",
-//     dob: "",
-//     clgOfGrad: "",
-//     visaStatus: "",
-//     visaStartDate: null,
-//     visaExpiryDate: null,
-//     onBench: ""
-//   });
-
-//   useEffect(() => {
-//     fetchEmployee();
-//   }, []);
-
-//    const fetchEmployee = async () => {
-//     try {
-//       const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
-//       const { data } = response;
-//       setEmployee(data);
-//     } catch (error) {
-//       console.error("Error fetching employee:", error);
-//     }
-//   };
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -53,8 +16,8 @@ export default function EditEmployee() {
     dob: "",
     clgOfGrad: "",
     visaStatus: "",
-    visaStartDate: new Date(), // Set default value to current date
-    visaExpiryDate: new Date(), // Set default value to current date
+    visaStartDate: new Date(), 
+    visaExpiryDate: new Date(), 
     onBench: ""
   });
 
@@ -62,25 +25,16 @@ export default function EditEmployee() {
     fetchEmployee();
   }, []);
 
-//   const fetchEmployee = async () => {
-//     try {
-//       const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
-//       const { data } = response;
-//       setEmployee(data);
-//     } catch (error) {
-//       console.error("Error fetching employee:", error);
-//     }
-//   };
+
 const fetchEmployee = async () => {
     try {
       const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
       const { data } = response;
   
-      // Parse date strings into Date objects
+
       const visaStartDate = new Date(data.visaStartDate);
       const visaExpiryDate = new Date(data.visaExpiryDate);
   
-      // Update employee state with parsed dates
       setEmployee({
         ...data,
         visaStartDate,
@@ -117,24 +71,7 @@ const fetchEmployee = async () => {
     setEmployee({ ...employee, visaExpiryDate: date });
   };
 
-//   const onSubmit = async (e) => {
-//     e.preventDefault();
-//     if (visaStartDate > visaExpiryDate) {
-//       alert("Visa start date cannot be after visa expiry date");
-//       return;
-//     }
-//     if (visaExpiryDate < visaStartDate) {
-//       alert("Visa expiry date cannot be before visa start date");
-//       return;
-//     }
-//     try {
-//       await axios.put(`http://localhost:8082/employees/${employeeId}`, employee);
-//       navigate("/");
-//     } catch (error) {
-//       console.error("Error updating employee:", error);
-//     }
-//   };
-const onSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (visaStartDate > visaExpiryDate) {
       alert("Visa start date cannot be after visa expiry date");
