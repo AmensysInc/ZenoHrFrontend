@@ -95,7 +95,7 @@ export default function AddUser() {
           <input
             type={"text"}
             className="form-control"
-            placeholder="Date of Birth"
+            placeholder="Date of Birth(yyyy-MM-dd)"
             name="dob"
             value={dob}
             onChange={(e) => onInputChange(e)}
@@ -130,7 +130,7 @@ export default function AddUser() {
           <label htmlFor="visaStartDate"></label>
           <DatePicker
             className="form-control"
-            placeholderText="Visa Start Date"
+            placeholderText="Visa Start Date(yyyy-MM-dd)"
             name="visaStartDate"
             selected={visaStartDate}
             onChange={onVisaStartDateChange}
@@ -142,7 +142,7 @@ export default function AddUser() {
           <label htmlFor="visaExpiryDate"></label>
           <DatePicker
             className="form-control"
-            placeholderText="Visa Expiry Date"
+            placeholderText="Visa Expiry Date(yyyy-MM-dd)"
             name="visaExpiryDate"
             selected={visaExpiryDate}
             onChange={onVisaExpiryDateChange}

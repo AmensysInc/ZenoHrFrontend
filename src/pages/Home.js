@@ -47,6 +47,14 @@ export default function Home() {
     navigate("/editemployee", { state: { employeeId } });
   };
 
+  const handleDeleteEmployee = async (employeeId) => {
+    try {
+      await fetch(`${apiUrl}/employees/${employeeId}`, { method: 'DELETE' });
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+    }
+  };
   
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -117,6 +125,12 @@ export default function Home() {
                       onClick={() => handleAddOrder(employee.employeeID)}
                     >
                       Add Order
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteEmployee(employee.employeeID)}
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
