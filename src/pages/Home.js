@@ -30,8 +30,24 @@ export default function Home() {
 
   const handleViewTracking = (employeeId) => {
     navigate("/tracking", { state: { employeeId } });
-
   };
+
+  // const handleAddOrder = (employeeId) => {
+  //   navigate("/addorder", { state: { employeeId } });
+  // };
+  const handleAddOrder = (employeeId) => {
+    const employee = users.find((emp) => emp.employeeID === employeeId);
+    if (employee) {
+      navigate("/addorder", { state: { employeeId, onBench: employee.onBench } });
+    }
+  };
+  
+
+  const handleEditEmployee = (employeeId) => {
+    navigate("/editemployee", { state: { employeeId } });
+  };
+
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -78,6 +94,12 @@ export default function Home() {
                   <td>{employee.visaExpiryDate}</td>
                   <td>{employee.onBench ? "Yes" : "No"}</td>
                   <td>
+                  <button
+                      className="btn btn-primary"
+                      onClick={() => handleEditEmployee(employee.employeeID)}
+                    >
+                      Edit Employee
+                    </button>
                     <button
                       className="btn btn-primary"
                       onClick={() => handleViewOrders(employee.employeeID)}
@@ -89,6 +111,12 @@ export default function Home() {
                       onClick={() =>handleViewTracking(employee.employeeID)}
                     >
                       View Tracking
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleAddOrder(employee.employeeID)}
+                    >
+                      Add Order
                     </button>
                   </td>
                 </tr>

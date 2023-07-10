@@ -8,6 +8,7 @@ import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
 import AddOrder from "./PurchaseOrder/AddOrder";
 import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
 import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
+import EditEmployee from "./Employee/EditEmployee";
 
 function App() {
   return (
@@ -18,10 +19,10 @@ function App() {
           <Route exact path="/" element={<Home />} />
           <Route exact path="/adduser" element={<AddUser/>} />
           <Route exact path="/addorder" element={<AddOrder/>} />
-          <Route exact path="/addorder" element={<AddOrder/>} />
           <Route exact path="/orders" element={<PurchaseOrder />} />
           <Route exact path="/tracking" element={<WithHoldTracking />} />
           <Route exact path="/addtracking" element={<AddWithHoldTracking/>} />
+          <Route exact path="/editemployee" element={<EditEmployee />} />
         </Routes>
       </Router>
     </div>

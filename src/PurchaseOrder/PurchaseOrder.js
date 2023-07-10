@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation} from "react-router-dom";
 
 export default function PurchaseOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -67,6 +67,8 @@ export default function PurchaseOrder() {
                   <td>{employeeOrder.endClientName}</td>
                   <td>{employeeOrder.vendorPhoneNo}</td>
                   <td>{employeeOrder.vendorEmailId}</td>
+                  <td>
+                  </td>
                 </tr>
               ))
             ) : (
