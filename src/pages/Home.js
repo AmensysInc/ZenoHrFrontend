@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 
+
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
@@ -9,13 +10,30 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+
   useEffect(() => {
-    fetchData();
+     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${apiUrl}/employees`);
+      // const response = await fetch(`${apiUrl}/employees`,{
+      //   method : "GET",
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
+      //   }
+      // });
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${localStorage.getItem("token")}`);
+
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+      };
+
+      const response = await fetch("http://localhost:8082/employees", requestOptions)
       const jsonData = await response.json();
       setUsers(jsonData);
     } catch (error) {
@@ -32,9 +50,6 @@ export default function Home() {
     navigate("/tracking", { state: { employeeId } });
   };
 
-  // const handleAddOrder = (employeeId) => {
-  //   navigate("/addorder", { state: { employeeId } });
-  // };
   const handleAddOrder = (employeeId) => {
     const employee = users.find((emp) => emp.employeeID === employeeId);
     if (employee) {
@@ -70,6 +85,7 @@ export default function Home() {
   return (
     <div className="container">
       <div className="py-4">
+        
         <h4 className="text-center">Employee details</h4>
         <table className="table border shadow">
           <thead>
@@ -166,75 +182,3 @@ export default function Home() {
   );
 }
 
-
-
-// import React, { useEffect, useState } from "react";
-// import {useNavigate , NavLink} from "react-router-dom";
-// import axios from "axios";
-
-// export default function Home() {
-//   const [users, setUsers] = useState([]);
-//   let navigate = useNavigate();
-
-//   useEffect(() => {
-//     const result =  axios.get("http://localhost:8082/employees");
-//     result.then((response) => {
-//       setUsers(response.data);
-//     }).catch(error => console.log(error));
-//   }, []);
-
-
-
-//   return (
-//     <div className="container">
-//       <div className="py-4">
-//         <table className="table border shadow">
-//           <thead>
-//             <tr>
-//               <th scope="col">S.No</th>
-//               <th scope="col">FirstName</th>
-//               <th scope="col">LastName</th>
-//               <th scope="col">EmailID</th>
-//               <th scope="col">Visa Status</th>
-//               <th scope="col">Date Of Birth</th> 
-//               <th scope="col">College Graduation</th>
-//               <th scope="col">Visa StartDate</th>
-//               <th scope="col">Visa EndDate</th>
-//               <th scope="col">Working Status</th>
-//               {/* <th scope="col">Action</th> */}
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {users && users.length > 0 && users.map((employee, index) => {
-//               return(
-//               <tr key={Math.random()}>
-//                 <th scope="row" key={index}>
-//                   {index+1}
-//                 </th>
-//                 <td>{employee.firstName}</td>
-//                 <td>{employee.lastName}</td>
-//                 <td>{employee.emailID}</td>
-//                 <td>{employee.visaStatus}</td>
-//                 <td>{employee.dob}</td>
-//                 <td>{employee.clgOfGrad}</td>
-//                 <td>{employee.visaStartDate}</td>
-//                 <td>{employee.visaExpiryDate}</td>
-//                 <td>{employee.onBench ? 'Yes' : 'No'}</td>
-//                 {
-//                 !employee.length ===  0  && 
-//                 <tr>
-//                     <td colSpan='8'> No record found</td>
-//                 </tr>
-//             }
-//               {/* <NavLink to={`/orders/${employee.employeeID}`}>View Orders </NavLink> */}
-
-//               <NavLink to={`/orders`} state={{ employeeId: employee.employeeID }}>View Orders</NavLink>
-
-//               </tr>
-// )})}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-// }
