@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -19,17 +19,16 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      // Assuming the response contains a token
+     
       const token = data.access_token;
 
-      // Store the token in local storage or state for future use
+    
       localStorage.setItem("token", token);
-
-      // Redirect to the home page
+      onLogin();
+     
       navigate("/");
     } catch (error) {
       console.error("Error authenticating user:", error);
-      // Handle authentication error
     }
   };
 

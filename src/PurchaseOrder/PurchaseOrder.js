@@ -15,12 +15,50 @@ export default function PurchaseOrder() {
     loadOrders();
   }, []);
 
+  // const loadOrders = async () => {
+  //   try {
+  //     var myHeaders = new Headers();
+  //     myHeaders.append("Authorization", `Bearer ${localStorage.getItem("token")}`);
+  //     var requestOptions = {
+  //       method: 'GET',
+  //       headers: myHeaders,
+  //       redirect: 'follow'
+  //     };
+      
+  //     const ordersResponse = await fetch(
+  //       `${apiUrl}/employees/${employeeId}/orders`,requestOptions
+  //     );
+  //     const detailsResponse = await fetch(`${apiUrl}/employees/${employeeId}`);
+      
+  //     const ordersData = await ordersResponse.json();
+  //     const detailsData = await detailsResponse.json();
+  //     setOrders(ordersData);
+  //     setUserDetail({
+  //       first: detailsData.firstName,
+  //       last: detailsData.lastName,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error loading orders:", error);
+  //   }
+  // };
+
   const loadOrders = async () => {
     try {
+      const token = localStorage.getItem("token");
+  
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+  
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+      };
+  
       const ordersResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/orders`
+        `${apiUrl}/employees/${employeeId}/orders`, requestOptions
       );
-      const detailsResponse = await fetch(`${apiUrl}/employees/${employeeId}`);
+      const detailsResponse = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
       const ordersData = await ordersResponse.json();
       const detailsData = await detailsResponse.json();
       setOrders(ordersData);
@@ -32,6 +70,7 @@ export default function PurchaseOrder() {
       console.error("Error loading orders:", error);
     }
   };
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

@@ -34,6 +34,20 @@ export default function AddUser() {
     setUser({ ...user, visaExpiryDate: date });
   };
 
+  // const onSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (visaStartDate > visaExpiryDate) {
+  //     alert('Visa start date cannot be after visa expiry date');
+  //     return;
+  //   }
+  //   if (visaExpiryDate < visaStartDate) {
+  //     alert('Visa expiry date cannot be before visa start date');
+  //     return;
+  //   }
+  //   await axios.post("http://localhost:8082/employees", user);
+  //   navigate("/");
+  // };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (visaStartDate > visaExpiryDate) {
@@ -44,9 +58,23 @@ export default function AddUser() {
       alert('Visa expiry date cannot be before visa start date');
       return;
     }
-    await axios.post("http://localhost:8082/employees", user);
-    navigate("/");
+    try {
+      const token = localStorage.getItem("token");
+  
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+  
+      await axios.post("http://localhost:8082/employees", user, config);
+      navigate("/");
+    } catch (error) {
+      console.error('Error adding employee:', error);
+    }
   };
+  
+
 
   return (
     <div className="form-container">

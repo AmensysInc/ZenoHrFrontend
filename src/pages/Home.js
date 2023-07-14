@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 
-
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
@@ -17,13 +16,6 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      // const response = await fetch(`${apiUrl}/employees`,{
-      //   method : "GET",
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   }
-      // });
       var myHeaders = new Headers();
       myHeaders.append("Authorization", `Bearer ${localStorage.getItem("token")}`);
 
@@ -34,6 +26,9 @@ export default function Home() {
       };
 
       const response = await fetch("http://localhost:8082/employees", requestOptions)
+      if (!response.ok) {
+        throw new Error('Failed to fetch data from the server');
+      }
       const jsonData = await response.json();
       setUsers(jsonData);
     } catch (error) {
@@ -74,7 +69,6 @@ export default function Home() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
   const currentUsers = Array.isArray(users) ? users.slice(indexOfFirstItem, indexOfLastItem) : [];
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
