@@ -1,0 +1,19 @@
+/* Example CSS for side-by-side form elements */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .form-group {
+    flex-basis: 45%; /* Adjust this value to control the width of each form group */
+  }
+  .total-balance {
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  .total-balance {
+    font-weight: bold;
+    margin-top: 20px;
+  }
+      

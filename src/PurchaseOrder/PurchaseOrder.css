@@ -1,0 +1,10 @@
+.add-orders {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 60px;
+  }
+  .icon-container > *:hover {
+    cursor: pointer;
+    color: #007bff; /* Change this color to your desired hover color */
+  }

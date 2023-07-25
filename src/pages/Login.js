@@ -8,8 +8,6 @@ export default function Login({ onLogin }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    // Make API call to authenticate the user
     try {
       const response = await fetch("http://localhost:8082/auth/authenticate", {
         method: "POST",
@@ -19,13 +17,10 @@ export default function Login({ onLogin }) {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-     
+      const role = data.role;
       const token = data.access_token;
-
-    
       localStorage.setItem("token", token);
-      onLogin();
-     
+      onLogin(role);     
       navigate("/");
     } catch (error) {
       console.error("Error authenticating user:", error);

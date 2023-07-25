@@ -1,122 +1,80 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './layout/Navbar';
-import Home from './pages/Home';
-import AddUser from './Employee/Employee';
-import PurchaseOrder from './PurchaseOrder/PurchaseOrder';
-import AddOrder from './PurchaseOrder/AddOrder';
-import WithHoldTracking from './WithHoldTracking/WithHoldTracking';
-import AddWithHoldTracking from './WithHoldTracking/AddWithHoldTracking';
-import EditEmployee from './Employee/EditEmployee';
-import Login from './pages/Login';
+import React, { useState } from "react";
+import "./App.css";
+import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
+import Navbar from "./layout/Navbar";
+import Home from "./pages/Home";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import AddUser from "./Employee/Employee";
+import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
+import AddOrder from "./PurchaseOrder/AddOrder";
+import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
+import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
+import EditEmployee from "./Employee/EditEmployee";
+import Login from "./pages/Login";
+import EditOrder from "./PurchaseOrder/EditOrder";
+import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
+import Breadcrumb from "./Breadcrumbs";
+
+
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error("Error getting data from localStorage:", error);
+      return initialValue;
+    }
+  });
+
+  const setValue = (value) => {
+    try {
+      setStoredValue(value);
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error("Error setting data to localStorage:", error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
+  
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+    
   };
 
   return (
-    <Router>
-      <div className="App">
-        <Navbar isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
+    <div className="App">
+      <Router>
+        <Navbar location={window.location}/>
+        {isLoggedIn && <Breadcrumb/>}
+        {/* <Breadcrumbs location={window.location} /> */}
         <Routes>
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          {isLoggedIn ? (
-            <>
-              <Route path="/" element={<Home />} />
-              <Route path="/adduser" element={<AddUser />} />
-              <Route path="/addorder" element={<AddOrder />} />
-              <Route path="/orders" element={<PurchaseOrder />} />
-              <Route path="/tracking" element={<WithHoldTracking />} />
-              <Route path="/addtracking" element={<AddWithHoldTracking />} />
-              <Route path="/editemployee" element={<EditEmployee />} />
-            </>
+        <Route exact path="/login" element={<Login onLogin={handleLogin}/>} />
+          {isLoggedIn ? 
+          (
+          <>
+          <Route exact path="/" element={<Home />} />
+          <Route exact path="/adduser" element={<AddUser/>} />
+          <Route exact path="/addorder" element={<AddOrder />} />
+          <Route exact path="/orders" element={<PurchaseOrder />} />
+          <Route path="/editorder" element={<EditOrder/>} />
+          <Route exact path="/tracking" element={<WithHoldTracking />} />
+          <Route path="/edittracking" element={<EditWithHoldTracking/> } />
+          <Route exact path="/addtracking" element={<AddWithHoldTracking/>} />
+          <Route exact path="/editemployee" element={<EditEmployee />} />
+          </>
           ) : (
             <Route path="/*" element={<Navigate to="/login" />} />
           )}
         </Routes>
-      </div>
-    </Router>
+      </Router>
+    </div>
   );
 }
-
 export default App;
-
-
-
-// import React from 'react';
-// import { BrowserRouter as Routes, Route, } from "react-router-dom";
-// import Navbar from "./layout/Navbar";
-// import Home from "./pages/Home";
-// import AddUser from "./Employee/Employee";
-// import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
-// import AddOrder from "./PurchaseOrder/AddOrder";
-// import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
-// import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
-// import EditEmployee from "./Employee/EditEmployee";
-// import Login from "./pages/Login";
-
-// function App() {
-//   return (
-     
-//       <div className="App">
-//         <Navbar />
-//         <Routes>
-//           <Route path="/login" element={<Login />} />
-//           <Route path="/" element={<Home />} />
-//           <Route path="/adduser" element={<AddUser />} />
-//           <Route path="/addorder" element={<AddOrder />} />
-//           <Route path="/orders" element={<PurchaseOrder />} />
-//           <Route path="/tracking" element={<WithHoldTracking />} />
-//           <Route path="/addtracking" element={<AddWithHoldTracking />} />
-//           <Route path="/editemployee" element={<EditEmployee />} />
-//         </Routes>
-//       </div>
-//   );
-// }
-
-// export default App;
-
-
-
-
-// import "./App.css";
-// import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
-// import Navbar from "./layout/Navbar";
-// import Home from "./pages/Home";
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import AddUser from "./Employee/Employee";
-// import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
-// import AddOrder from "./PurchaseOrder/AddOrder";
-// import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
-// import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
-// import EditEmployee from "./Employee/EditEmployee";
-// import Login from "./pages/Login";
-
-// function App() {
-
-//   return (
-//     <div className="App">
-//       <Router>
-//         <Navbar location={window.location}/>
-//         <Routes>
-//         <Route exact path="/login" element={<Login />} />
-//           <Route exact path="/" element={<Home />} />
-//           <Route exact path="/adduser" element={<AddUser/>} />
-//           <Route exact path="/addorder" element={<AddOrder/>} />
-//           <Route exact path="/orders" element={<PurchaseOrder />} />
-//           <Route exact path="/tracking" element={<WithHoldTracking />} />
-//           <Route exact path="/addtracking" element={<AddWithHoldTracking/>} />
-//           <Route exact path="/editemployee" element={<EditEmployee />} />
-//         </Routes>
-//       </Router>
-//     </div>
-//   );
-// }
-// export default App;

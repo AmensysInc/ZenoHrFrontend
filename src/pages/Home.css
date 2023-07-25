@@ -1,0 +1,20 @@
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .icon-container > * {
+    margin-right: 10px;
+  }
+
+  .icon-container > *:hover {
+    cursor: pointer;
+    color: #007bff;
+  }
+
+  .icon-container > .delete-icon:hover {
+    color: red; 
+  }
+  

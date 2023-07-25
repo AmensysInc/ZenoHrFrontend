@@ -25,27 +25,51 @@ export default function EditEmployee() {
     fetchEmployee();
   }, []);
 
+// const fetchEmployee = async () => {
+//     try {
+//       const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
+//       const { data } = response;
+  
 
+//       const visaStartDate = new Date(data.visaStartDate);
+//       const visaExpiryDate = new Date(data.visaExpiryDate);
+  
+//       setEmployee({
+//         ...data,
+//         visaStartDate,
+//         visaExpiryDate
+//       });
+//     } catch (error) {
+//       console.error("Error fetching employee:", error);
+//     }
+//   };
+  
 const fetchEmployee = async () => {
-    try {
-      const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
-      const { data } = response;
-  
+  try {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
+    const response = await axios.get(
+      `http://localhost:8082/employees/${employeeId}`,
+      config
+    );
+    const { data } = response;
 
-      const visaStartDate = new Date(data.visaStartDate);
-      const visaExpiryDate = new Date(data.visaExpiryDate);
-  
-      setEmployee({
-        ...data,
-        visaStartDate,
-        visaExpiryDate
-      });
-    } catch (error) {
-      console.error("Error fetching employee:", error);
-    }
-  };
-  
-  
+    const visaStartDate = new Date(data.visaStartDate);
+    const visaExpiryDate = new Date(data.visaExpiryDate);
+
+    setEmployee({
+      ...data,
+      visaStartDate,
+      visaExpiryDate
+    });
+  } catch (error) {
+    console.error("Error fetching employee:", error);
+  }
+};
 
   const {
     firstName,
@@ -71,6 +95,28 @@ const fetchEmployee = async () => {
     setEmployee({ ...employee, visaExpiryDate: date });
   };
 
+  // const onSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (visaStartDate > visaExpiryDate) {
+  //     alert("Visa start date cannot be after visa expiry date");
+  //     return;
+  //   }
+  //   if (visaExpiryDate < visaStartDate) {
+  //     alert("Visa expiry date cannot be before visa start date");
+  //     return;
+  //   }
+  //   try {
+  //     await axios.put(`http://localhost:8082/employees/${employeeId}`, {
+  //       ...employee,
+  //       visaStartDate: visaStartDate.toISOString(), // Convert date to ISO string format
+  //       visaExpiryDate: visaExpiryDate.toISOString() // Convert date to ISO string format
+  //     });
+  //     navigate("/");
+  //   } catch (error) {
+  //     console.error("Error updating employee:", error);
+  //   }
+  // };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (visaStartDate > visaExpiryDate) {
@@ -82,11 +128,23 @@ const fetchEmployee = async () => {
       return;
     }
     try {
-      await axios.put(`http://localhost:8082/employees/${employeeId}`, {
-        ...employee,
-        visaStartDate: visaStartDate.toISOString(), // Convert date to ISO string format
-        visaExpiryDate: visaExpiryDate.toISOString() // Convert date to ISO string format
-      });
+      const token = localStorage.getItem("token");
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
+      await axios.put(
+        `http://localhost:8082/employees/${employeeId}`,
+        {
+          ...employee,
+          visaStartDate: visaStartDate.toISOString(), // Convert date to ISO string format
+          visaExpiryDate: visaExpiryDate.toISOString() // Convert date to ISO string format
+        },
+        config
+      );
       navigate("/");
     } catch (error) {
       console.error("Error updating employee:", error);
