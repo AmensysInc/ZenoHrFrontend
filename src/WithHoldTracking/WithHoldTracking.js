@@ -15,7 +15,7 @@ export default function WithHoldTracking() {
   const { employeeId } = location.state;
 
   const handleAddTracking = (employeeId) => {
-    navigate("/addtracking", { state: { employeeId } });
+    navigate("/tracking/addtracking", { state: { employeeId } });
   };
 
   useEffect(() => { 
@@ -59,7 +59,7 @@ export default function WithHoldTracking() {
     setCurrentPage(pageNumber);
   };
   const handleEditTracking = (trackingId) => {
-    navigate("/edittracking", { state: { employeeId,trackingId } });
+    navigate("/tracking/edittracking", { state: { employeeId,trackingId } });
   };
   const totalBalance = trackings.reduce(
     (acc, tracking) => acc + parseFloat(tracking.balance),

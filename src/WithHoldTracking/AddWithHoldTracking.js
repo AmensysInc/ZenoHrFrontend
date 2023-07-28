@@ -232,8 +232,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Actual Amount"
                 name="actualAmt"
-                value={tracking.actualAmt}   // Use tracking.actualAmt for read-only
-                readOnly                      // Set readOnly to prevent user input
+                value={tracking.actualAmt}   
+                readOnly                      
               />
             </div>
           </div>
@@ -245,8 +245,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Paid Amount"
                 name="paidAmt"
-                value={tracking.paidAmt}     // Use tracking.paidAmt for read-only
-                readOnly                      // Set readOnly to prevent user input
+                value={tracking.paidAmt}     
+                readOnly                    
               />
             </div>
           </div>
@@ -260,8 +260,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Balance"
                 name="balance"
-                value={tracking.balance}     // Use tracking.balance for read-only
-                readOnly                      // Set readOnly to prevent user input
+                value={tracking.balance}   
+                readOnly                      
               />
             </div>
           </div>

@@ -16,7 +16,7 @@ export default function PurchaseOrder() {
   const { employeeId } = location.state;
 
   const handleAddOrder = (employeeId) => {
-    navigate("/addorder", { state: { employeeId } });
+    navigate("/orders/addorder", { state: { employeeId } });
   };
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function PurchaseOrder() {
     setCurrentPage(pageNumber);
   };
   const handleEditOrder = (orderId) => {
-    navigate("/editorder", { state: { employeeId,orderId } });
+    navigate("/orders/editorder", { state: { employeeId,orderId } });
   };
 
   return (

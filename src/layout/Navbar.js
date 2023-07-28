@@ -1,11 +1,11 @@
 import React from "react";
+import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft, BsFillPersonPlusFill } from "react-icons/bs";
 
 export default function Navbar() {
-  const location = useLocation();
 
-  const isLoggedIn = !!localStorage.getItem("token");
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -44,19 +44,12 @@ export default function Navbar() {
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-
-          {/* {location.pathname !== "/orders" ? (
-             ( */}
               <>
                 <Link className="btn btn-outline-light" to="/adduser">
                   <BsFillPersonPlusFill size={20}/>
                 </Link>
-
-                  <BsBoxArrowInLeft size={30} onClick={handleLogout}/>
-                
+                  <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
               </>
-            {/* )
-          ) : null} */}
         </div>
       </nav>
     </div>

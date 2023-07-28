@@ -20,6 +20,8 @@ export default function AddOrder() {
     vendorEmailId: ""
   });
 
+ 
+
   const { dateOfJoining, projectEndDate, billRate, endClientName, vendorPhoneNo, vendorEmailId } = orders;
 
   useEffect(() => {

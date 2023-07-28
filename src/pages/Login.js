@@ -20,6 +20,7 @@ export default function Login({ onLogin }) {
       const role = data.role;
       const token = data.access_token;
       localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
       onLogin(role);     
       navigate("/");
     } catch (error) {

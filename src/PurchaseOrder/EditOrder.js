@@ -8,7 +8,7 @@ export default function EditOrder() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { orderId,employeeId } = location.state; // Extracting orderId from location state
+  const { orderId,employeeId } = location.state;
 
   useEffect(() => {
     fetchOrderAndEmployee();
@@ -23,7 +23,6 @@ export default function EditOrder() {
         },
       };
 
-      // Fetching order details
       const orderResponse = await fetch(`${apiUrl}/orders/${orderId}`, requestOptions);
       if (!orderResponse.ok) {
         throw new Error("Failed to fetch order");
@@ -31,7 +30,6 @@ export default function EditOrder() {
       const orderData = await orderResponse.json();
       setOrder(orderData);
 
-      // Fetching employee details
       const employeeResponse = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
       if (!employeeResponse.ok) {
         throw new Error("Failed to fetch employee details");
@@ -83,14 +81,13 @@ export default function EditOrder() {
     <div>
       <h2>Edit Order</h2>
       <form onSubmit={handleFormSubmit}>
-        {/* Displaying First Name and Last Name */}
         <div>
           <label>First Name:</label>
           <input
             type="text"
             name="firstName"
-            value={employeeDetails.firstName || ""} // Use the firstName property from employeeDetails to display the value
-            readOnly // Make the input read-only
+            value={employeeDetails.firstName || ""} 
+            readOnly 
           />
         </div>
         <div>
@@ -98,11 +95,10 @@ export default function EditOrder() {
           <input
             type="text"
             name="lastName"
-            value={employeeDetails.lastName || ""} // Use the lastName property from employeeDetails to display the value
-            readOnly // Make the input read-only
+            value={employeeDetails.lastName || ""} 
+            readOnly
           />
         </div>
-        {/* Rest of the form */}
         <div>
           <label>Date Of Joining:</label>
           <input
