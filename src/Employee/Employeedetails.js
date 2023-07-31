@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function EmployeeDetails() {
-  const { employeeId } = useParams();
+const EmployeeDetails = () => {
   const [employee, setEmployee] = useState(null);
+
 
   useEffect(() => {
     fetchEmployeeDetails();
@@ -12,18 +12,16 @@ export default function EmployeeDetails() {
 
   const fetchEmployeeDetails = async () => {
     try {
+      const employeeId = localStorage.getItem("id");
       const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axios.get(
-        `http://localhost:8082/employees/${employeeId}`,
-        config
-      );
-      const { data } = response;
-      setEmployee(data);
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
+      const response = await axios.get(`http://localhost:8082/employees/${employeeId}`,config);
+      setEmployee(response.data);
     } catch (error) {
       console.error("Error fetching employee details:", error);
     }
@@ -33,57 +31,43 @@ export default function EmployeeDetails() {
     return <div>Loading...</div>;
   }
 
-  const {
-    firstName,
-    lastName,
-    emailID,
-    dob,
-    clgOfGrad,
-    visaStatus,
-    visaStartDate,
-    visaExpiryDate,
-    onBench,
-  } = employee;
 
   return (
-    <div className="container mt-5">
+    <div>
       <h2>Employee Details</h2>
       <div>
-        <p>
-          <strong>First Name:</strong> {firstName}
-        </p>
-        <p>
-          <strong>Last Name:</strong> {lastName}
-        </p>
-        <p>
-          <strong>Email:</strong> {emailID}
-        </p>
-        <p>
-          <strong>Date of Birth:</strong> {dob}
-        </p>
-        <p>
-          <strong>College Graduation:</strong> {clgOfGrad}
-        </p>
-        <p>
-          <strong>Visa Status:</strong> {visaStatus}
-        </p>
-        <p>
-          <strong>Visa Start Date:</strong> {visaStartDate}
-        </p>
-        <p>
-          <strong>Visa Expiry Date:</strong> {visaExpiryDate}
-        </p>
-        <p>
-          <strong>Working Status:</strong> {onBench ? "On Bench" : "Working"}
-        </p>
+        <strong>First Name:</strong> {employee.firstName}
       </div>
-      <Link className="btn btn-primary" to={`/editemployee/${employeeId}`}>
-        Edit Employee
+      <div>
+        <strong>Last Name:</strong> {employee.lastName}
+      </div>
+      <div>
+        <strong>Email:</strong> {employee.emailID}
+      </div>
+      <div>
+        <strong>Date of Birth:</strong> {employee.dob}
+      </div>
+      <div>
+        <strong>College of Graduation:</strong> {employee.clgOfGrad}
+      </div>
+      <div>
+        <strong>Visa Status:</strong> {employee.visaStatus}
+      </div>
+      <div>
+        <strong>Visa Start Date:</strong> {employee.visaStartDate}
+      </div>
+      <div>
+        <strong>Visa Expiry Date:</strong> {employee.visaExpiryDate}
+      </div>
+      <div>
+        <strong>On Bench:</strong> {employee.onBench}
+      </div>
+      <Link to={"/trackings"}>
+          <button>View Tracking</button>
       </Link>
-      <Link className="btn btn-secondary mx-2" to="/">
-        Back to Home
-      </Link>
+
     </div>
   );
-}
+};
 
+export default EmployeeDetails;

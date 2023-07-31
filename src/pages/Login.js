@@ -17,10 +17,12 @@ export default function Login({ onLogin }) {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      const role = data.role;
-      const token = data.access_token;
-      localStorage.setItem("token", token);
+      const { role, access_token, id } = data;
+      // const role = data.role;
+      // const token = data.access_token;
+      localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
+      localStorage.setItem("id", id);
       onLogin(role);     
       navigate("/");
     } catch (error) {

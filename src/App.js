@@ -95,6 +95,8 @@ import Login from "./pages/Login";
 import EditOrder from "./PurchaseOrder/EditOrder";
 import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
 import Breadcrumb from "./Breadcrumbs";
+import EmployeeDetails from "./Employee/EmployeeDetails";
+import Tracking from "./Employee/Tracking";
 
 
 
@@ -151,17 +153,14 @@ function App() {
               <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
               <Route path="/editemployee" element={<EditEmployee />} />
             </>
-          ) : role === "employee" ? (
+          ) : role === "EMPLOYEE" ? (
             <>
-            console.log("role is employee");
-              {/* Add routes for employee here as needed */}
-              {/* For example: */}
-              {/* <Route path="/employeedetails" element={<EmployeeDetails/>} />  */}
-              {/* <Route path="/employee/profile" element={<EmployeeProfile />} /> */}
-              {/* <Route path="/employee/orders" element={<EmployeeOrders />} /> */}
+              <Route path="/" element={<EmployeeDetails/>} />
+              <Route path="/trackings" element={<Tracking />} />
             </>
           ) : (
             <Route path="/*" element={<Navigate to="/login" />} />
+            
           )}
         </Routes>
       </Router>

@@ -8,6 +8,7 @@ export default function EditEmployee() {
   const navigate = useNavigate();
   const location = useLocation();
   const employeeId = location.state.employeeId;
+  console.log("Location object:", location);
 
   const [employee, setEmployee] = useState({
     firstName: "",
