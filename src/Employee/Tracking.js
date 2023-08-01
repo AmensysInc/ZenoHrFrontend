@@ -47,7 +47,6 @@ const Tracking = () => {
             <th>Balance</th>
           </tr>
         </thead>
-        {/* Table body */}
         <tbody>
           {trackings.map((tracking, index) => (
             <tr key={index}>

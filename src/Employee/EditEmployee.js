@@ -109,6 +109,9 @@ const fetchEmployee = async () => {
       console.error("Error updating employee:", error);
     }
   };
+  const handleProjectHistory = (employeeId) => {
+    navigate("/project-history", { state: { employeeId } });
+  };
   
 
   return (
@@ -235,6 +238,13 @@ const fetchEmployee = async () => {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
+        <button
+        type="button"
+        className="btn btn-outline-primary mx-2"
+        onClick={() => handleProjectHistory(employeeId)}
+      >
+        Project History
+      </button>
       </form>
     </div>
   );

@@ -97,9 +97,7 @@ import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
 import Breadcrumb from "./Breadcrumbs";
 import EmployeeDetails from "./Employee/EmployeeDetails";
 import Tracking from "./Employee/Tracking";
-
-
-
+import ProjectHistory from "./ProjectHistory/ProjectHistory";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -152,6 +150,7 @@ function App() {
               <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
               <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
               <Route path="/editemployee" element={<EditEmployee />} />
+              <Route path="/project-history" element={<ProjectHistory />} />
             </>
           ) : role === "EMPLOYEE" ? (
             <>

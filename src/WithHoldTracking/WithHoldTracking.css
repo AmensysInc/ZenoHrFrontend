@@ -1,4 +1,3 @@
-/* Example CSS for side-by-side form elements */
 .form-row {
     display: flex;
     justify-content: space-between;
@@ -6,7 +5,7 @@
   }
   
   .form-group {
-    flex-basis: 45%; /* Adjust this value to control the width of each form group */
+    flex-basis: 45%;
   }
   .total-balance {
     font-weight: bold;
