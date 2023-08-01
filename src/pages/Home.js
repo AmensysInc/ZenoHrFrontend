@@ -127,8 +127,6 @@ export default function Home() {
               <th scope="col">LastName</th>
               <th scope="col">EmailID</th>
               <th scope="col">Visa Status</th>
-              <th scope="col">Date Of Birth</th>
-              <th scope="col">College Graduation</th>
               <th scope="col">Visa StartDate</th>
               <th scope="col">Visa EndDate</th>
               <th scope="col">Working Status</th>
@@ -145,8 +143,6 @@ export default function Home() {
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
                     <td>{employee.visaStatus}</td>
-                    <td>{employee.dob}</td>
-                    <td>{employee.clgOfGrad}</td>
                     <td>{employee.visaStartDate}</td>
                     <td>{employee.visaExpiryDate}</td>
                     <td>{employee.onBench ? "Yes" : "No"}</td>

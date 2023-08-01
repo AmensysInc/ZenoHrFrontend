@@ -8,7 +8,6 @@ export default function EditEmployee() {
   const navigate = useNavigate();
   const location = useLocation();
   const employeeId = location.state.employeeId;
-  console.log("Location object:", location);
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -25,25 +24,6 @@ export default function EditEmployee() {
   useEffect(() => {
     fetchEmployee();
   }, []);
-
-// const fetchEmployee = async () => {
-//     try {
-//       const response = await axios.get(`http://localhost:8082/employees/${employeeId}`);
-//       const { data } = response;
-  
-
-//       const visaStartDate = new Date(data.visaStartDate);
-//       const visaExpiryDate = new Date(data.visaExpiryDate);
-  
-//       setEmployee({
-//         ...data,
-//         visaStartDate,
-//         visaExpiryDate
-//       });
-//     } catch (error) {
-//       console.error("Error fetching employee:", error);
-//     }
-//   };
   
 const fetchEmployee = async () => {
   try {
@@ -96,28 +76,6 @@ const fetchEmployee = async () => {
     setEmployee({ ...employee, visaExpiryDate: date });
   };
 
-  // const onSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (visaStartDate > visaExpiryDate) {
-  //     alert("Visa start date cannot be after visa expiry date");
-  //     return;
-  //   }
-  //   if (visaExpiryDate < visaStartDate) {
-  //     alert("Visa expiry date cannot be before visa start date");
-  //     return;
-  //   }
-  //   try {
-  //     await axios.put(`http://localhost:8082/employees/${employeeId}`, {
-  //       ...employee,
-  //       visaStartDate: visaStartDate.toISOString(), // Convert date to ISO string format
-  //       visaExpiryDate: visaExpiryDate.toISOString() // Convert date to ISO string format
-  //     });
-  //     navigate("/");
-  //   } catch (error) {
-  //     console.error("Error updating employee:", error);
-  //   }
-  // };
-
   const onSubmit = async (e) => {
     e.preventDefault();
     if (visaStartDate > visaExpiryDate) {
@@ -141,8 +99,8 @@ const fetchEmployee = async () => {
         `http://localhost:8082/employees/${employeeId}`,
         {
           ...employee,
-          visaStartDate: visaStartDate.toISOString(), // Convert date to ISO string format
-          visaExpiryDate: visaExpiryDate.toISOString() // Convert date to ISO string format
+          visaStartDate: visaStartDate.toISOString(), 
+          visaExpiryDate: visaExpiryDate.toISOString()
         },
         config
       );
@@ -160,7 +118,7 @@ const fetchEmployee = async () => {
       <form onSubmit={(e) => onSubmit(e)}>
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="FirstName"></label>
+            <label htmlFor="FirstName">First Name</label>
             <input
               type="text"
               className="form-control"
@@ -172,7 +130,7 @@ const fetchEmployee = async () => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="lastName"></label>
+            <label htmlFor="lastName">Last Name</label>
             <input
               type="text"
               className="form-control"
@@ -184,7 +142,7 @@ const fetchEmployee = async () => {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="Email"></label>
+          <label htmlFor="Email">Email</label>
           <input
             type="text"
             className="form-control"
@@ -196,7 +154,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="DOB"></label>
+          <label htmlFor="DOB">Date Of Birth</label>
           <input
             type="text"
             className="form-control"
@@ -208,7 +166,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="clgOfGrad"></label>
+          <label htmlFor="clgOfGrad">College of Graduation</label>
           <input
             type="text"
             className="form-control"
@@ -220,7 +178,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="visaStatus"></label>
+          <label htmlFor="visaStatus">Visa Status</label>
           <input
             type="text"
             className="form-control"
@@ -232,7 +190,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="visaStartDate"></label>
+          <label htmlFor="visaStartDate">Visa StartDate</label>
           <DatePicker
             className="form-control"
             placeholderText="Visa Start Date"
@@ -244,7 +202,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="visaExpiryDate"></label>
+          <label htmlFor="visaExpiryDate">Visa ExpiryDate</label>
           <DatePicker
             className="form-control"
             placeholderText="Visa Expiry Date"
@@ -266,7 +224,9 @@ const fetchEmployee = async () => {
           >
             <option value="">-- Select --</option>
             <option value="Working">onBench</option>
-            <option value="Bench">Working</option>
+            <option value="Bench">OnProject</option>
+            <option value="Bench">OnVacation</option>
+            <option value="Bench">OnSick</option>
           </select>
         </div>
         <button type="submit" className="btn btn-outline-primary">
