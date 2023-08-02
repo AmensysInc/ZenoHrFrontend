@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./Home.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { CiLocationArrow1 } from "react-icons/ci";
 import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
+import { BsFillPersonPlusFill } from "react-icons/bs";
 
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -119,6 +120,11 @@ export default function Home() {
     <div className="container">
       <div className="py-4">
         <h4 className="text-center">Employee details</h4>
+        <div className="add-user-container">
+          <Link className="add-user-link" to="/adduser">
+            <BsFillPersonPlusFill size={25} />
+          </Link>
+        </div>
         <table className="table border shadow">
           <thead>
             <tr>
@@ -145,7 +151,7 @@ export default function Home() {
                     <td>{employee.visaStatus}</td>
                     <td>{employee.visaStartDate}</td>
                     <td>{employee.visaExpiryDate}</td>
-                    <td>{employee.onBench ? "Yes" : "No"}</td>
+                    <td>{employee.onBench}</td>
                     <td>
                     <div className="icon-container">
                         <FiEdit2

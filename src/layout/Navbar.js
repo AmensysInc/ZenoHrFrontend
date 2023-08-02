@@ -45,9 +45,9 @@ export default function Navbar() {
             <span className="navbar-toggler-icon"></span>
           </button>
               <>
-                <Link className="btn btn-outline-light" to="/adduser">
+                {/* <Link className="btn btn-outline-light" to="/adduser">
                   <BsFillPersonPlusFill size={20}/>
-                </Link>
+                </Link> */}
                   <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
               </>
         </div>

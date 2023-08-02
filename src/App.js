@@ -136,7 +136,7 @@ function App() {
     <div className="App">
       <Router>
         <Navbar location={window.location} />
-        {role === "admin" && <Breadcrumb />}
+        {role === "ADMIN" && <Breadcrumb />}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           {role === "ADMIN" ? (

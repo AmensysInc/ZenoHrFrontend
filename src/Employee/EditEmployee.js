@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import './EditEmployee.css';
 
 export default function EditEmployee() {
   const navigate = useNavigate();
@@ -115,9 +116,18 @@ const fetchEmployee = async () => {
   
 
   return (
+  <div>
+  <div className="button-container">
+  <button
+    type="button"
+    className="project-history"
+    onClick={() => handleProjectHistory(employeeId)}
+  >
+    Project History
+  </button>
+  </div>
     <div className="form-container">
       <h2 className="text-center m-4">Edit Employee</h2>
-
       <form onSubmit={(e) => onSubmit(e)}>
         <div className="form-row">
           <div className="form-group">
@@ -217,7 +227,7 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="onBench">Working or Bench</label>
+          <label htmlFor="onBench">Working Stauts</label>
           <select
             id="onBench"
             name="onBench"
@@ -227,9 +237,9 @@ const fetchEmployee = async () => {
           >
             <option value="">-- Select --</option>
             <option value="Working">onBench</option>
-            <option value="Bench">OnProject</option>
-            <option value="Bench">OnVacation</option>
-            <option value="Bench">OnSick</option>
+            <option value="OnProject">OnProject</option>
+            <option value="OnVacation">OnVacation</option>
+            <option value="OnSick">OnSick</option>
           </select>
         </div>
         <button type="submit" className="btn btn-outline-primary">
@@ -238,14 +248,8 @@ const fetchEmployee = async () => {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
-        <button
-        type="button"
-        className="btn btn-outline-primary mx-2"
-        onClick={() => handleProjectHistory(employeeId)}
-      >
-        Project History
-      </button>
       </form>
+    </div>
     </div>
   );
 }
