@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
-export default function AddOrder() {
-  const apiUrl = process.env.REACT_APP_API_URL;
-  let navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
-  const [employeeDetails, setEmployeeDetails] = useState({});
-  const [orders, setOrders] = useState({
-    firstName: "",
-    lastName: "",
-    dateOfJoining: "",
-    projectEndDate: "",
-    billRate: "",
-    endClientName: "",
-    vendorPhoneNo: "",
-    vendorEmailId: ""
-  });
-
-  const { dateOfJoining, projectEndDate, billRate, endClientName, vendorPhoneNo, vendorEmailId } = orders;
+export default function AddProjectHistory() {
+    const apiUrl = process.env.REACT_APP_API_URL;
+    let navigate = useNavigate();
+    let location = useLocation();
+    const { employeeId } = location.state;
+    const [employeeDetails, setEmployeeDetails] = useState({});
+    const [project, setProject] = useState({
+      firstName: "",
+      lastName: "",
+      subVendorOne: "",
+      subVendorTwo: "",
+      projectAddress: "",
+      projectStartDate: "",
+      projectEndDate: "",
+      projectStatus: ""
+    });
+  
+    const { firstName, lastName, subVendorOne, subVendorTwo, projectAddress, projectStartDate, projectEndDate, projectStatus } = project;
 
   useEffect(() => {
     loadEmployeeDetails();
@@ -45,11 +44,9 @@ export default function AddOrder() {
       console.error("Error loading employee details:", error);
     }
   };
-
   const onInputChange = (e) => {
-    setOrders({ ...orders, [e.target.name]: e.target.value });
+    setProject({ ...project, [e.target.name]: e.target.value });
   };
-
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -59,9 +56,9 @@ export default function AddOrder() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(orders)
+        body: JSON.stringify(project)
       };
-      await fetch(`${apiUrl}/employees/${employeeId}/orders`, requestOptions);
+      await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
       navigate("/");
     } catch (error) {
       console.error("Error adding order:", error);
@@ -70,11 +67,11 @@ export default function AddOrder() {
 
   return (
     <div className="form-container">
-      <h2 className="text-center m-4">New Purchase Order</h2>
+      <h2 className="text-center m-4">Add Project</h2>
       <form onSubmit={(e) => onSubmit(e)}>
         <div className="form-row">
           <div className="form-group col-md-6">
-            <label htmlFor="firstName">First Name:</label>
+            <label htmlFor="firstName">First Name</label>
             <input
               type="text"
               className="form-control"
@@ -85,7 +82,7 @@ export default function AddOrder() {
             />
           </div>
           <div className="form-group col-md-6">
-            <label htmlFor="lastName">Last Name:</label>
+            <label htmlFor="lastName">Last Name</label>
             <input
               type="text"
               className="form-control"
@@ -97,19 +94,54 @@ export default function AddOrder() {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="dateOfJoining">Date Of Joining:</label>
+          <label htmlFor="subVendorOne">Sub VendorOne</label>
           <input
             type="text"
             className="form-control"
-            placeholder="Date Of Joining"
-            name="dateOfJoining"
-            value={dateOfJoining}
+            placeholder="SubVendorOne"
+            name="subVendorOne"
+            value={subVendorOne}
             onChange={(e) => onInputChange(e)}
             required
           />
         </div>
         <div className="form-group">
-          <label htmlFor="projectEndDate">Project End Date:</label>
+          <label htmlFor="subVendorTwo">Sub VendorTwo</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Sub VendorTwo"
+            name="subVendorTwo"
+            value={subVendorTwo}
+            onChange={(e) => onInputChange(e)}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="projectAddress">Project Address</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Project Address"
+            name="projectAddress"
+            value={projectAddress}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="projectStartDate">Project Start Date</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Project Start Date"
+            name="projectStartDate"
+            value={projectStartDate}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="projectEndDate">Project End Date</label>
           <input
             type="text"
             className="form-control"
@@ -117,52 +149,17 @@ export default function AddOrder() {
             name="projectEndDate"
             value={projectEndDate}
             onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="billRate">Bill Rate:</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Bill Rate"
-            name="billRate"
-            value={billRate}
-            onChange={(e) => onInputChange(e)}
             required
           />
         </div>
         <div className="form-group">
-          <label htmlFor="endClientName">End Client Name:</label>
+          <label htmlFor="projectStatus">Project Status</label>
           <input
             type="text"
             className="form-control"
-            placeholder="End Client Name"
-            name="endClientName"
-            value={endClientName}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="vendorPhoneNo">Vendor PhoneNo:</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Vendor PhoneNo"
-            name="vendorPhoneNo"
-            value={vendorPhoneNo}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="vendorEmailId">Vendor EmailId:</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Vendor EmailId"
-            name="vendorEmailId"
-            value={vendorEmailId}
+            placeholder="Project Status"
+            name="projectStatus"
+            value={projectStatus}
             onChange={(e) => onInputChange(e)}
             required
           />

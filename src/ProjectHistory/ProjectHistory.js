@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FiEdit2 } from "react-icons/fi";
+import { BiSolidAddToQueue } from "react-icons/bi";
 
 export default function ProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [projectHistory, setProjectHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const navigate = useNavigate();
   const location = useLocation();
   const employeeId = location.state.employeeId;
 
@@ -16,25 +19,32 @@ export default function ProjectHistory() {
   const fetchProjectHistory = async () => {
     try {
       const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      var requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow",
       };
-      const response = await fetch(
-        `${apiUrl}/employees/${employeeId}/project-history`,
-        config
+      const projectHistoryResponse = await fetch(
+        `${apiUrl}/employees/${employeeId}/projects`,
+        requestOptions
       );
-      const data = await response.json();     
+      const detailsResponse = await fetch(
+        `${apiUrl}/employees/${employeeId}`,
+        requestOptions
+      );
+      const projectHistoryData = await projectHistoryResponse.json();
+      const detailsData = await detailsResponse.json();
+
       const indexOfLastItem = currentPage * itemsPerPage;
       const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-      const currentProjectHistory = data.slice(
-        indexOfFirstItem,
-        indexOfLastItem
-      );
-      setProjectHistory(currentProjectHistory);
+      const currentprojectHistory = projectHistoryData.slice(indexOfFirstItem, indexOfLastItem);
+
+      setProjectHistory(currentprojectHistory);
+      
     } catch (error) {
-      console.error("Error fetching project history:", error);
+      console.error("Error loading projects:", error);
     }
   };
   const totalPages = Math.ceil(projectHistory.length / itemsPerPage);
@@ -42,9 +52,27 @@ export default function ProjectHistory() {
     setCurrentPage(pageNumber);
   };
 
+  const handleEditHistory = (projectId) => {
+    navigate("/project-history/editprojecthistory", { state: { employeeId,projectId } });
+    console.log("Navigating to edit project history with projectID:", projectId);
+  };
+
+  const handleAddProject = (employeeId) => {
+    navigate("/project-history/addproject", { state: { employeeId } });
+  };
+
   return (
     <div className="container">
       <div className="py-4">
+      <div className="add-orders d-flex justify-content-start">
+          <button
+            className="btn btn-primary"
+            onClick={() => handleAddProject(employeeId)}
+          >
+            <BiSolidAddToQueue size={15} />
+            Projects
+          </button>
+        </div>
         <h4 className="text-center">Project History</h4>
         <table className="table border shadow">
           <thead>
@@ -71,6 +99,15 @@ export default function ProjectHistory() {
                   <td>{history.projectStartDate}</td>
                   <td>{history.projectEndDate}</td>
                   <td>{history.projectStatus}</td>
+                  <td>
+                    <div className="icon-container">
+                        <FiEdit2
+                          onClick={() => handleEditHistory(history.projectId)}
+                          size={20}
+                          title="Edit Project History"
+                        />
+                    </div>
+                  </td>      
                 </tr>
               ))
             ) : (

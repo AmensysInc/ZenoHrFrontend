@@ -17,10 +17,12 @@ export default function AddUser() {
     visaStatus: "",
     visaStartDate: null,
     visaExpiryDate: null,
-    onBench: ""
+    onBench: "",
+    email: "",
+    password: ""
   });
 
-  const { firstName, lastName, emailID, dob, clgOfGrad, visaStatus, visaStartDate, visaExpiryDate, onBench } = user;
+  const { firstName, lastName, emailID, dob, clgOfGrad, visaStatus, visaStartDate, visaExpiryDate, onBench, email, password } = user;
 
   const onInputChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -178,6 +180,26 @@ export default function AddUser() {
             <option value="OnVacation">OnVacation</option>
             <option value="OnSick">OnSick</option>
           </select>
+        </div>
+        <div className="form-group">
+            <label htmlFor="email">User Name</label>
+            <input
+              type={"text"}
+              className="form-control"
+              name="email"
+              value={email}
+              onChange={(e) => onInputChange(e)}
+            />
+        </div>
+        <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type={"text"}
+              className="form-control"
+              name="password"
+              value={password}
+              onChange={(e) => onInputChange(e)}
+            />
         </div>
         <button type="submit" className="btn btn-outline-primary">
           Submit

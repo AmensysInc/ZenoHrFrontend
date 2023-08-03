@@ -19,7 +19,9 @@ export default function EditEmployee() {
     visaStatus: "",
     visaStartDate: new Date(), 
     visaExpiryDate: new Date(), 
-    onBench: ""
+    onBench: "",
+    email: "",
+    password: ""
   });
 
   useEffect(() => {
@@ -62,7 +64,9 @@ const fetchEmployee = async () => {
     visaStatus,
     visaStartDate,
     visaExpiryDate,
-    onBench
+    onBench,
+    email,
+    password
   } = employee;
 
   const onInputChange = (e) => {
@@ -113,6 +117,10 @@ const fetchEmployee = async () => {
   const handleProjectHistory = (employeeId) => {
     navigate("/project-history", { state: { employeeId } });
   };
+
+  const handleVisaDetails = (employeeId) => {
+    navigate("/visa-details", { state: { employeeId } });
+  };
   
 
   return (
@@ -124,6 +132,13 @@ const fetchEmployee = async () => {
     onClick={() => handleProjectHistory(employeeId)}
   >
     Project History
+  </button>
+  <button
+    type="button"
+    className="project-history"
+    onClick={() => handleVisaDetails(employeeId)}
+  >
+    Visa Details
   </button>
   </div>
     <div className="form-container">
@@ -241,6 +256,26 @@ const fetchEmployee = async () => {
             <option value="OnVacation">OnVacation</option>
             <option value="OnSick">OnSick</option>
           </select>
+        </div>
+        <div className="form-group">
+            <label htmlFor="email">User Name</label>
+            <input
+              type={"text"}
+              className="form-control"
+              name="email"
+              value={email}
+              onChange={(e) => onInputChange(e)}
+            />
+        </div>
+        <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type={"text"}
+              className="form-control"
+              name="password"
+              value={password}
+              onChange={(e) => onInputChange(e)}
+            />
         </div>
         <button type="submit" className="btn btn-outline-primary">
           Update

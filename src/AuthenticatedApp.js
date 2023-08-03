@@ -5,11 +5,7 @@ export default function AuthenticatedApp() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
   
     useEffect(() => {
-      // Check if the JWT token is present in local storage
       const token = localStorage.getItem("token");
-      // Perform any necessary authentication checks with the token
-      // For example, you can send the token to the server to verify its validity
-      // Here, we'll assume a simple check of the token's presence
       if (token) {
         setIsLoggedIn(true);
       } else {
@@ -18,13 +14,11 @@ export default function AuthenticatedApp() {
     }, []);
   
     const handleLogin = (token) => {
-      // Store the JWT token in local storage
       localStorage.setItem("token", token);
       setIsLoggedIn(true);
     };
   
     const handleLogout = () => {
-      // Remove the JWT token from local storage
       localStorage.removeItem("token");
       setIsLoggedIn(false);
     };
@@ -38,33 +32,3 @@ export default function AuthenticatedApp() {
       <Login onLogin={handleLogin} />
     );
   }
-// export default function AuthenticatedApp() {
-//   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-//   useEffect(() => {
-//     // Check if the JWT token is present in local storage
-//     const token = localStorage.getItem("token");
-//     // Perform any necessary authentication checks with the token
-//     // For example, you can send the token to the server to verify its validity
-//     // Here, we'll assume a simple check of the token's presence
-//     if (token) {
-//       setIsLoggedIn(true);
-//     } else {
-//       setIsLoggedIn(false);
-//     }
-//   }, []);
-
-//   const handleLogin = (token) => {
-//     // Store the JWT token in local storage
-//     localStorage.setItem("token", token);
-//     setIsLoggedIn(true);
-//   };
-
-//   const handleLogout = () => {
-//     // Remove the JWT token from local storage
-//     localStorage.removeItem("token");
-//     setIsLoggedIn(false);
-//   };
-
-//   return isLoggedIn ? <App onLogout={handleLogout} /> : <Login onLogin={handleLogin} />;
-// }
