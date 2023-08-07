@@ -47,7 +47,7 @@ export default function AddProjectHistory() {
   const onInputChange = (e) => {
     setProject({ ...project, [e.target.name]: e.target.value });
   };
-  const onSubmit = async (e) => {
+  const onSubmit = async (e) => { 
     e.preventDefault();
     try {
       const requestOptions = {

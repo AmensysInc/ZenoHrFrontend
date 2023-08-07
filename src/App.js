@@ -101,6 +101,8 @@ import ProjectHistory from "./ProjectHistory/ProjectHistory";
 import VisaDetails from "./VisaDetails/VisaDetails";
 import EditProjectHistory from "./ProjectHistory/EditProjectHistory";
 import AddProjectHistory from "./ProjectHistory/AddProjectHistory";
+import EditVisaDetails from "./VisaDetails/EditVisaDetails";
+import AddVisaDetails from "./VisaDetails/AddVisaDetails";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -157,6 +159,8 @@ function App() {
               <Route path="/project-history/addproject" element={<AddProjectHistory/>} />
               <Route path="project-history/editprojecthistory" element={<EditProjectHistory/>} />
               <Route path="/visa-details" element={<VisaDetails/>} />
+              <Route path="visa-details/addvisadetails" element={<AddVisaDetails/>} />
+              <Route path="visa-details/editvisadetails" element={<EditVisaDetails/>} />
             </>
           ) : role === "EMPLOYEE" ? (
             <>

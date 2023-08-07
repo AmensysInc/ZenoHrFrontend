@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FiEdit2 } from "react-icons/fi";
+import { BiSolidAddToQueue } from "react-icons/bi";
 
 export default function VisaDetails() {
     const apiUrl = process.env.REACT_APP_API_URL;    
     const [visaDetails, setVisaDetails] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const navigate = useNavigate();
     const location = useLocation();
     const employeeId = location.state.employeeId;
 
@@ -44,9 +47,26 @@ export default function VisaDetails() {
     setCurrentPage(pageNumber);
     };
 
+    const handleEditDetails = (visaId) => {
+      navigate("/visa-details/editvisadetails", { state: { employeeId,visaId } });
+      console.log("Navigating to edit project history with projectID:", visaId);
+    };
+    const handleAddDetails = (employeeId) => {
+      navigate("/visa-details/addvisadetails", { state: { employeeId } });
+    };
+
   return (
     <div className="container">
       <div className="py-4">
+      <div className="add-orders d-flex justify-content-start">
+          <button
+            className="btn btn-primary"
+            onClick={() => handleAddDetails(employeeId)}
+          >
+            <BiSolidAddToQueue size={15} />
+            Visa Details
+          </button>
+        </div>
         <h4 className="text-center">Visa Details</h4>
         <table className="table border shadow">
           <thead>
@@ -67,6 +87,15 @@ export default function VisaDetails() {
                   <td>{details.visaStartDate}</td>
                   <td>{details.visaExpiryDate}</td>
                   <td>{details.visaType}</td>
+                  <td>
+                    <div className="icon-container">
+                        <FiEdit2
+                          onClick={() => handleEditDetails(details.visaId)}
+                          size={20}
+                          title="Edit Visa Details"
+                        />
+                    </div>
+                  </td>  
                 </tr>
               ))
             ) : (

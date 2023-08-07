@@ -152,6 +152,7 @@ export default function EditProjectHistory() {
             onChange={handleInputChange}
           />
         </div>
+        <button type="submit">Update</button>
         </form>
     </div>
   )
