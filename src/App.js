@@ -95,14 +95,14 @@ import Login from "./pages/Login";
 import EditOrder from "./PurchaseOrder/EditOrder";
 import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
 import Breadcrumb from "./Breadcrumbs";
-import EmployeeDetails from "./Employee/EmployeeDetails";
-import Tracking from "./Employee/Tracking";
 import ProjectHistory from "./ProjectHistory/ProjectHistory";
 import VisaDetails from "./VisaDetails/VisaDetails";
 import EditProjectHistory from "./ProjectHistory/EditProjectHistory";
 import AddProjectHistory from "./ProjectHistory/AddProjectHistory";
 import EditVisaDetails from "./VisaDetails/EditVisaDetails";
 import AddVisaDetails from "./VisaDetails/AddVisaDetails";
+import Tracking from "./EmployeeAccess/Tracking";
+import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -165,7 +165,7 @@ function App() {
           ) : role === "EMPLOYEE" ? (
             <>
               <Route path="/" element={<EmployeeDetails/>} />
-              <Route path="/trackings" element={<Tracking />} />
+              <Route path="/trackings" element={<Tracking/>} />
             </>
           ) : (
             <Route path="/*" element={<Navigate to="/login" />} />

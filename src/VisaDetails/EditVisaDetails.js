@@ -94,7 +94,7 @@ export default function EditVisaDetails() {
 
   return (
     <div>
-      <h2>Edit ProjectHistory</h2>
+      <h2>Edit Visa Details</h2>
       <form onSubmit={handleFormSubmit}>
         <div>
           <label>First Name:</label>
