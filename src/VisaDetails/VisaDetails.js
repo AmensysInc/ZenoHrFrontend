@@ -48,9 +48,9 @@ export default function VisaDetails() {
     };
 
     const handleEditDetails = (visaId) => {
-      navigate("/visa-details/editvisadetails", { state: { employeeId,visaId } });
-      console.log("Navigating to edit project history with projectID:", visaId);
+      navigate("/visa-details/editvisadetails", { state: { employeeId: employeeId, visaId: visaId }  });
     };
+    
     const handleAddDetails = (employeeId) => {
       navigate("/visa-details/addvisadetails", { state: { employeeId } });
     };

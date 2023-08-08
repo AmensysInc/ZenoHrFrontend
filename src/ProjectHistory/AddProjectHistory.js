@@ -1,24 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export default function AddProjectHistory() {
-    const apiUrl = process.env.REACT_APP_API_URL;
-    let navigate = useNavigate();
-    let location = useLocation();
-    const { employeeId } = location.state;
-    const [employeeDetails, setEmployeeDetails] = useState({});
-    const [project, setProject] = useState({
-      firstName: "",
-      lastName: "",
-      subVendorOne: "",
-      subVendorTwo: "",
-      projectAddress: "",
-      projectStartDate: "",
-      projectEndDate: "",
-      projectStatus: ""
-    });
-  
-    const { firstName, lastName, subVendorOne, subVendorTwo, projectAddress, projectStartDate, projectEndDate, projectStatus } = project;
+  const apiUrl = process.env.REACT_APP_API_URL;
+  let navigate = useNavigate();
+  let location = useLocation();
+  const { employeeId } = location.state;
+  const [employeeDetails, setEmployeeDetails] = useState({});
+  const [projectStatusOptions, setProjectStatusOptions] = useState([
+    "Active",
+    "Terminated",
+    "Ended",
+    "On Hold",
+  ]);
+  const [project, setProject] = useState({
+    firstName: "",
+    lastName: "",
+    subVendorOne: "",
+    subVendorTwo: "",
+    projectAddress: "",
+    projectStartDate: "",
+    projectEndDate: "",
+    projectStatus: "",
+  });
+
+  const {
+    firstName,
+    lastName,
+    subVendorOne,
+    subVendorTwo,
+    projectAddress,
+    projectStartDate,
+    projectEndDate,
+    projectStatus,
+  } = project;
 
   useEffect(() => {
     loadEmployeeDetails();
@@ -32,12 +47,15 @@ export default function AddProjectHistory() {
       myHeaders.append("Authorization", `Bearer ${token}`);
 
       var requestOptions = {
-        method: 'GET',
+        method: "GET",
         headers: myHeaders,
-        redirect: 'follow'
+        redirect: "follow",
       };
 
-      const response = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
+      const response = await fetch(
+        `${apiUrl}/employees/${employeeId}`,
+        requestOptions
+      );
       const data = await response.json();
       setEmployeeDetails(data);
     } catch (error) {
@@ -47,16 +65,16 @@ export default function AddProjectHistory() {
   const onInputChange = (e) => {
     setProject({ ...project, [e.target.name]: e.target.value });
   };
-  const onSubmit = async (e) => { 
+  const onSubmit = async (e) => {
     e.preventDefault();
     try {
       const requestOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(project)
+        body: JSON.stringify(project),
       };
       await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
       navigate("/");
@@ -154,15 +172,22 @@ export default function AddProjectHistory() {
         </div>
         <div className="form-group">
           <label htmlFor="projectStatus">Project Status</label>
-          <input
-            type="text"
+          <select
             className="form-control"
-            placeholder="Project Status"
             name="projectStatus"
             value={projectStatus}
             onChange={(e) => onInputChange(e)}
             required
-          />
+          >
+            <option value="" disabled>
+              Select Project Status
+            </option>
+            {projectStatusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button type="submit" className="btn btn-outline-primary">
@@ -173,5 +198,5 @@ export default function AddProjectHistory() {
         </Link>
       </form>
     </div>
-  )
+  );
 }
