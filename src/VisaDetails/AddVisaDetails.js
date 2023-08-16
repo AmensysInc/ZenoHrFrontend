@@ -66,6 +66,10 @@ export default function AddVisaDetails() {
         }
       };
 
+      const handleNavigate = (employeeId) => {
+        navigate("/editemployee/visa-details", { state: { employeeId } });
+      };
+
       const visaTypeOptions = ["h1b", "opt", "greencard", "h4ad", "cpt"];
 
   return (
@@ -139,9 +143,13 @@ export default function AddVisaDetails() {
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
           Cancel
-        </Link>
+        </button>
       </form>
     </div>
   )

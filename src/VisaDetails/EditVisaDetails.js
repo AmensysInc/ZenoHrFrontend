@@ -86,7 +86,10 @@ export default function EditVisaDetails() {
       [name]: value,
     }));
   };
-  
+
+  const handleNavigate = (employeeId) => {
+    navigate("/editemployee/visa-details", { state: { employeeId } });
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -149,7 +152,14 @@ export default function EditVisaDetails() {
             onChange={handleInputChange}
           />
         </div>
-        <button type="submit">Update Details</button>
+        <button type="submit">Update</button>
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   );

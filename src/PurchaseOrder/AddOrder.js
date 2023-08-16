@@ -50,6 +50,10 @@ export default function AddOrder() {
     setOrders({ ...orders, [e.target.name]: e.target.value });
   };
 
+  const handleNavigate = (employeeId) => {
+    navigate("/orders", { state: { employeeId } });
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -171,9 +175,13 @@ export default function AddOrder() {
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
           Cancel
-        </Link>
+        </button>
       </form>
     </div>
   )

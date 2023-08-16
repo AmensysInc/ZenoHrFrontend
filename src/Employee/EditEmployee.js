@@ -115,11 +115,11 @@ const fetchEmployee = async () => {
     }
   };
   const handleProjectHistory = (employeeId) => {
-    navigate("/project-history", { state: { employeeId } });
+    navigate("/editemployee/project-history", { state: { employeeId } });
   };
 
   const handleVisaDetails = (employeeId) => {
-    navigate("/visa-details", { state: { employeeId } });
+    navigate("/editemployee/visa-details", { state: { employeeId } });
   };
   
 

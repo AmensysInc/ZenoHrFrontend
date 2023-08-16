@@ -65,6 +65,10 @@ export default function EditOrder() {
     }
   };
 
+  const handleNavigate = (employeeId) => {
+    navigate("/orders", { state: { employeeId } });
+  };
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setOrder((prevOrder) => ({
@@ -162,7 +166,14 @@ export default function EditOrder() {
             onChange={handleInputChange}
           />
         </div>
-        <button type="submit">Update Order</button>
+        <button type="submit">Update</button>
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   );

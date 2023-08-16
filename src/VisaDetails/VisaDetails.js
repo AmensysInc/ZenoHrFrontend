@@ -6,6 +6,7 @@ import { BiSolidAddToQueue } from "react-icons/bi";
 export default function VisaDetails() {
     const apiUrl = process.env.REACT_APP_API_URL;    
     const [visaDetails, setVisaDetails] = useState([]);
+    const [userDetail, setUserDetail] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function VisaDetails() {
     const employeeId = location.state.employeeId;
 
     useEffect(() => {
-        fetchVisaDetails();
+      fetchVisaDetails();
     }, [currentPage]);
 
     const fetchVisaDetails = async () => {
@@ -24,6 +25,15 @@ export default function VisaDetails() {
                     Authorization: `Bearer ${token}`,
                 },
             };
+            const detailsResponse = await fetch(
+              `${apiUrl}/employees/${employeeId}`,
+              config
+            );
+            const detailsData = await detailsResponse.json();
+          setUserDetail({
+              first: detailsData.firstName,
+              last: detailsData.lastName,
+          });  
             const response = await fetch(
                 `${apiUrl}/employees/${employeeId}/visa-details`,
                 config
@@ -48,16 +58,19 @@ export default function VisaDetails() {
     };
 
     const handleEditDetails = (visaId) => {
-      navigate("/visa-details/editvisadetails", { state: { employeeId: employeeId, visaId: visaId }  });
+      navigate("/editemployee/visa-details/editvisadetails", { state: { employeeId: employeeId, visaId: visaId }  });
     };
     
     const handleAddDetails = (employeeId) => {
-      navigate("/visa-details/addvisadetails", { state: { employeeId } });
+      navigate("/editemployee/visa-details/addvisadetails", { state: { employeeId } });
     };
 
   return (
     <div className="container">
       <div className="py-4">
+      <h4 className="text-center">
+          {userDetail.first} {userDetail.last}
+      </h4>
       <div className="add-orders d-flex justify-content-start">
           <button
             className="btn btn-primary"
@@ -67,7 +80,7 @@ export default function VisaDetails() {
             Visa Details
           </button>
         </div>
-        <h4 className="text-center">Visa Details</h4>
+        {/* <h4 className="text-center">Visa Details</h4> */}
         <table className="table border shadow">
           <thead>
             <tr>

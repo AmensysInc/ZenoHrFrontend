@@ -49,6 +49,33 @@ const Breadcrumb = () => {
                 </span>
               </li>
             );
+          } else if (name.toLowerCase() === "project-history") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          } else if (name.toLowerCase() === "visa-details") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          }else if (name.toLowerCase() === "editemployee") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
           } else {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
             return (

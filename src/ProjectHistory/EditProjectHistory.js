@@ -87,6 +87,10 @@ export default function EditProjectHistory() {
     }));
   };
 
+  const handleNavigate = (employeeId) => {
+    navigate("/editemployee/project-history", { state: { employeeId } });
+  };
+  
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -174,6 +178,13 @@ export default function EditProjectHistory() {
         </div>
 
         <button type="submit">Update</button>
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
+          Cancel
+        </button>
       </form>
     </div>
   );

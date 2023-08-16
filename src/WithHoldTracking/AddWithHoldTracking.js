@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function AddWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -13,6 +13,7 @@ export default function AddWithHoldTracking() {
     lastName: "",
     month: "",
     year: "",
+    projectName: "",
     actualHours: "",
     actualRate: "",
     actualAmt: "",
@@ -21,11 +22,22 @@ export default function AddWithHoldTracking() {
     paidAmt: "",
     balance: "",
   });
+  const [projectNames, setProjectNames] = useState([]);
+  const [selectedProjectName, setSelectedProjectName] = useState("");
 
-  const { month, year, actualHours, actualRate, paidHours, paidRate } = tracking;
+  const {
+    month,
+    year,
+    projectName,
+    actualHours,
+    actualRate,
+    paidHours,
+    paidRate,
+  } = tracking;
 
   useEffect(() => {
     loadEmployeeDetails();
+    fetchProjectNames();
     const actualAmtValue = actualHours * actualRate;
     const paidAmtValue = paidHours * paidRate;
     const balanceValue = actualAmtValue - paidAmtValue;
@@ -38,6 +50,39 @@ export default function AddWithHoldTracking() {
     });
   }, [actualHours, actualRate, paidHours, paidRate]);
 
+  const fetchProjectNames = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      var requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow",
+      };
+      const projectHistoryResponse = await fetch(
+        `${apiUrl}/employees/${employeeId}/projects`,
+        requestOptions
+      );
+      const projectHistoryData = await projectHistoryResponse.json();
+      const uniqueProjectNames = [
+        ...new Set(
+          projectHistoryData.map(
+            (project) =>
+              `${project.subVendorOne || ""} / ${project.subVendorTwo || ""}`
+          )
+        ),
+      ];
+      setProjectNames(uniqueProjectNames);
+    } catch (error) {
+      console.error("Error loading project names:", error);
+    }
+  };
+
+  const onProjectNameChange = (e) => {
+    setSelectedProjectName(e.target.value);
+  };
+
   const loadEmployeeDetails = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -46,12 +91,15 @@ export default function AddWithHoldTracking() {
       myHeaders.append("Authorization", `Bearer ${token}`);
 
       var requestOptions = {
-        method: 'GET',
+        method: "GET",
         headers: myHeaders,
-        redirect: 'follow'
+        redirect: "follow",
       };
 
-      const response = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
+      const response = await fetch(
+        `${apiUrl}/employees/${employeeId}`,
+        requestOptions
+      );
       const data = await response.json();
       setEmployeeDetails(data);
     } catch (error) {
@@ -65,25 +113,47 @@ export default function AddWithHoldTracking() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    const updatedTracking = {
+      ...tracking,
+      projectName: selectedProjectName,
+    };
     try {
       const requestOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(tracking)
+        body: JSON.stringify(updatedTracking),
       };
-      await fetch(`${apiUrl}/employees/${employeeId}/trackings`, requestOptions);
+      console.log("Submitting data:", tracking);
+      await fetch(
+        `${apiUrl}/employees/${employeeId}/trackings`,
+        requestOptions
+      );
       navigate("/");
     } catch (error) {
       console.error("Error adding withholding tracking:", error);
     }
   };
 
+  const handleTracking = (employeeId) => {
+    navigate("/tracking", { state: { employeeId } });
+  };
+
   const monthOptions = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const yearOptions = [2022, 2023, 2024, 2025];
@@ -131,7 +201,9 @@ export default function AddWithHoldTracking() {
                 onChange={(e) => onInputChange(e)}
                 required
               >
-                <option value="" disabled>Select month</option>
+                <option value="" disabled>
+                  Select month
+                </option>
                 {monthOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -150,7 +222,9 @@ export default function AddWithHoldTracking() {
                 onChange={(e) => onInputChange(e)}
                 required
               >
-                <option value="" disabled>Select year</option>
+                <option value="" disabled>
+                  Select year
+                </option>
                 {yearOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -161,6 +235,29 @@ export default function AddWithHoldTracking() {
           </div>
         </div>
         <div className="row">
+          <div className="row">
+            <div className="col-md-6">
+              <div className="form-group">
+                <label htmlFor="projectName">Project Name:</label>
+                <select
+                  className="form-control"
+                  name="projectName"
+                  value={selectedProjectName}
+                  onChange={onProjectNameChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Select project name
+                  </option>
+                  {projectNames.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
           <div className="col-md-6">
             <div className="form-group">
               <label htmlFor="actualHours">Actual Hours:</label>
@@ -228,8 +325,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Actual Amount"
                 name="actualAmt"
-                value={tracking.actualAmt}   
-                readOnly                      
+                value={tracking.actualAmt}
+                readOnly
               />
             </div>
           </div>
@@ -241,8 +338,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Paid Amount"
                 name="paidAmt"
-                value={tracking.paidAmt}     
-                readOnly                    
+                value={tracking.paidAmt}
+                readOnly
               />
             </div>
           </div>
@@ -256,8 +353,8 @@ export default function AddWithHoldTracking() {
                 className="form-control"
                 placeholder="Balance"
                 name="balance"
-                value={tracking.balance}   
-                readOnly                      
+                value={tracking.balance}
+                readOnly
               />
             </div>
           </div>
@@ -266,9 +363,13 @@ export default function AddWithHoldTracking() {
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleTracking(employeeId)}
+        >
           Cancel
-        </Link>
+        </button>
       </form>
     </div>
   );

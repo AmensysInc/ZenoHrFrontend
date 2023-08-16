@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Home.css";
 import { useNavigate, Link } from "react-router-dom";
-import { CiLocationArrow1 } from "react-icons/ci";
+import { BiDollar } from "react-icons/bi";
 import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
@@ -166,7 +166,7 @@ export default function Home() {
                           size={20}
                           title="Purchase Orders"
                         />
-                        <CiLocationArrow1
+                        <BiDollar
                           onClick={() => handleViewTracking(employee.employeeID)}
                           size={20}
                           title="WithHold Tracking"

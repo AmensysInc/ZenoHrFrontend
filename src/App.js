@@ -155,12 +155,12 @@ function App() {
               <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
               <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
               <Route path="/editemployee" element={<EditEmployee />} />
-              <Route path="/project-history" element={<ProjectHistory />} />
-              <Route path="/project-history/addproject" element={<AddProjectHistory/>} />
-              <Route path="/project-history/editprojecthistory" element={<EditProjectHistory/>} />
-              <Route path="/visa-details" element={<VisaDetails/>} />
-              <Route path="/visa-details/addvisadetails" element={<AddVisaDetails/>} />
-              <Route path="/visa-details/editvisadetails" element={<EditVisaDetails/>} />
+              <Route path="/editemployee/project-history" element={<ProjectHistory />} />
+              <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
+              <Route path="/editemployee/project-history/editprojecthistory" element={<EditProjectHistory/>} />
+              <Route path="/editemployee/visa-details" element={<VisaDetails/>} />
+              <Route path="/editemployee/visa-details/addvisadetails" element={<AddVisaDetails/>} />
+              <Route path="/editemployee/visa-details/editvisadetails" element={<EditVisaDetails/>} />
             </>
           ) : role === "EMPLOYEE" ? (
             <>

@@ -83,6 +83,10 @@ export default function AddProjectHistory() {
     }
   };
 
+  const handleNavigate = (employeeId) => {
+    navigate("/editemployee/project-history", { state: { employeeId } });
+  };
+
   return (
     <div className="form-container">
       <h2 className="text-center m-4">Add Project</h2>
@@ -193,9 +197,13 @@ export default function AddProjectHistory() {
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
+        <button
+          type="button"
+          className="btn btn-outline-danger mx-2"
+          onClick={() => handleNavigate(employeeId)}
+        >
           Cancel
-        </Link>
+        </button>
       </form>
     </div>
   );

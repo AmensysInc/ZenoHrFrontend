@@ -6,6 +6,7 @@ import { BiSolidAddToQueue } from "react-icons/bi";
 export default function ProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [projectHistory, setProjectHistory] = useState([]);
+  const [userDetail, setUserDetail] = useState({}); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const navigate = useNavigate();
@@ -36,7 +37,10 @@ export default function ProjectHistory() {
       );
       const projectHistoryData = await projectHistoryResponse.json();
       const detailsData = await detailsResponse.json();
-
+      setUserDetail({
+        first: detailsData.firstName,
+        last: detailsData.lastName,
+    });
       const indexOfLastItem = currentPage * itemsPerPage;
       const indexOfFirstItem = indexOfLastItem - itemsPerPage;
       const currentprojectHistory = projectHistoryData.slice(indexOfFirstItem, indexOfLastItem);
@@ -53,27 +57,29 @@ export default function ProjectHistory() {
   };
 
   const handleEditHistory = (projectId) => {
-    navigate("/project-history/editprojecthistory", { state: { employeeId,projectId } });
-    console.log("Navigating to edit project history with projectID:", projectId);
+    navigate("/editemployee/project-history/editprojecthistory", { state: { employeeId,projectId } });
   };
 
   const handleAddProject = (employeeId) => {
-    navigate("/project-history/addproject", { state: { employeeId } });
+    navigate("/editemployee/project-history/addproject", { state: { employeeId } });
   };
 
   return (
     <div className="container">
       <div className="py-4">
+      <h4 className="text-center">
+          {userDetail.first} {userDetail.last}
+      </h4>
       <div className="add-orders d-flex justify-content-start">
           <button
             className="btn btn-primary"
             onClick={() => handleAddProject(employeeId)}
           >
             <BiSolidAddToQueue size={15} />
-            Projects
+            New Projects
           </button>
         </div>
-        <h4 className="text-center">Project History</h4>
+        {/* <h4 className="text-center">Project History</h4> */}
         <table className="table border shadow">
           <thead>
             <tr>
