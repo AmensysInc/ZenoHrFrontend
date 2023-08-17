@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Tracking = () => {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
   const employeeId = localStorage.getItem('id');
   const token = localStorage.getItem('token');
@@ -19,7 +20,7 @@ const Tracking = () => {
       };
 
       const response = await axios.get(
-        `http://localhost:8082/employees/${employeeId}/trackings`,
+        `${apiUrl}/employees/${employeeId}/trackings`,
         config
       );
       setTrackings(response.data);

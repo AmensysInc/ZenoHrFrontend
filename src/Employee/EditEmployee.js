@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import './EditEmployee.css';
 
 export default function EditEmployee() {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const location = useLocation();
   const employeeId = location.state.employeeId;
@@ -37,7 +38,7 @@ const fetchEmployee = async () => {
       }
     };
     const response = await axios.get(
-      `http://localhost:8082/employees/${employeeId}`,
+      `${apiUrl}/employees/${employeeId}`,
       config
     );
     const { data } = response;
@@ -101,7 +102,7 @@ const fetchEmployee = async () => {
       };
 
       await axios.put(
-        `http://localhost:8082/employees/${employeeId}`,
+        `${apiUrl}/employees/${employeeId}`,
         {
           ...employee,
           visaStartDate: visaStartDate.toISOString(), 
@@ -219,25 +220,25 @@ const fetchEmployee = async () => {
         </div>
         <div className="form-group">
           <label htmlFor="visaStartDate">Visa StartDate</label>
-          <DatePicker
+          <input
+            type="text"
             className="form-control"
-            placeholderText="Visa Start Date"
+            placeholder="Visa Start Date"
             name="visaStartDate"
-            selected={visaStartDate}
-            onChange={onVisaStartDateChange}
-            dateFormat="yyyy-MM-dd"
+            value={visaStartDate}
+            onChange={(e) => onInputChange(e)}
             required
           />
         </div>
         <div className="form-group">
           <label htmlFor="visaExpiryDate">Visa ExpiryDate</label>
-          <DatePicker
+          <input
+            type="text"
             className="form-control"
-            placeholderText="Visa Expiry Date"
+            placeholder="Visa Expiry Date"
             name="visaExpiryDate"
-            selected={visaExpiryDate}
-            onChange={onVisaExpiryDateChange}
-            dateFormat="yyyy-MM-dd"
+            value={visaExpiryDate}
+            onChange={(e) => onInputChange(e)}
             required
           />
         </div>

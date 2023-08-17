@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const EmployeeDetails = () => {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const [employee, setEmployee] = useState(null);
-
 
   useEffect(() => {
     fetchEmployeeDetails();
@@ -20,7 +20,7 @@ const EmployeeDetails = () => {
         Authorization: `Bearer ${token}`
       }
     };
-      const response = await axios.get(`http://localhost:8082/employees/${employeeId}`,config);
+      const response = await axios.get(`${apiUrl}/employees/${employeeId}`,config);
       setEmployee(response.data);
     } catch (error) {
       console.error("Error fetching employee details:", error);
