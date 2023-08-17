@@ -1,4 +1,3 @@
-
 .icon-container {
     display: flex;
     align-items: center;
@@ -18,20 +17,12 @@
     color: red; 
   }
 
-/* .add-user-container {
-  position: fixed;
-  bottom: 600px; 
-  right: 20px; 
-  z-index: 9999;
-  background-color: #ece4e4;
-  color: #fff;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
-} */
 .add-user-link {
-  position: fixed;
-  bottom: 600px; 
-  right: 20px;
+  position: relative;
+  /* bottom: 600px; 
+  right: 20px; */
+  bottom: 80vh; 
+  right: 2vw;
   background-color: #7d6565;
   color: #fff;
   border: none;
