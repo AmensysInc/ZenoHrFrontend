@@ -219,30 +219,6 @@ const fetchEmployee = async () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="visaStartDate">Visa StartDate</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Visa Start Date"
-            name="visaStartDate"
-            value={onVisaStartDateChange}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="visaExpiryDate">Visa ExpiryDate</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Visa Expiry Date"
-            name="visaExpiryDate"
-            value={onVisaExpiryDateChange}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
           <label htmlFor="onBench">Working Stauts</label>
           <select
             id="onBench"
