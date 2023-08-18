@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import './EditEmployee.css';
 
@@ -103,11 +102,6 @@ const fetchEmployee = async () => {
 
       await axios.put(
         `${apiUrl}/employees/${employeeId}`,
-        {
-          ...employee,
-          visaStartDate: visaStartDate.toISOString(), 
-          visaExpiryDate: visaExpiryDate.toISOString()
-        },
         config
       );
       navigate("/");
