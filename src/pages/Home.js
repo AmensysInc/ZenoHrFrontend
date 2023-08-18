@@ -139,9 +139,6 @@ export default function Home() {
               <th scope="col">LastName</th>
               <th scope="col">EmailID</th>
               <th scope="col">Phone No</th>
-              <th scope="col">Visa Status</th>
-              <th scope="col">Visa StartDate</th>
-              <th scope="col">Visa EndDate</th>
               <th scope="col">Working Status</th>
             </tr>
           </thead>
@@ -156,9 +153,6 @@ export default function Home() {
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
                     <td>{employee.phoneNo}</td>
-                    <td>{employee.visaStatus}</td>
-                    <td>{employee.visaStartDate}</td>
-                    <td>{employee.visaExpiryDate}</td>
                     <td>{employee.onBench}</td>
                     <td>
                     <div className="icon-container">

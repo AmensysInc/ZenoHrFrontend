@@ -52,9 +52,6 @@ const fetchEmployee = async () => {
     emailID,
     dob,
     clgOfGrad,
-    visaStatus,
-    visaStartDate,
-    visaExpiryDate,
     onBench,
     email,
     password
@@ -64,32 +61,25 @@ const fetchEmployee = async () => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (visaStartDate > visaExpiryDate) {
-      alert("Visa start date cannot be after visa expiry date");
-      return;
-    }
-    if (visaExpiryDate < visaStartDate) {
-      alert("Visa expiry date cannot be before visa start date");
-      return;
-    }
+  const onSubmit = async (event) => {
+    event.preventDefault();
     try {
       const token = localStorage.getItem("token");
-  
-      const config = {
+      const requestOptions = {
+        method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(employee),
       };
-  
-      await axios.put(
-        `${apiUrl}/employees/${employeeId}`,
-        config
-      );
+      const response = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
+      if (!response.ok) {
+        throw new Error("Failed to update order");
+      }
       navigate("/");
     } catch (error) {
-      console.error("Error updating employee:", error);
+      console.error("Error updating order:", error);
     }
   };
   const handleProjectHistory = (employeeId) => {
@@ -179,18 +169,6 @@ const fetchEmployee = async () => {
             placeholder="Name of the college"
             name="clgOfGrad"
             value={clgOfGrad}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="visaStatus">Visa Status</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Visa Status"
-            name="visaStatus"
-            value={visaStatus}
             onChange={(e) => onInputChange(e)}
             required
           />
