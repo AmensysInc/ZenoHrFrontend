@@ -40,7 +40,7 @@ const fetchEmployee = async () => {
     );
     const { data } = response;
 
-    setEmployee(...data);
+    setEmployee(data);
   } catch (error) {
     console.error("Error fetching employee:", error);
   }
@@ -85,17 +85,6 @@ const fetchEmployee = async () => {
   
       await axios.put(
         `${apiUrl}/employees/${employeeId}`,
-        {
-          firstName,
-          lastName,
-          emailID,
-          dob,
-          clgOfGrad,
-          visaStatus,
-          onBench,
-          email,
-          password
-        },
         config
       );
       navigate("/");
