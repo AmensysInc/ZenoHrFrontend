@@ -18,7 +18,7 @@
   }
 
 .add-user-link {
-  position: relative;
+  position: fixed;
   /* bottom: 600px; 
   right: 20px; */
   bottom: 80vh; 
