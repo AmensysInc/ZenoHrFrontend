@@ -225,7 +225,7 @@ const fetchEmployee = async () => {
             className="form-control"
             placeholder="Visa Start Date"
             name="visaStartDate"
-            value={visaStartDate}
+            value={onVisaStartDateChange}
             onChange={(e) => onInputChange(e)}
             required
           />
@@ -237,7 +237,7 @@ const fetchEmployee = async () => {
             className="form-control"
             placeholder="Visa Expiry Date"
             name="visaExpiryDate"
-            value={visaExpiryDate}
+            value={onVisaExpiryDateChange}
             onChange={(e) => onInputChange(e)}
             required
           />
