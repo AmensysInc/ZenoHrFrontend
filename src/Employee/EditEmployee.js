@@ -17,8 +17,6 @@ export default function EditEmployee() {
     dob: "",
     clgOfGrad: "",
     visaStatus: "",
-    visaStartDate: new Date(), 
-    visaExpiryDate: new Date(), 
     onBench: "",
     email: "",
     password: ""
@@ -78,15 +76,26 @@ const fetchEmployee = async () => {
     }
     try {
       const token = localStorage.getItem("token");
-
+  
       const config = {
         headers: {
           Authorization: `Bearer ${token}`
         }
       };
-
+  
       await axios.put(
         `${apiUrl}/employees/${employeeId}`,
+        {
+          firstName,
+          lastName,
+          emailID,
+          dob,
+          clgOfGrad,
+          visaStatus,
+          onBench,
+          email,
+          password
+        },
         config
       );
       navigate("/");
