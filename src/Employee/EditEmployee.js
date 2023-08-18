@@ -42,14 +42,7 @@ const fetchEmployee = async () => {
     );
     const { data } = response;
 
-    const visaStartDate = new Date(data.visaStartDate);
-    const visaExpiryDate = new Date(data.visaExpiryDate);
-
-    setEmployee({
-      ...data,
-      visaStartDate,
-      visaExpiryDate
-    });
+    setEmployee(...data);
   } catch (error) {
     console.error("Error fetching employee:", error);
   }
@@ -71,14 +64,6 @@ const fetchEmployee = async () => {
 
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
-  };
-
-  const onVisaStartDateChange = (date) => {
-    setEmployee({ ...employee, visaStartDate: date });
-  };
-
-  const onVisaExpiryDateChange = (date) => {
-    setEmployee({ ...employee, visaExpiryDate: date });
   };
 
   const onSubmit = async (e) => {
