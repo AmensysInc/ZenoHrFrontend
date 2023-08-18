@@ -93,7 +93,10 @@ export default function WithHoldTracking() {
           </button>
         </div>
 
-        {Object.keys(groupedTrackings).map((projectName) => {
+        {Object.keys(groupedTrackings).length === 0 ? (
+        <p className="text-center">NO TRACKINGS</p>
+      ) : (
+        Object.keys(groupedTrackings).map((projectName) => {
           const projectTrackings = groupedTrackings[projectName];
           const projectTotalBalance = projectTrackings.reduce(
             (acc, tracking) => acc + parseFloat(tracking.balance),
@@ -152,7 +155,7 @@ export default function WithHoldTracking() {
               </table>
             </div>
           );
-        })}
+        }))}
 
         {/* <div className="total-balance">
           Total Balance:{" "}

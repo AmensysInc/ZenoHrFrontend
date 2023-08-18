@@ -153,7 +153,7 @@ function App() {
               <Route path="/orders/editorder" element={<EditOrder />} />
               <Route path="/tracking" element={<WithHoldTracking />} />
               <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
-              <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
+              <Route path="/withholdtracking/addtracking" element={<AddWithHoldTracking />} />
               <Route path="/editemployee" element={<EditEmployee />} />
               <Route path="/editemployee/project-history" element={<ProjectHistory />} />
               <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
