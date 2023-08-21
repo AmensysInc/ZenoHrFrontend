@@ -133,43 +133,49 @@ function App() {
   const[role,setRole] = useLocalStorage("role", "");
 
   const handleLogin = (userRole) => {
-    setIsLoggedIn(true);
-    setRole(userRole);
+    if(localStorage.getItem("token")){
+      setIsLoggedIn(true);
+      setRole(userRole);
+    }
   };
 
   return (
     <div className="App">
       <Router>
-        <Navbar location={window.location} />
+        <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
         {role === "ADMIN" && <Breadcrumb />}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          {role === "ADMIN" ? (
-            <>
-              <Route path="/" element={<Home />} />
-              <Route path="/adduser" element={<AddUser />} />
-              <Route path="/orders" element={<PurchaseOrder />} />
-              <Route path="/orders/addorder" element={<AddOrder />} />
-              <Route path="/orders/editorder" element={<EditOrder />} />
-              <Route path="/tracking" element={<WithHoldTracking />} />
-              <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
-              <Route path="/withholdtracking/addtracking" element={<AddWithHoldTracking />} />
-              <Route path="/editemployee" element={<EditEmployee />} />
-              <Route path="/editemployee/project-history" element={<ProjectHistory />} />
-              <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
-              <Route path="/editemployee/project-history/editprojecthistory" element={<EditProjectHistory/>} />
-              <Route path="/editemployee/visa-details" element={<VisaDetails/>} />
-              <Route path="/editemployee/visa-details/addvisadetails" element={<AddVisaDetails/>} />
-              <Route path="/editemployee/visa-details/editvisadetails" element={<EditVisaDetails/>} />
-            </>
-          ) : role === "EMPLOYEE" ? (
-            <>
-              <Route path="/" element={<EmployeeDetails/>} />
-              <Route path="/trackings" element={<Tracking/>} />
-            </>
-          ) : (
-            <Route path="/*" element={<Navigate to="/login" />} />
-            
+          {isLoggedIn ?(
+            role === "ADMIN" ? (
+                  <>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/adduser" element={<AddUser />} />
+                    <Route path="/orders" element={<PurchaseOrder />} />
+                    <Route path="/orders/addorder" element={<AddOrder />} />
+                    <Route path="/orders/editorder" element={<EditOrder />} />
+                    <Route path="/tracking" element={<WithHoldTracking />} />
+                    <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
+                    <Route path="/withholdtracking/addtracking" element={<AddWithHoldTracking />} />
+                    <Route path="/editemployee" element={<EditEmployee />} />
+                    <Route path="/editemployee/project-history" element={<ProjectHistory />} />
+                    <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
+                    <Route path="/editemployee/project-history/editprojecthistory" element={<EditProjectHistory/>} />
+                    <Route path="/editemployee/visa-details" element={<VisaDetails/>} />
+                    <Route path="/editemployee/visa-details/addvisadetails" element={<AddVisaDetails/>} />
+                    <Route path="/editemployee/visa-details/editvisadetails" element={<EditVisaDetails/>} />
+                  </>
+                ): role === "EMPLOYEE" ? (
+                      <>
+                        <Route path="/" element={<EmployeeDetails/>} />
+                        <Route path="/trackings" element={<Tracking/>} />
+                      </>
+                    ):(
+                      <Route path="/*" element={<Navigate to="/login" />} />
+                           
+                   )
+          ):(
+             <Route path="/*" element={<Navigate to="/login" />} />    
           )}
         </Routes>
       </Router>
@@ -178,3 +184,36 @@ function App() {
 }
 
 export default App;
+
+
+// {isLoggedIn ? (
+//   {role === "ADMIN" ? (
+//     <>
+//       <Route path="/" element={<Home />} />
+//       <Route path="/adduser" element={<AddUser />} />
+//       <Route path="/orders" element={<PurchaseOrder />} />
+//       <Route path="/orders/addorder" element={<AddOrder />} />
+//       <Route path="/orders/editorder" element={<EditOrder />} />
+//       <Route path="/tracking" element={<WithHoldTracking />} />
+//       <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
+//       <Route path="/withholdtracking/addtracking" element={<AddWithHoldTracking />} />
+//       <Route path="/editemployee" element={<EditEmployee />} />
+//       <Route path="/editemployee/project-history" element={<ProjectHistory />} />
+//       <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
+//       <Route path="/editemployee/project-history/editprojecthistory" element={<EditProjectHistory/>} />
+//       <Route path="/editemployee/visa-details" element={<VisaDetails/>} />
+//       <Route path="/editemployee/visa-details/addvisadetails" element={<AddVisaDetails/>} />
+//       <Route path="/editemployee/visa-details/editvisadetails" element={<EditVisaDetails/>} />
+//     </>
+//   ) : role === "EMPLOYEE" ? (
+//     <>
+//       <Route path="/" element={<EmployeeDetails/>} />
+//       <Route path="/trackings" element={<Tracking/>} />
+//     </>
+//   ) : (
+//     <Route path="/*" element={<Navigate to="/login" />} />
+    
+//   )})
+//   :(
+//     <Route path="/*" element={<Navigate to="/login" />} />
+//   )}
