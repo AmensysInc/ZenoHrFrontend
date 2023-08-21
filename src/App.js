@@ -22,6 +22,7 @@ import EditVisaDetails from "./VisaDetails/EditVisaDetails";
 import AddVisaDetails from "./VisaDetails/AddVisaDetails";
 import Tracking from "./EmployeeAccess/Tracking";
 import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
+import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
