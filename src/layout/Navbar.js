@@ -3,12 +3,14 @@ import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft, BsFillPersonPlusFill } from "react-icons/bs";
 
-export default function Navbar() {
+export default function Navbar({setIsLoggedIn, setRole}) {
 
   const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setRole("");
     window.location.href = "/login";
   };
 
