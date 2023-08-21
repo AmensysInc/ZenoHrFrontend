@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import 'froala-editor/css/froala_editor.pkgd.min.css';
+import 'froala-editor/js/plugins.pkgd.min.js';
+import FroalaEditor from 'react-froala-wysiwyg';
 
 export default function AddWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   let location = useLocation();
   const { employeeId } = location.state;
+
+  const [editorHtml, setEditorHtml] = useState('');
+  const [tableData, setTableData] = useState([]);
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text');
+    const rows = pasteData.split('\n');
+    const parsedData = rows.map(row => row.split('\t'));
+    setTableData(parsedData);
+  };
+
+  const handleEditorChange = (html) => {
+    setEditorHtml(html);
+    setTracking({ ...tracking, ["excelData"]: html });
+  };
 
   const [employeeDetails, setEmployeeDetails] = useState({});
   const [tracking, setTracking] = useState({
@@ -21,6 +40,7 @@ export default function AddWithHoldTracking() {
     paidRate: "",
     paidAmt: "",
     balance: "",
+    excelData: ""
   });
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProjectName, setSelectedProjectName] = useState("");
@@ -33,6 +53,7 @@ export default function AddWithHoldTracking() {
     actualRate,
     paidHours,
     paidRate,
+    excelData
   } = tracking;
 
   useEffect(() => {
@@ -109,6 +130,7 @@ export default function AddWithHoldTracking() {
 
   const onInputChange = (e) => {
     setTracking({ ...tracking, [e.target.name]: e.target.value });
+
   };
 
   const onSubmit = async (e) => {
@@ -359,6 +381,15 @@ export default function AddWithHoldTracking() {
             </div>
           </div>
         </div>
+        <div>
+        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
+      <FroalaEditor
+        name="editorHtml"
+        model={editorHtml}
+        onModelChange={handleEditorChange}
+        onPaste={handlePaste}
+      />
+    </div>
 
         <button type="submit" className="btn btn-outline-primary">
           Submit

@@ -15,7 +15,7 @@ export default function WithHoldTracking() {
   const { employeeId } = location.state;
 
   const handleAddTracking = (employeeId) => {
-    navigate("/withHoldTracking/addtracking", { state: { employeeId } });
+    navigate("/tracking/addtracking", { state: { employeeId } });
   };
 
   useEffect(() => {
