@@ -121,11 +121,6 @@ export default function Home() {
     <div className="container">
       <div className="py-4">
         <h4 className="text-center">Employee details</h4>
-        {/* <div className="add-user-container">
-          <Link className="add-user-link" to="/adduser">
-            <BsFillPersonPlusFill size={25} />
-          </Link>
-        </div> */}
         <div className="add-orders d-flex justify-content-start">
         <Link className="add-user-link" to="/adduser">
             <BsFillPersonPlusFill size={25} />

@@ -1,84 +1,3 @@
-// import React, { useState } from "react";
-// import "./App.css";
-// import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
-// import Navbar from "./layout/Navbar";
-// import Home from "./pages/Home";
-// import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-// import AddUser from "./Employee/Employee";
-// import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
-// import AddOrder from "./PurchaseOrder/AddOrder";
-// import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
-// import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
-// import EditEmployee from "./Employee/EditEmployee";
-// import Login from "./pages/Login";
-// import EditOrder from "./PurchaseOrder/EditOrder";
-// import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
-// import Breadcrumb from "./Breadcrumbs";
-
-// function useLocalStorage(key, initialValue) {
-//   const [storedValue, setStoredValue] = useState(() => {
-//     try {
-//       const item = window.localStorage.getItem(key);
-//       return item ? JSON.parse(item) : initialValue;
-//     } catch (error) {
-//       console.error("Error getting data from localStorage:", error);
-//       return initialValue;
-//     }
-//   });
-
-//   const setValue = (value) => {
-//     try {
-//       setStoredValue(value);
-//       window.localStorage.setItem(key, JSON.stringify(value));
-//     } catch (error) {
-//       console.error("Error setting data to localStorage:", error);
-//     }
-//   };
-
-//   return [storedValue, setValue];
-// }
-
-// function App() {
-//   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
-  
-//   const[role,setRole] = useState({});
-
-//   const handleLogin = (role) => {
-//     setIsLoggedIn(true);
-//     setRole(role);
-//   };
-
-//   return (
-//     <div className="App">
-//       <Router>
-//         <Navbar location={window.location}/>
-//         {isLoggedIn && <Breadcrumb/>}
-//         <Routes>
-//         <Route exact path="/login" element={<Login onLogin={handleLogin}/>} />
-//           {isLoggedIn ? 
-//           (
-//           <>
-//           <Route exact path="/" element={<Home />} />
-//           <Route exact path="/adduser" element={<AddUser/>} />
-//           <Route exact path="/orders/addorder" element={<AddOrder />} />
-//           <Route exact path="/orders" element={<PurchaseOrder />} />
-//           <Route path="/orders/editorder" element={<EditOrder/>} />
-//           <Route exact path="/tracking" element={<WithHoldTracking />} />
-//           <Route path="/tracking/edittracking" element={<EditWithHoldTracking/> } />
-//           <Route exact path="/tracking/addtracking" element={<AddWithHoldTracking/>} />
-//           <Route exact path="/editemployee" element={<EditEmployee />} />
-//           </>
-//           ) : (
-//             <Route path="/*" element={<Navigate to="/login" />} />
-//           )}
-//         </Routes>
-//       </Router>
-//     </div>
-//   );
-// }
-// export default App;
-
-
 import React, { useState } from "react";
 import "./App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
@@ -103,6 +22,7 @@ import EditVisaDetails from "./VisaDetails/EditVisaDetails";
 import AddVisaDetails from "./VisaDetails/AddVisaDetails";
 import Tracking from "./EmployeeAccess/Tracking";
 import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
+import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -166,6 +86,7 @@ function App() {
             <>
               <Route path="/" element={<EmployeeDetails/>} />
               <Route path="/trackings" element={<Tracking/>} />
+              <Route path="/withholdSheet" element={<WithHoldSheet/>} />
             </>
           ) : (
             <Route path="/*" element={<Navigate to="/login" />} />

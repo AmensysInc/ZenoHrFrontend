@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../pages/Home.css'; 
+import '../pages/Home.css';
+import 'froala-editor/css/froala_editor.pkgd.min.css';
+import 'froala-editor/js/plugins.pkgd.min.js';
+import FroalaEditor from 'react-froala-wysiwyg';
 
 const Tracking = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -38,31 +41,21 @@ const Tracking = () => {
         <table className="table border shadow">
           <thead>
             <tr>
-              <th>S.No</th>
-              <th>Month</th>
-              <th>Year</th>
-              <th>Actual Hours</th>
-              <th>Actual Rate</th>
-              <th>Actual Amount</th>
-              <th>Paid Hours</th>
-              <th>Paid Rate</th>
-              <th>Paid Amount</th>
-              <th>Balance</th>
+              <th>Excel Date</th>
             </tr>
           </thead>
           <tbody>
             {trackings.map((tracking, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
-                <td>{tracking.month}</td>
-                <td>{tracking.year}</td>
-                <td>{tracking.actualHours}</td>
-                <td>{tracking.actualRate}</td>
-                <td>{tracking.actualAmt}</td>
-                <td>{tracking.paidHours}</td>
-                <td>{tracking.paidRate}</td>
-                <td>{tracking.paidAmt}</td>
-                <td>{tracking.balance}</td>
+                <div>
+        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
+      <FroalaEditor
+        model={tracking.excelData}
+        name="editorHtml"
+        readOnly
+      />
+    </div>
               </tr>
             ))}
           </tbody>
