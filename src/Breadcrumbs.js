@@ -76,7 +76,16 @@ const Breadcrumb = () => {
                 </span>
               </li>
             );
-          } else {
+          } else if (name.toLowerCase() === "withholdSheet") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          }else {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
             return (
               <li key={index} className="breadcrumb-item">

@@ -63,7 +63,7 @@ function App() {
     <div className="App">
       <Router>
         <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
-        {role === "ADMIN" && <Breadcrumb />}
+        {isLoggedIn && <Breadcrumb />}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           {isLoggedIn ?(
@@ -89,6 +89,7 @@ function App() {
                       <>
                         <Route path="/" element={<EmployeeDetails/>} />
                         <Route path="/trackings" element={<Tracking/>} />
+                        <Route path="/withholdSheet" element={<WithHoldSheet/>} />
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          
