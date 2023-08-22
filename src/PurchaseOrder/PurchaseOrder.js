@@ -4,13 +4,15 @@ import { useNavigate } from "react-router-dom";
 import "../PurchaseOrder/PurchaseOrder.css";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
+import Pagination from "../pages/Pagination";
 
 export default function PurchaseOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [orders, setOrders] = useState([]);
   const [userDetail, setUserDetail] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
   let location = useLocation();
   const { employeeId } = location.state;
@@ -21,7 +23,7 @@ export default function PurchaseOrder() {
 
   useEffect(() => {
     loadOrders();
-  }, [currentPage]);
+  }, [currentPage, pageSize]);
 
   const loadOrders = async () => {
     try {
@@ -34,21 +36,20 @@ export default function PurchaseOrder() {
         redirect: "follow",
       };
       const ordersResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/orders`,
+        `${apiUrl}/employees/${employeeId}/orders?page=${currentPage}&size=${pageSize}`,
         requestOptions
       );
       const detailsResponse = await fetch(
         `${apiUrl}/employees/${employeeId}`,
         requestOptions
       );
-      const ordersData = await ordersResponse.json();
+      const ordersData = await ordersResponse.json(); 
       const detailsData = await detailsResponse.json();
-
-      const indexOfLastItem = currentPage * itemsPerPage;
-      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-      const currentOrders = ordersData.slice(indexOfFirstItem, indexOfLastItem);
-
-      setOrders(currentOrders);
+  
+      const ordersArray = ordersData.content;
+  
+      setOrders(ordersArray);
+      setTotalPages(ordersData.totalPages);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
@@ -57,16 +58,10 @@ export default function PurchaseOrder() {
       console.error("Error loading orders:", error);
     }
   };
-
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
   const handleEditOrder = (orderId) => {
-    navigate("/orders/editorder", { state: { employeeId,orderId } });
+    navigate("/orders/editorder", { state: { employeeId, orderId } });
   };
-
+  
   return (
     <div className="container">
       <div className="py-4">
@@ -96,11 +91,11 @@ export default function PurchaseOrder() {
           </thead>
           <tbody>
             {orders.length > 0 ? (
-              orders.map((employeeOrder, index) => (
-                <tr key={index}>
-                  <th scope="row">
-                    {index + 1 + (currentPage - 1) * itemsPerPage}
-                  </th>
+              orders.map((employeeOrder, index) => {
+                const userIndex = index + currentPage * pageSize;
+                return (
+                <tr key={userIndex}>
+                  <th scope="row">{userIndex + 1}</th>
                   <td>{employeeOrder.dateOfJoining}</td>
                   <td>{employeeOrder.projectEndDate}</td>
                   <td>{employeeOrder.billRate}</td>
@@ -108,32 +103,21 @@ export default function PurchaseOrder() {
                   <td>{employeeOrder.vendorPhoneNo}</td>
                   <td>{employeeOrder.vendorEmailId}</td>
                   <td>
-                  <div className="icon-container">
-                  <FiEdit2 onClick={() => handleEditOrder(employeeOrder.orderId)} size={20}/>
-                  </div>
-                </td>
+                    <div className="icon-container">
+                      <FiEdit2 onClick={() => handleEditOrder(employeeOrder.orderId)} size={20}/>
+                    </div>
+                  </td>
                 </tr>
-              ))
+              );
+            })
             ) : (
               <tr>
-                <td colSpan="6">No Orders</td>
+                <td colSpan="7">No Orders</td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
-      <div className="pagination">
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-          (page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={currentPage === page ? "active" : ""}
-            >
-              {page}
-            </button>
-          )
-        )}
+        <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}/>
       </div>
     </div>
   );

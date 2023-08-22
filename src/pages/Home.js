@@ -7,6 +7,7 @@ import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
+import Pagination from "../pages/Pagination";
 
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -71,50 +72,6 @@ export default function Home() {
     } catch (error) {
       console.error("Error deleting employee:", error);
     }
-  };
-
-  const handlePagination = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const renderPagination = () => {
-    const range = 2;
-    const paginationItems = [];
-    const startPage = Math.max(currentPage - range, 0); 
-    const endPage = Math.min(currentPage + range, totalPages - 1);
-    for (let i = startPage; i <= endPage; i++) {
-      paginationItems.push(
-        <li
-          key={i}
-          className={`page-item ${i === currentPage ? "active" : ""}`}
-          onClick={() => handlePagination(i)}
-        >
-          <span className="page-link">{i + 1}</span>
-        </li>
-      );
-    }
-
-    return (
-      <nav>
-        <ul className="pagination justify-content-center">
-          <li
-            className={`page-item ${currentPage === 0 ? "disabled" : ""}`}
-            onClick={() => handlePagination(0)}
-          >
-            <span className="page-link">First</span>
-          </li>
-          {paginationItems}
-          <li
-            className={`page-item ${
-              currentPage === totalPages - 1 ? "disabled" : ""
-            }`}
-            onClick={() => handlePagination(totalPages - 1)}
-          >
-            <span className="page-link">Last</span>
-          </li>
-        </ul>
-      </nav>
-    );
   };
 
   return (
@@ -184,7 +141,7 @@ export default function Home() {
             )}
           </tbody>
         </table>
-        {renderPagination()}
+        <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}/>
       </div>
     </div>
   );
