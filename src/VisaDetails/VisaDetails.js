@@ -17,7 +17,7 @@ export default function VisaDetails() {
 
   useEffect(() => {
     fetchVisaDetails(currentPage, pageSize);
-  }, []);
+  }, [currentPage, pageSize]);
 
   const fetchVisaDetails = async () => {
     try {
@@ -41,6 +41,7 @@ export default function VisaDetails() {
         config
       );
       const data = await response.json();
+      console.log(data);
       setVisaDetails(data);
       setTotalPages(data.totalPages);
     } catch (error) {
