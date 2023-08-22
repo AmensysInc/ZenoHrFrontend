@@ -36,12 +36,12 @@ const Tracking = () => {
 
   return (
     <div className="container">
-      <h2 className="text-center">Tracking Details</h2>
+      <h2 className="text-center">WithHold Details</h2>
       <div className="table-container">
         <table className="table border shadow">
           <thead>
             <tr>
-              <th>Excel Date</th>
+              
             </tr>
           </thead>
           <tbody>
