@@ -6,15 +6,11 @@ import "../PurchaseOrder/PurchaseOrder.css";
 
 export default function WithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [trackings, setTrackings] = useState([]);
+  const [trackings, setTrackings] = useState([]); // State to store trackings
   const [userDetail, setUserDetail] = useState({});
   const navigate = useNavigate();
   let location = useLocation();
   const { employeeId } = location.state;
-
-  const handleAddTracking = (employeeId) => {
-    navigate("/tracking/addtracking", { state: { employeeId } });
-  };
 
   useEffect(() => {
     loadTrackings();
@@ -24,7 +20,7 @@ export default function WithHoldTracking() {
     try {
       const token = localStorage.getItem("token");
       var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`);
+      myHeaders.append("Authorization", `Bearer ${token}`); 
       var requestOptions = {
         method: "GET",
         headers: myHeaders,
@@ -40,7 +36,7 @@ export default function WithHoldTracking() {
       );
       const trackingsData = await trackingsResponse.json();
       const detailsData = await detailsResponse.json();
-      setTrackings(trackingsData);
+      setTrackings(trackingsData); // Set the trackings state
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
@@ -48,6 +44,10 @@ export default function WithHoldTracking() {
     } catch (error) {
       console.error("Error loading trackings:", error);
     }
+  };
+
+  const handleAddTracking = () => {
+    navigate("/tracking/addtracking", { state: { employeeId } });
   };
 
   const handleEditTracking = (trackingId) => {
@@ -61,10 +61,7 @@ export default function WithHoldTracking() {
           {userDetail.first} {userDetail.last} - WithHold Details
         </h4>
         <div className="add-orders d-flex justify-content-start">
-          <button
-            className="btn btn-primary"
-            onClick={() => handleAddTracking(employeeId)}
-          >
+          <button className="btn btn-primary" onClick={handleAddTracking}>
             <BiSolidAddToQueue size={15} />
             New WithHold
           </button>
@@ -73,62 +70,82 @@ export default function WithHoldTracking() {
         {trackings.length === 0 ? (
           <p className="text-center">NO TRACKINGS</p>
         ) : (
-          trackings.map((tracking) => (
-            <div key={tracking.trackingId} className="project-grid">
-              <h5>Project: {tracking.projectName}</h5>
-              <table className="table border shadow">
-                <thead>
-                  <tr>
-                    <th scope="col">S.No</th>
-                    <th scope="col">Month</th>
-                    <th scope="col">Year</th>
-                    <th scope="col">Project</th>
-                    <th scope="col">Actual Hours</th>
-                    <th scope="col">Actual Rate</th>
-                    <th scope="col">Actual Amount</th>
-                    <th scope="col">Paid Hours</th>
-                    <th scope="col">Paid Rate</th>
-                    <th scope="col">Paid Amount</th>
-                    <th scope="col">Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">1</th>
-                    <td>{tracking.month}</td>
-                    <td>{tracking.year}</td>
-                    <td>{tracking.projectName}</td>
-                    <td>{tracking.actualHours}</td>
-                    <td>{tracking.actualRate}</td>
-                    <td>{tracking.actualAmt}</td>
-                    <td>{tracking.paidHours}</td>
-                    <td>{tracking.paidRate}</td>
-                    <td>{tracking.paidAmt}</td>
-                    <td>{tracking.balance}</td>
-                    <td>
-                      <div className="icon-container">
-                        <FiEdit2
-                          onClick={() =>
-                            handleEditTracking(tracking.trackingId)
-                          }
-                          size={20}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={11} className="text-end">
-                      Total Balance: {tracking.balance}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          ))
+          // Mapping through grouped trackings
+          Object.entries(groupByProject(trackings)).map(
+            ([projectName, projectTrackings]) => {
+              // Calculate total balance for the project
+              const totalBalance = projectTrackings.reduce(
+                (sum, tracking) => sum + tracking.balance,
+                0
+              );
+
+              return (
+                <div key={projectName} className="project-grid">
+                  <h5>Project: {projectName}</h5>
+                  <table className="table border shadow">
+                    <thead>
+                      <th scope="col">S.No</th>
+                      <th scope="col">Month</th>
+                      <th scope="col">Year</th>
+                      <th scope="col">Project</th>
+                      <th scope="col">Actual Hours</th>
+                      <th scope="col">Actual Rate</th>
+                      <th scope="col">Actual Amount</th>
+                      <th scope="col">Paid Hours</th>
+                      <th scope="col">Paid Rate</th>
+                      <th scope="col">Paid Amount</th>
+                      <th scope="col">Balance</th>
+                    </thead>
+                    <tbody>
+                      {projectTrackings.map((tracking, index) => (
+                        <tr key={tracking.trackingId}>
+                          <th scope="row">{index + 1}</th>
+                          <td>{tracking.month}</td>
+                          <td>{tracking.year}</td>
+                          <td>{tracking.projectName}</td>
+                          <td>{tracking.actualHours}</td>
+                          <td>{tracking.actualRate}</td>
+                          <td>{tracking.actualAmt}</td>
+                          <td>{tracking.paidHours}</td>
+                          <td>{tracking.paidRate}</td>
+                          <td>{tracking.paidAmt}</td>
+                          <td>{tracking.balance}</td>
+                          <td>
+                            <div className="icon-container">
+                              <FiEdit2
+                                onClick={() =>
+                                  handleEditTracking(tracking.trackingId)
+                                }
+                                size={20}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td colSpan="11" className="text-end">
+                          Total Balance: {totalBalance}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
+            }
+          )
         )}
       </div>
     </div>
   );
+}
+
+function groupByProject(trackings) {
+  return trackings.reduce((groups, tracking) => {
+    const projectName = tracking.projectName;
+    if (!groups[projectName]) {
+      groups[projectName] = [];
+    }
+    groups[projectName].push(tracking);
+    return groups;
+  }, {});
 }

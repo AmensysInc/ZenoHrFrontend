@@ -77,7 +77,7 @@ export default function AddProjectHistory() {
         body: JSON.stringify(project),
       };
       await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
-      navigate("/");
+      navigate("/project-history", {state : {employeeId} });
     } catch (error) {
       console.error("Error adding order:", error);
     }

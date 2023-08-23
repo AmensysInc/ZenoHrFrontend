@@ -86,9 +86,12 @@ export default function AddWithHoldTracking() {
         requestOptions
       );
       const projectHistoryData = await projectHistoryResponse.json();
+      
+      const projects = projectHistoryData.content || []; // Extract the array from "content"
+      
       const uniqueProjectNames = [
         ...new Set(
-          projectHistoryData.map(
+          projects.map(
             (project) =>
               `${project.subVendorOne || ""} / ${project.subVendorTwo || ""}`
           )
@@ -99,6 +102,7 @@ export default function AddWithHoldTracking() {
       console.error("Error loading project names:", error);
     }
   };
+  
 
   const onProjectNameChange = (e) => {
     setSelectedProjectName(e.target.value);
@@ -153,7 +157,7 @@ export default function AddWithHoldTracking() {
         `${apiUrl}/employees/${employeeId}/trackings`,
         requestOptions
       );
-      navigate("/");
+      navigate("/tracking", { state: { employeeId } });
     } catch (error) {
       console.error("Error adding withholding tracking:", error);
     }

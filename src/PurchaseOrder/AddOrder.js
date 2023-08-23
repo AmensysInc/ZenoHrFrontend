@@ -66,7 +66,7 @@ export default function AddOrder() {
         body: JSON.stringify(orders)
       };
       await fetch(`${apiUrl}/employees/${employeeId}/orders`, requestOptions);
-      navigate("/");
+      navigate("/orders", {state: {employeeId} });
     } catch (error) {
       console.error("Error adding order:", error);
     }
