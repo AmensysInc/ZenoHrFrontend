@@ -4,6 +4,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/js/plugins.pkgd.min.js';
 import FroalaEditor from 'react-froala-wysiwyg';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function EditWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -12,6 +17,18 @@ export default function EditWithHoldTracking() {
   const [isLoading, setIsLoading] = useState(true);
   const [editorHtml, setEditorHtml] = useState('');
   const [tableData, setTableData] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  const [monthOptions] = useState([
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ]);
+
+  const startYear = 1990;
+  const endYear = 2099;
+  const [yearOptions] = useState(
+    Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index)
+  );
 
   const handlePaste = (e) => {
     e.preventDefault();
@@ -99,13 +116,22 @@ export default function EditWithHoldTracking() {
         body: JSON.stringify(tracking),
       };
       const response = await fetch(`${apiUrl}/employees/trackings/${trackingId}`, requestOptions);
-      if (!response.ok) {
+      if (response.status === 200) {
+        handleOpenPopup();
+      }else if (!response.ok) {
         throw new Error('Failed to update tracking');
       }
-      navigate("/tracking", { state: { employeeId } });
     } catch (error) {
       console.error('Error updating tracking:', error);
     }
+  };
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/tracking", { state: { employeeId } });
   };
 
   const handleInputChange = (event) => {
@@ -157,23 +183,35 @@ export default function EditWithHoldTracking() {
         <div className="form-group row">
           <div className="col">
             <label>Month:</label>
-            <input
-              type="text"
+            <select
               className="form-control"
               name="month"
               value={tracking.month}
               onChange={handleInputChange}
-            />
+            >
+              <option value="" disabled>Select month</option>
+              {monthOptions.map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="col">
             <label>Year:</label>
-            <input
-              type="text"
+            <select
               className="form-control"
               name="year"
               value={tracking.year}
               onChange={handleInputChange}
-            />
+            >
+              <option value="" disabled>Select year</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="form-group row">
@@ -252,7 +290,7 @@ export default function EditWithHoldTracking() {
             />
           </div>
           <div>
-        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
+        <label htmlFor="editorHtml">Excel Data :</label>
       <FroalaEditor
         model={tracking.excelData}
         name="editorHtml"
@@ -272,6 +310,21 @@ export default function EditWithHoldTracking() {
         >
           Cancel
         </button>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                WithHold Updated Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   );

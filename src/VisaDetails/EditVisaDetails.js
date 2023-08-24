@@ -1,10 +1,21 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function EditVisaDetails() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [visaDetails, setVisaDetails] = useState([]);
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [open, setOpen] = useState(false);
   const [visaTypeOptions, setVisaTypeOptions] = useState([
     "H1B",
     "OPT",
@@ -73,7 +84,9 @@ export default function EditVisaDetails() {
       if (!response.ok) {
         throw new Error("Failed to update order");
       }
-      navigate("/");
+      if (response.status === 200) {
+        handleOpenPopup();
+      }
     } catch (error) {
       console.error("Error updating order:", error);
     }
@@ -87,6 +100,14 @@ export default function EditVisaDetails() {
     }));
   };
 
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/editemployee/visa-details", { state: { employeeId } });
+  };
   const handleNavigate = (employeeId) => {
     navigate("/editemployee/visa-details", { state: { employeeId } });
   };
@@ -96,10 +117,10 @@ export default function EditVisaDetails() {
   }
 
   return (
-    <div>
-      <h2>Edit Visa Details</h2>
+    <div className="form-container"> {/* Apply the same CSS class */}
+      <h2 className="text-center m-4">Edit Visa Details</h2>
       <form onSubmit={handleFormSubmit}>
-        <div>
+      <div>
           <label>First Name:</label>
           <input
             type="text"
@@ -136,23 +157,33 @@ export default function EditVisaDetails() {
         </div>
         <div>
           <label>Visa Start Date</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="visaStartDate"
-            value={visaDetails.visaStartDate}
+            className="form-control"
+            value={dayjs(visaDetails.visaStartDate)}
             onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
         <div>
           <label>Visa Expiry Date</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="visaExpiryDate"
-            value={visaDetails.visaExpiryDate}
+            className="form-control"
+            value={dayjs(visaDetails.visaExpiryDate)}
             onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
-        <button type="submit">Update</button>
+        <button type="submit" className="btn btn-outline-primary">
+          Update
+        </button>
         <button
           type="button"
           className="btn btn-outline-danger mx-2"
@@ -160,6 +191,21 @@ export default function EditVisaDetails() {
         >
           Cancel
         </button>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                VisaDetails Updated Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   );

@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function AddProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -7,6 +15,7 @@ export default function AddProjectHistory() {
   let location = useLocation();
   const { employeeId } = location.state;
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [open, setOpen] = useState(false);
   const [projectStatusOptions, setProjectStatusOptions] = useState([
     "Active",
     "Terminated",
@@ -76,11 +85,22 @@ export default function AddProjectHistory() {
         },
         body: JSON.stringify(project),
       };
-      await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
-      navigate("/project-history", {state : {employeeId} });
+      const response = await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
+      if(response.status === 200){
+        handleOpenPopup();
+      }
     } catch (error) {
       console.error("Error adding order:", error);
     }
+  };
+
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/editemployee/project-history",{ state: { employeeId } });
   };
 
   const handleNavigate = (employeeId) => {
@@ -152,27 +172,27 @@ export default function AddProjectHistory() {
         </div>
         <div className="form-group">
           <label htmlFor="projectStartDate">Project Start Date</label>
-          <input
-            type="text"
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
             className="form-control"
-            placeholder="Project Start Date"
             name="projectStartDate"
             value={projectStartDate}
-            onChange={(e) => onInputChange(e)}
+            onChange={(date) => onInputChange({ target: { name: "projectStartDate", value: date } })}
             required
           />
+          </LocalizationProvider>
         </div>
         <div className="form-group">
           <label htmlFor="projectEndDate">Project End Date</label>
-          <input
-            type="text"
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
             className="form-control"
-            placeholder="Project End Date"
             name="projectEndDate"
             value={projectEndDate}
-            onChange={(e) => onInputChange(e)}
+            onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
             required
           />
+          </LocalizationProvider>
         </div>
         <div className="form-group">
           <label htmlFor="projectStatus">Project Status</label>
@@ -204,6 +224,21 @@ export default function AddProjectHistory() {
         >
           Cancel
         </button>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Project added Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   );

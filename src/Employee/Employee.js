@@ -14,13 +14,13 @@ export default function AddEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   const [open, setOpen] = useState(false);
-
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     emailID: "",
     dob: "",
     clgOfGrad: "",
+    phoneNo:"",
     onBench: "",
     email: "",
     password: "",
@@ -32,6 +32,7 @@ export default function AddEmployee() {
     emailID,
     dob,
     clgOfGrad,
+    phoneNo,
     onBench,
     email,
     password,
@@ -113,7 +114,6 @@ export default function AddEmployee() {
         <label htmlFor="emailID">Date of Birth</label>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
-            label=""
             className="form-control"
             value={dob}
             onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
@@ -128,6 +128,17 @@ export default function AddEmployee() {
             className="form-control"
             name="clgOfGrad"
             value={clgOfGrad}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="clgOfGrad">Phone No</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="phoneNo"
+            value={phoneNo}
             onChange={(e) => onInputChange(e)}
             required
           />

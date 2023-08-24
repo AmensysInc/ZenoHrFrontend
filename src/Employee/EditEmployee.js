@@ -1,8 +1,16 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import "react-datepicker/dist/react-datepicker.css";
 import './EditEmployee.css';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function EditEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -10,6 +18,7 @@ export default function EditEmployee() {
   const location = useLocation();
   const employeeId = location.state.employeeId;
 
+  const [open, setOpen] = useState(false);
   const [employee, setEmployee] = useState({
     firstName: "",
     lastName: "",
@@ -17,10 +26,22 @@ export default function EditEmployee() {
     dob: "",
     clgOfGrad: "",
     visaStatus: "",
+    phoneNo:"",
     onBench: "",
     email: "",
     password: ""
   });
+  const {
+    firstName,
+    lastName,
+    emailID,
+    dob,
+    clgOfGrad,
+    phoneNo,
+    onBench,
+    email,
+    password
+  } = employee;
 
   useEffect(() => {
     fetchEmployee();
@@ -45,18 +66,6 @@ const fetchEmployee = async () => {
     console.error("Error fetching employee:", error);
   }
 };
-
-  const {
-    firstName,
-    lastName,
-    emailID,
-    dob,
-    clgOfGrad,
-    onBench,
-    email,
-    password
-  } = employee;
-
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
@@ -74,10 +83,12 @@ const fetchEmployee = async () => {
         body: JSON.stringify(employee),
       };
       const response = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
+      if(response.status === 200){
+        handleOpenPopup();
+      }
       if (!response.ok) {
         throw new Error("Failed to update order");
       }
-      navigate("/");
     } catch (error) {
       console.error("Error updating order:", error);
     }
@@ -88,6 +99,15 @@ const fetchEmployee = async () => {
 
   const handleVisaDetails = (employeeId) => {
     navigate("/editemployee/visa-details", { state: { employeeId } });
+  };
+
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/");
   };
   
 
@@ -151,12 +171,26 @@ const fetchEmployee = async () => {
         </div>
         <div className="form-group">
           <label htmlFor="DOB">Date Of Birth</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             className="form-control"
             placeholder="Date of Birth"
             name="dob"
-            value={dob}
+            value={dayjs(dob)}
+            onChange={(e) => onInputChange(e)}
+            required
+          />      
+          </LocalizationProvider>
+        </div>
+        <div className="form-group">
+          <label htmlFor="clgOfGrad">College of Graduation</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Name of the college"
+            name="clgOfGrad"
+            value={clgOfGrad}
             onChange={(e) => onInputChange(e)}
             required
           />
@@ -169,6 +203,18 @@ const fetchEmployee = async () => {
             placeholder="Name of the college"
             name="clgOfGrad"
             value={clgOfGrad}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="clgOfGrad">Phone No</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Phone no"
+            name="phoneNo"
+            value={phoneNo}
             onChange={(e) => onInputChange(e)}
             required
           />
@@ -215,6 +261,21 @@ const fetchEmployee = async () => {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Employee Updated Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
     </div>
