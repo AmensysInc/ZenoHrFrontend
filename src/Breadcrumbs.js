@@ -38,14 +38,6 @@ const Breadcrumb = () => {
                 {nameToShow}
               </li>
             );
-          } else if ([ "withholdSheet"].includes(name.toLowerCase())) {
-            return (
-              <li key={index} className="breadcrumb-item">
-                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
-                  {nameToShow}
-                </span>
-              </li>
-            );
           } else if (name.toLowerCase() === "visa-details") {
             const employeeId = pathnames.at(pathnames.findIndex(x => x.toLowerCase() === "visa-details") - 1);
             return (
