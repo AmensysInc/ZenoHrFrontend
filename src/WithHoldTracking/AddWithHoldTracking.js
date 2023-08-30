@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import 'froala-editor/css/froala_editor.pkgd.min.css';
-import FroalaEditor from 'react-froala-wysiwyg';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-
+import { useNavigate, useParams } from "react-router-dom";
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import FroalaEditor from "react-froala-wysiwyg";
+import { Modal } from "antd";
 
 export default function AddWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
+  let { employeeId } = useParams();
 
-  const [editorHtml, setEditorHtml] = useState('');
+  const [editorHtml, setEditorHtml] = useState("");
   const [tableData, setTableData] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [employeeDetails, setEmployeeDetails] = useState({});
   const [tracking, setTracking] = useState({
     firstName: "",
@@ -32,7 +26,7 @@ export default function AddWithHoldTracking() {
     paidRate: "",
     paidAmt: "",
     balance: "",
-    excelData: ""
+    excelData: "",
   });
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProjectName, setSelectedProjectName] = useState("");
@@ -45,7 +39,7 @@ export default function AddWithHoldTracking() {
     actualRate,
     paidHours,
     paidRate,
-    excelData
+    excelData,
   } = tracking;
 
   const monthOptions = [
@@ -101,9 +95,9 @@ export default function AddWithHoldTracking() {
         requestOptions
       );
       const projectHistoryData = await projectHistoryResponse.json();
-      
+
       const projects = projectHistoryData.content || [];
-      
+
       const uniqueProjectNames = [
         ...new Set(
           projects.map(
@@ -117,7 +111,7 @@ export default function AddWithHoldTracking() {
       console.error("Error loading project names:", error);
     }
   };
-  
+
   const onProjectNameChange = (e) => {
     setSelectedProjectName(e.target.value);
   };
@@ -148,56 +142,59 @@ export default function AddWithHoldTracking() {
 
   const onInputChange = (e) => {
     setTracking({ ...tracking, [e.target.name]: e.target.value });
-
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     const updatedTracking = {
-        ...tracking,
-        projectName: selectedProjectName,
+      ...tracking,
+      projectName: selectedProjectName,
     };
     try {
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify(updatedTracking),
-        };
-        console.log("Submitting data:", tracking);
-        const response = await fetch(
-            `${apiUrl}/employees/${employeeId}/trackings`,
-            requestOptions
-        );
-        if (response.status === 200) {
-            handleOpenPopup();
-        }
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(updatedTracking),
+      };
+      console.log("Submitting data:", tracking);
+      const response = await fetch(
+        `${apiUrl}/employees/${employeeId}/trackings`,
+        requestOptions
+      );
+      if (response.status === 200) {
+        showModal();
+      }
     } catch (error) {
-        console.error("Error adding withholding tracking:", error);
+      console.error("Error adding withholding tracking:", error);
     }
-};
-
-
-  const handleOpenPopup = () => {
-    setOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/tracking", { state: { employeeId } });
+  const handleNavigate = (employeeId) => {
+    navigate(`/tracking/${employeeId}`);
   };
 
-  const handleTracking = (employeeId) => {
-    navigate("/tracking", { state: { employeeId } });
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
   };
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pasteData = e.clipboardData.getData('text');
-    const rows = pasteData.split('\n');
-    const parsedData = rows.map(row => row.split('\t'));
+    const pasteData = e.clipboardData.getData("text");
+    const rows = pasteData.split("\n");
+    const parsedData = rows.map((row) => row.split("\t"));
     setTableData(parsedData);
   };
 
@@ -261,26 +258,26 @@ export default function AddWithHoldTracking() {
             </div>
           </div>
           <div className="col-md-6">
-        <div className="form-group">
-          <label htmlFor="year">Year:</label>
-          <select
-            className="form-control"
-            name="year"
-            value={year}
-            onChange={(e) => onInputChange(e)}
-            required
-          >
-            <option value="" disabled>
-              Select year
-            </option>
-            {yearOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+            <div className="form-group">
+              <label htmlFor="year">Year:</label>
+              <select
+                className="form-control"
+                name="year"
+                value={year}
+                onChange={(e) => onInputChange(e)}
+                required
+              >
+                <option value="" disabled>
+                  Select year
+                </option>
+                {yearOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         <div className="row">
           <div className="row">
@@ -407,14 +404,14 @@ export default function AddWithHoldTracking() {
           </div>
         </div>
         <div>
-        <label htmlFor="editorHtml">Excel Data :</label>
-      <FroalaEditor
-        name="editorHtml"
-        model={editorHtml}
-        onModelChange={handleEditorChange}
-        onPaste={handlePaste}
-      />
-    </div>
+          <label htmlFor="editorHtml">Excel Data :</label>
+          <FroalaEditor
+            name="editorHtml"
+            model={editorHtml}
+            onModelChange={handleEditorChange}
+            onPaste={handlePaste}
+          />
+        </div>
 
         <button type="submit" className="btn btn-outline-primary">
           Submit
@@ -422,25 +419,13 @@ export default function AddWithHoldTracking() {
         <button
           type="button"
           className="btn btn-outline-danger mx-2"
-          onClick={() => handleTracking(employeeId)}
+          onClick={() => handleNavigate(employeeId)}
         >
           Cancel
         </button>
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                WithHold added Successfully
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>ok</Button>
-            </DialogActions>
-          </Dialog>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>WithHold added succesfully</p>
+        </Modal>
       </form>
     </div>
   );

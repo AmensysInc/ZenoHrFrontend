@@ -4,8 +4,7 @@ import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./layout/Navbar";
 import Home from "./pages/Home";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import AddEmployee from "./Employee/Employee";
-// import { AddEmployee, EditEmployee, } from "./Employee/Employee";
+import AddEmployee from "./Employee/AddEmployee";
 import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
 import AddOrder from "./PurchaseOrder/AddOrder";
 import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
@@ -64,7 +63,7 @@ function App() {
     <div className="App">
       <Router>
         <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
-        {isLoggedIn && <Breadcrumb />}
+        {isLoggedIn && <Breadcrumb/>}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           {isLoggedIn ?(
@@ -72,19 +71,19 @@ function App() {
                   <>
                     <Route path="/" element={<Home />} />
                     <Route path="/adduser" element={<AddEmployee />} />
-                    <Route path="/orders" element={<PurchaseOrder />} />
-                    <Route path="/orders/addorder" element={<AddOrder />} />
-                    <Route path="/orders/editorder" element={<EditOrder />} />
-                    <Route path="/tracking" element={<WithHoldTracking />} />
-                    <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
-                    <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
-                    <Route path="/editemployee" element={<EditEmployee />} />
-                    <Route path="/editemployee/project-history" element={<ProjectHistory />} />
-                    <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
-                    <Route path="/editemployee/project-history/editprojecthistory" element={<EditProjectHistory/>} />
-                    <Route path="/editemployee/visa-details" element={<VisaDetails/>} />
-                    <Route path="/editemployee/visa-details/addvisadetails" element={<AddVisaDetails/>} />
-                    <Route path="/editemployee/visa-details/editvisadetails" element={<EditVisaDetails/>} />
+                    <Route path="/editemployee/:employeeId" element={<EditEmployee />} />
+                    <Route path="/orders/:employeeId" element={<PurchaseOrder />} />
+                    <Route path="/orders/:employeeId/:orderId/editorder" element={<EditOrder />} />
+                    <Route path="/orders/:employeeId/addorder" element={<AddOrder />} />
+                    <Route path="/tracking/:employeeId" element={<WithHoldTracking />} />
+                    <Route path="/tracking/:employeeId/:trackingId/edittracking" element={<EditWithHoldTracking />} />
+                    <Route path="/tracking/:employeeId/addtracking" element={<AddWithHoldTracking />} />
+                    <Route path="/editemployee/:employeeId/project-history" element={<ProjectHistory />} />
+                    <Route path="/editemployee/:employeeId/project-history/:projectId/editproject" element={<EditProjectHistory />} />
+                    <Route path="/editemployee/:employeeId/project-history/add-project" element={<AddProjectHistory/>} />
+                    <Route path="/editemployee/:employeeId/visa-details" element={<VisaDetails/>} />
+                    <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisa-details" element={<EditVisaDetails/>} />
+                    <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
                   </>
                 ): role === "EMPLOYEE" ? (
                       <>

@@ -1,25 +1,18 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from 'dayjs';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import { useNavigate,useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
+import  dayjs  from 'dayjs';
 
 export default function EditOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const location = useLocation();
-  const { orderId, employeeId } = location.state;
+  let { employeeId, orderId } = useParams();
 
   const [order, setOrder] = useState({});
   const [employeeDetails, setEmployeeDetails] = useState({});
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -34,21 +27,21 @@ export default function EditOrder() {
           Authorization: `Bearer ${token}`,
         },
       };
-
+  
       const [orderResponse, employeeResponse] = await Promise.all([
         axios.get(`${apiUrl}/orders/${orderId}`, requestOptions),
         axios.get(`${apiUrl}/employees/${employeeId}`, requestOptions),
       ]);
-
+  
       setOrder(orderResponse.data);
       setEmployeeDetails(employeeResponse.data);
-
+  
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
-
+  
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     try {
@@ -67,7 +60,7 @@ export default function EditOrder() {
       );
 
       if (response.status === 200) {
-        handleOpenPopup();
+        showModal();
       }
     } catch (error) {
       console.error("Error updating order:", error);
@@ -75,9 +68,9 @@ export default function EditOrder() {
   };
 
   const handleNavigate = (employeeId) => {
-    navigate("/orders", { state: { employeeId } });
+    navigate(`/orders/${employeeId}`);
   };
-
+  
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setOrder((prevOrder) => ({
@@ -86,14 +79,27 @@ export default function EditOrder() {
     }));
   };
 
-  const handleOpenPopup = () => {
-    setOpen(true);
+  const handleInputChangeDate = (date, name) => {
+    setOrder((prevDetails) => ({
+      ...prevDetails,
+      [name]: date.format("YYYY-MM-DD"),
+    }));
+  }; 
+
+  const showModal = () => {
+    setIsModalOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/orders", { state: { employeeId } });
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
   };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+  
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -124,29 +130,25 @@ export default function EditOrder() {
         </div>
         <div>
           <label>Date Of Joining:</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>          
           <DatePicker
-            type="text"
-            name="dateOfJoining"
-            className="form-control"
-            value={dayjs(order.dateOfJoining)}
-            onChange={handleInputChange}
-            required
-          />      
-          </LocalizationProvider>
+             type="text"
+             name="dateOfJoining"
+             className="form-control"
+             value={dayjs(order.dateOfJoining)}
+             onChange={(date) => handleInputChangeDate(date, "dateOfJoining")}
+             required
+            />
         </div>
         <div>
           <label>Project End Date:</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>          
           <DatePicker
             type="text"
             name="projectEndDate"
             className="form-control"
             value={dayjs(order.projectEndDate)}
-            onChange={handleInputChange}
+            onChange={(date) => handleInputChangeDate(date, "projectEndDate")}
             required
-          />      
-          </LocalizationProvider>
+            />
         </div>
         <div>
           <label>Bill Rate:</label>
@@ -195,21 +197,9 @@ export default function EditOrder() {
             Cancel
           </button>
         </form>
-        <Dialog
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              PurchaseOrder Updated Successfully
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>OK</Button>
-          </DialogActions>
-        </Dialog>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>PurchaseOrder Updated succesfully</p>
+      </Modal>
       </div>
     </div>
   );

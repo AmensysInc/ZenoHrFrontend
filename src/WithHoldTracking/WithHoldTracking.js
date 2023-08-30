@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams , useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import "../PurchaseOrder/PurchaseOrder.css";
 
 export default function WithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [trackings, setTrackings] = useState([]); // State to store trackings
+  const [trackings, setTrackings] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
+  const { employeeId } = useParams();
 
   useEffect(() => {
     loadTrackings();
@@ -36,7 +35,7 @@ export default function WithHoldTracking() {
       );
       const trackingsData = await trackingsResponse.json();
       const detailsData = await detailsResponse.json();
-      setTrackings(trackingsData); // Set the trackings state
+      setTrackings(trackingsData); 
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
@@ -46,12 +45,12 @@ export default function WithHoldTracking() {
     }
   };
 
-  const handleAddTracking = () => {
-    navigate("/tracking/addtracking", { state: { employeeId } });
+  const handleAddTracking = (employeeId) => {
+    navigate(`/tracking/${employeeId}/addtracking`);
   };
 
-  const handleEditTracking = (trackingId) => {
-    navigate("/tracking/edittracking", { state: { employeeId, trackingId } });
+  const handleEditTracking = (employeeId,trackingId) => {
+    navigate(`/tracking/${employeeId}/${trackingId}/edittracking`);
   };
 
   return (
@@ -61,7 +60,7 @@ export default function WithHoldTracking() {
           {userDetail.first} {userDetail.last} - WithHold Details
         </h4>
         <div className="add-orders d-flex justify-content-start">
-          <button className="btn btn-primary" onClick={handleAddTracking}>
+          <button className="btn btn-primary" onClick={() => handleAddTracking(employeeId)}>
             <BiSolidAddToQueue size={15} />
             New WithHold
           </button>
@@ -70,10 +69,8 @@ export default function WithHoldTracking() {
         {trackings.length === 0 ? (
           <p className="text-center">NO TRACKINGS</p>
         ) : (
-          // Mapping through grouped trackings
           Object.entries(groupByProject(trackings)).map(
             ([projectName, projectTrackings]) => {
-              // Calculate total balance for the project
               const totalBalance = projectTrackings.reduce(
                 (sum, tracking) => sum + tracking.balance,
                 0
@@ -114,7 +111,7 @@ export default function WithHoldTracking() {
                             <div className="icon-container">
                               <FiEdit2
                                 onClick={() =>
-                                  handleEditTracking(tracking.trackingId)
+                                  handleEditTracking(employeeId,tracking.trackingId)
                                 }
                                 size={20}
                               />

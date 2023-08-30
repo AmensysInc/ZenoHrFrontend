@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../pages/Pagination";
@@ -12,8 +12,7 @@ export default function ProjectHistory() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
-  const location = useLocation();
-  const employeeId = location.state.employeeId;
+  let { employeeId } = useParams();
 
   useEffect(() => {
     fetchProjectHistory();
@@ -50,16 +49,12 @@ export default function ProjectHistory() {
     }
   };
 
-  const handleEditHistory = (projectId) => {
-    navigate("/editemployee/project-history/editprojecthistory", {
-      state: { employeeId, projectId },
-    });
+  const handleEditHistory = (employeeId,projectId) => {
+    navigate(`/editemployee/${employeeId}/project-history/${projectId}/editproject`);
   };
 
   const handleAddProject = (employeeId) => {
-    navigate("/editemployee/project-history/addproject", {
-      state: { employeeId },
-    });
+    navigate(`/editemployee/${employeeId}/project-history/add-project`);
   };
 
   return (
@@ -105,7 +100,7 @@ export default function ProjectHistory() {
                   <td>
                     <div className="icon-container">
                       <FiEdit2
-                        onClick={() => handleEditHistory(history.projectId)}
+                        onClick={() => handleEditHistory(employeeId,history.projectId)}
                         size={20}
                         title="Edit Project History"
                       />
