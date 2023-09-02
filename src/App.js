@@ -23,6 +23,8 @@ import AddVisaDetails from "./VisaDetails/AddVisaDetails";
 import Tracking from "./EmployeeAccess/Tracking";
 import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
 import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
+import Sidebar from "./layout/Sidebar";
+import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -64,6 +66,12 @@ function App() {
       <Router>
         <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
         {isLoggedIn && <Breadcrumb/>}
+        <div className="container-fluid">
+          <div className="row">
+          <div className="col-md-2 bg-light">
+              {isLoggedIn && <Sidebar/>}
+            </div>
+            <div className="col-md-10"></div>
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           {isLoggedIn ?(
@@ -84,6 +92,7 @@ function App() {
                     <Route path="/editemployee/:employeeId/visa-details" element={<VisaDetails/>} />
                     <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisa-details" element={<EditVisaDetails/>} />
                     <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
+                    <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
                   </>
                 ): role === "EMPLOYEE" ? (
                       <>
@@ -98,6 +107,9 @@ function App() {
              <Route path="/*" element={<Navigate to="/login" />} />
           )}
         </Routes>
+        </div>
+        </div>
+        
       </Router>
     </div>
   );

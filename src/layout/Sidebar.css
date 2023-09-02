@@ -1,0 +1,31 @@
+ .sidebar {
+    height: 100vh; 
+    width: 150px;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    background-color: #549de6;
+    padding-top: 20px;
+    z-index: 999;
+  }
+
+  .sidebar-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .sidebar-item {
+    margin-bottom: 15px;
+  }
+  
+  .sidebar-link {
+    text-decoration: none;
+    color: white;
+    padding: 10px;
+    display: block;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .sidebar-link:hover {
+    background-color: #0f151c;
+  }
