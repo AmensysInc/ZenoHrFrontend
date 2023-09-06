@@ -25,6 +25,7 @@ import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
 import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
 import Sidebar from "./layout/Sidebar";
 import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
+import ChangePasswordForm from "./pages/ChangePasswordForm";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -69,7 +70,7 @@ function App() {
         <div className="container-fluid">
           <div className="row">
           <div className="col-md-2 bg-light">
-              {isLoggedIn && <Sidebar/>}
+              {isLoggedIn && role === "ADMIN" && <Sidebar/>}
             </div>
             <div className="col-md-10"></div>
         <Routes>
@@ -93,9 +94,11 @@ function App() {
                     <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisa-details" element={<EditVisaDetails/>} />
                     <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
                     <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
+                    
                   </>
-                ): role === "EMPLOYEE" ? (
+                ): role === "EMPLOYEE"? (
                       <>
+                        <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
                         <Route path="/" element={<EmployeeDetails/>} />
                         <Route path="/trackings" element={<Tracking/>} />
                         <Route path="/withholdSheet" element={<WithHoldSheet/>} />

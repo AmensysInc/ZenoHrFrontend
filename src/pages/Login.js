@@ -1,4 +1,4 @@
- import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login({ onLogin }) {
@@ -23,12 +23,22 @@ export default function Login({ onLogin }) {
         setErrorMessage("Invalid Credentials!");
       } else {
         const data = await response.json();
-        const { role, access_token, id } = data;
+        const { role, access_token, id, tempPassword } = data;
+
         localStorage.setItem("token", access_token);
         localStorage.setItem("role", role);
         localStorage.setItem("id", id);
-        onLogin(role);
-        navigate("/");
+        localStorage.setItem("tempPassword", tempPassword);
+
+        if (role === "EMPLOYEE" && tempPassword === true) {
+          console.log("Role:", role);
+          console.log("Temporary Password:", tempPassword);
+          onLogin(role);
+          navigate(`/change-password/${id}`);
+        } else {
+          onLogin(role);
+          navigate("/");
+        }
       }
     } catch (error) {
       console.error("Error authenticating user:", error);
@@ -72,8 +82,9 @@ export default function Login({ onLogin }) {
           Login
         </button>
       </form>
+      <div>
+        {/* <Link to="/forgot-password">Forgot Password?</Link> */}
+      </div>
     </div>
   );
 }
-
-

@@ -1,19 +1,13 @@
 import "./Employee.css";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
 
 export default function AddEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
@@ -55,19 +49,25 @@ export default function AddEmployee() {
       };
 
       const response = await fetch(`${apiUrl}/employees`, requestOptions);
+      console.log(response);
       if(response.status === 201){
-        handleOpenPopup();
+        showModal();
       }
     } catch (error) {
       console.error("Error adding employee:", error);
     }
   };
-    const handleOpenPopup = () => {
-    setOpen(true);
+  const showModal = () => {
+    setIsModalOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleOk = () => {
+    setIsModalOpen(false);
+    navigate("/");
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
     navigate("/");
   };
 
@@ -112,14 +112,12 @@ export default function AddEmployee() {
         </div>
         <div className="form-group">
         <label htmlFor="emailID">Date of Birth</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            className="form-control"
-            value={dob}
-            onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
-            required
-          />
-        </LocalizationProvider>
+        <DatePicker
+              className="form-control"
+              value={dob}
+              onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
+              required
+        />
         </div>
         <div className="form-group">
           <label htmlFor="clgOfGrad">Name of the college</label>
@@ -160,16 +158,6 @@ export default function AddEmployee() {
           </select>
         </div>
         <div className="form-group">
-          <label htmlFor="email">User Name</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="email"
-            value={email}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        <div className="form-group">
           <label htmlFor="password">Password</label>
           <input
             type={"text"}
@@ -185,21 +173,9 @@ export default function AddEmployee() {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                Employee added Successfully
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>ok</Button>
-            </DialogActions>
-          </Dialog>
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>Employee added succesfully</p>
+      </Modal>
       </form>
     </div>
   );

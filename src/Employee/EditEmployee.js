@@ -239,16 +239,6 @@ export default function EditEmployee() {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="email">User Name</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="email"
-              value={email}
-              onChange={(e) => onInputChange(e)}
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               type={"text"}
