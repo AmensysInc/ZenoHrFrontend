@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from "axios";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function AddOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -8,6 +15,7 @@ export default function AddOrder() {
   let location = useLocation();
   const { employeeId } = location.state;
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [open, setOpen] = useState(false);
   const [orders, setOrders] = useState({
     firstName: "",
     lastName: "",
@@ -65,11 +73,22 @@ export default function AddOrder() {
         },
         body: JSON.stringify(orders)
       };
-      await fetch(`${apiUrl}/employees/${employeeId}/orders`, requestOptions);
-      navigate("/orders", {state: {employeeId} });
+      const response = await fetch(`${apiUrl}/employees/${employeeId}/orders`, requestOptions);
+      if(response.status === 200){
+        handleOpenPopup();
+      }
     } catch (error) {
       console.error("Error adding order:", error);
     }
+  };
+
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/orders", {state: {employeeId} });
   };
 
   return (
@@ -102,26 +121,25 @@ export default function AddOrder() {
         </div>
         <div className="form-group">
           <label htmlFor="dateOfJoining">Date Of Joining:</label>
-          <input
-            type="text"
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
             className="form-control"
-            placeholder="Date Of Joining"
-            name="dateOfJoining"
             value={dateOfJoining}
-            onChange={(e) => onInputChange(e)}
+            onChange={(date) => onInputChange({ target: { name: "dateOfJoining", value: date } })}
             required
           />
+          </LocalizationProvider>
         </div>
         <div className="form-group">
           <label htmlFor="projectEndDate">Project End Date:</label>
-          <input
-            type="text"
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
             className="form-control"
-            placeholder="Project End Date"
-            name="projectEndDate"
             value={projectEndDate}
-            onChange={(e) => onInputChange(e)}
+            onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
+            required
           />
+          </LocalizationProvider>
         </div>
         <div className="form-group">
           <label htmlFor="billRate">Bill Rate:</label>
@@ -182,6 +200,21 @@ export default function AddOrder() {
         >
           Cancel
         </button>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                PurchaseOrder added Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   )

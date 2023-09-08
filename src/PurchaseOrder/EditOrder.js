@@ -1,14 +1,26 @@
-import React, { useState, useEffect } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function EditOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [order, setOrder] = useState({});
-  const [employeeDetails, setEmployeeDetails] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { orderId,employeeId } = location.state;
+  const { orderId, employeeId } = location.state;
+
+  const [order, setOrder] = useState({});
+  const [employeeDetails, setEmployeeDetails] = useState({});
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchOrderAndEmployee();
@@ -23,19 +35,13 @@ export default function EditOrder() {
         },
       };
 
-      const orderResponse = await fetch(`${apiUrl}/orders/${orderId}`, requestOptions);
-      if (!orderResponse.ok) {
-        throw new Error("Failed to fetch order");
-      }
-      const orderData = await orderResponse.json();
-      setOrder(orderData);
+      const [orderResponse, employeeResponse] = await Promise.all([
+        axios.get(`${apiUrl}/orders/${orderId}`, requestOptions),
+        axios.get(`${apiUrl}/employees/${employeeId}`, requestOptions),
+      ]);
 
-      const employeeResponse = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
-      if (!employeeResponse.ok) {
-        throw new Error("Failed to fetch employee details");
-      }
-      const employeeData = await employeeResponse.json();
-      setEmployeeDetails(employeeData);
+      setOrder(orderResponse.data);
+      setEmployeeDetails(employeeResponse.data);
 
       setIsLoading(false);
     } catch (error) {
@@ -48,18 +54,21 @@ export default function EditOrder() {
     try {
       const token = localStorage.getItem("token");
       const requestOptions = {
-        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(order),
       };
-      const response = await fetch(`${apiUrl}/employees/orders/${orderId}`, requestOptions);
-      if (!response.ok) {
-        throw new Error("Failed to update order");
+
+      const response = await axios.put(
+        `${apiUrl}/employees/orders/${orderId}`,
+        order,
+        requestOptions
+      );
+
+      if (response.status === 200) {
+        handleOpenPopup();
       }
-      navigate("/orders", {state : {employeeId}});
     } catch (error) {
       console.error("Error updating order:", error);
     }
@@ -77,14 +86,24 @@ export default function EditOrder() {
     }));
   };
 
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/orders", { state: { employeeId } });
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
-      <h2>Edit Order</h2>
-      <form onSubmit={handleFormSubmit}>
+      <div className="form-container">
+        <h2 className="text-center m-4">Edit Order</h2>
+        <form onSubmit={handleFormSubmit}>
         <div>
           <label>First Name:</label>
           <input
@@ -105,30 +124,29 @@ export default function EditOrder() {
         </div>
         <div>
           <label>Date Of Joining:</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="dateOfJoining"
-            value={order.dateOfJoining}
+            className="form-control"
+            value={dayjs(order.dateOfJoining)}
             onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Date Of Joining:</label>
-          <input
-            type="text"
-            name="dateOfJoining"
-            value={order.dateOfJoining}
-            onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
         <div>
           <label>Project End Date:</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="projectEndDate"
-            value={order.projectEndDate}
+            className="form-control"
+            value={dayjs(order.projectEndDate)}
             onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
         <div>
           <label>Bill Rate:</label>
@@ -166,15 +184,33 @@ export default function EditOrder() {
             onChange={handleInputChange}
           />
         </div>
-        <button type="submit">Update</button>
-        <button
-          type="button"
-          className="btn btn-outline-danger mx-2"
-          onClick={() => handleNavigate(employeeId)}
+          <button type="submit" className="btn btn-outline-primary">
+            Update
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-danger mx-2"
+            onClick={() => handleNavigate(employeeId)}
+          >
+            Cancel
+          </button>
+        </form>
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
         >
-          Cancel
-        </button>
-      </form>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              PurchaseOrder Updated Successfully
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>OK</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
     </div>
   );
 }

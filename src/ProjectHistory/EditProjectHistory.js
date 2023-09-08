@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 export default function EditProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [projectHistory, setProjectHistory] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { projectId, employeeId } = location.state;
+
+  const [projectHistory, setProjectHistory] = useState({});
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [open, setOpen] = useState(false);
   const [projectStatusOptions, setProjectStatusOptions] = useState([
     "Active",
     "Terminated",
@@ -12,10 +27,6 @@ export default function EditProjectHistory() {
     "On Hold",
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { projectId, employeeId } = location.state;
-  console.log("Location state:", location.state);
 
   useEffect(() => {
     fetchProjectHistoryAndEmployee();
@@ -29,25 +40,14 @@ export default function EditProjectHistory() {
           Authorization: `Bearer ${token}`,
         },
       };
-      const historyresponse = await fetch(
-        `${apiUrl}/projects/${projectId}`,
-        requestOptions
-      );
-      if (!historyresponse.ok) {
-        throw new Error("Failed to fetch project history");
-      }
-      const projectHistory = await historyresponse.json();
-      setProjectHistory(projectHistory);
-      const employeeResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
 
-      if (!employeeResponse.ok) {
-        throw new Error("Failed to fetch employee details");
-      }
-      const employeeData = await employeeResponse.json();
-      setEmployeeDetails(employeeData);
+      const [historyResponse, employeeResponse] = await Promise.all([
+        axios.get(`${apiUrl}/projects/${projectId}`, requestOptions),
+        axios.get(`${apiUrl}/employees/${employeeId}`, requestOptions),
+      ]);
+
+      setProjectHistory(historyResponse.data);
+      setEmployeeDetails(employeeResponse.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -59,24 +59,28 @@ export default function EditProjectHistory() {
     try {
       const token = localStorage.getItem("token");
       const requestOptions = {
-        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectHistory),
       };
-      const response = await fetch(
+
+      const response = await axios.put(
         `${apiUrl}/employees/projects/${projectId}`,
+        projectHistory,
         requestOptions
       );
-      if (!response.ok) {
-        throw new Error("Failed to update order");
+
+      if (response.status === 200) {
+        handleOpenPopup();
       }
-      navigate("/");
     } catch (error) {
-      console.error("Error updating order:", error);
+      console.error("Error updating project history:", error);
     }
+  };
+
+  const handleNavigate = (employeeId) => {
+    navigate("/editemployee/project-history", { state: { employeeId } });
   };
 
   const handleInputChange = (event) => {
@@ -87,37 +91,43 @@ export default function EditProjectHistory() {
     }));
   };
 
-  const handleNavigate = (employeeId) => {
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
     navigate("/editemployee/project-history", { state: { employeeId } });
   };
-  
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
-      <h2>Edit ProjectHistory</h2>
-      <form onSubmit={handleFormSubmit}>
-        <div>
-          <label>First Name:</label>
-          <input
-            type="text"
-            name="firstName"
-            value={employeeDetails.firstName || ""}
-            readOnly
-          />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input
-            type="text"
-            name="lastName"
-            value={employeeDetails.lastName || ""}
-            readOnly
-          />
-        </div>
-        <div>
+      <div className="form-container">
+        <h2 className="text-center m-4">Edit Project History</h2>
+        <form onSubmit={handleFormSubmit}>
+          <div>
+            <label>First Name:</label>
+            <input
+              type="text"
+              name="firstName"
+              value={employeeDetails.firstName || ""}
+              readOnly
+            />
+          </div>
+          <div>
+            <label>Last Name:</label>
+            <input
+              type="text"
+              name="lastName"
+              value={employeeDetails.lastName || ""}
+              readOnly
+            />
+          </div>
+          <div>
           <label>Sub VendorOne</label>
           <input
             type="text"
@@ -146,21 +156,29 @@ export default function EditProjectHistory() {
         </div>
         <div>
           <label>Project Start Date</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="projectStartDate"
-            value={projectHistory.projectStartDate}
+            className="form-control"
+            value={dayjs(projectHistory.projectStartDate)}
             onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
         <div>
           <label>Project End Date</label>
-          <input
+          <LocalizationProvider dateAdapter={AdapterDayjs}>          
+          <DatePicker
             type="text"
             name="projectEndDate"
-            value={projectHistory.projectEndDate}
+            className="form-control"
+            value={dayjs(projectHistory.projectEndDate)}
             onChange={handleInputChange}
-          />
+            required
+          />      
+          </LocalizationProvider>
         </div>
         <div>
           <label>Project Status</label>
@@ -176,16 +194,34 @@ export default function EditProjectHistory() {
             ))}
           </select>
         </div>
-
-        <button type="submit">Update</button>
-        <button
-          type="button"
-          className="btn btn-outline-danger mx-2"
-          onClick={() => handleNavigate(employeeId)}
+          <button type="submit" className="btn btn-outline-primary">
+            Update
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-danger mx-2"
+            onClick={() => handleNavigate(employeeId)}
+          >
+            Cancel
+          </button>
+        </form>
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
         >
-          Cancel
-        </button>
-      </form>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Project Updated Successfully
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>OK</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
     </div>
   );
 }
+

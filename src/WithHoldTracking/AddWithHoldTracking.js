@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import 'froala-editor/css/froala_editor.pkgd.min.css';
-import 'froala-editor/js/plugins.pkgd.min.js';
 import FroalaEditor from 'react-froala-wysiwyg';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+
 
 export default function AddWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -12,20 +17,7 @@ export default function AddWithHoldTracking() {
 
   const [editorHtml, setEditorHtml] = useState('');
   const [tableData, setTableData] = useState([]);
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData('text');
-    const rows = pasteData.split('\n');
-    const parsedData = rows.map(row => row.split('\t'));
-    setTableData(parsedData);
-  };
-
-  const handleEditorChange = (html) => {
-    setEditorHtml(html);
-    setTracking({ ...tracking, ["excelData"]: html });
-  };
-
+  const [open, setOpen] = useState(false);
   const [employeeDetails, setEmployeeDetails] = useState({});
   const [tracking, setTracking] = useState({
     firstName: "",
@@ -55,6 +47,29 @@ export default function AddWithHoldTracking() {
     paidRate,
     excelData
   } = tracking;
+
+  const monthOptions = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const startYear = 1990;
+  const endYear = 2099;
+  const yearOptions = [];
+
+  for (let year = startYear; year <= endYear; year++) {
+    yearOptions.push(year);
+  }
 
   useEffect(() => {
     loadEmployeeDetails();
@@ -87,7 +102,7 @@ export default function AddWithHoldTracking() {
       );
       const projectHistoryData = await projectHistoryResponse.json();
       
-      const projects = projectHistoryData.content || []; // Extract the array from "content"
+      const projects = projectHistoryData.content || [];
       
       const uniqueProjectNames = [
         ...new Set(
@@ -103,7 +118,6 @@ export default function AddWithHoldTracking() {
     }
   };
   
-
   const onProjectNameChange = (e) => {
     setSelectedProjectName(e.target.value);
   };
@@ -140,49 +154,57 @@ export default function AddWithHoldTracking() {
   const onSubmit = async (e) => {
     e.preventDefault();
     const updatedTracking = {
-      ...tracking,
-      projectName: selectedProjectName,
+        ...tracking,
+        projectName: selectedProjectName,
     };
     try {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(updatedTracking),
-      };
-      console.log("Submitting data:", tracking);
-      await fetch(
-        `${apiUrl}/employees/${employeeId}/trackings`,
-        requestOptions
-      );
-      navigate("/tracking", { state: { employeeId } });
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(updatedTracking),
+        };
+        console.log("Submitting data:", tracking);
+        const response = await fetch(
+            `${apiUrl}/employees/${employeeId}/trackings`,
+            requestOptions
+        );
+        if (response.status === 200) {
+            handleOpenPopup();
+        }
     } catch (error) {
-      console.error("Error adding withholding tracking:", error);
+        console.error("Error adding withholding tracking:", error);
     }
+};
+
+
+  const handleOpenPopup = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/tracking", { state: { employeeId } });
   };
 
   const handleTracking = (employeeId) => {
     navigate("/tracking", { state: { employeeId } });
   };
 
-  const monthOptions = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text');
+    const rows = pasteData.split('\n');
+    const parsedData = rows.map(row => row.split('\t'));
+    setTableData(parsedData);
+  };
 
-  const yearOptions = [2022, 2023, 2024, 2025];
+  const handleEditorChange = (html) => {
+    setEditorHtml(html);
+    setTracking({ ...tracking, ["excelData"]: html });
+  };
 
   return (
     <div className="form-container">
@@ -239,26 +261,26 @@ export default function AddWithHoldTracking() {
             </div>
           </div>
           <div className="col-md-6">
-            <div className="form-group">
-              <label htmlFor="year">Year:</label>
-              <select
-                className="form-control"
-                name="year"
-                value={year}
-                onChange={(e) => onInputChange(e)}
-                required
-              >
-                <option value="" disabled>
-                  Select year
-                </option>
-                {yearOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <div className="form-group">
+          <label htmlFor="year">Year:</label>
+          <select
+            className="form-control"
+            name="year"
+            value={year}
+            onChange={(e) => onInputChange(e)}
+            required
+          >
+            <option value="" disabled>
+              Select year
+            </option>
+            {yearOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
         </div>
         <div className="row">
           <div className="row">
@@ -270,7 +292,6 @@ export default function AddWithHoldTracking() {
                   name="projectName"
                   value={selectedProjectName}
                   onChange={onProjectNameChange}
-                  required
                 >
                   <option value="" disabled>
                     Select project name
@@ -386,7 +407,7 @@ export default function AddWithHoldTracking() {
           </div>
         </div>
         <div>
-        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
+        <label htmlFor="editorHtml">Excel Data :</label>
       <FroalaEditor
         name="editorHtml"
         model={editorHtml}
@@ -405,6 +426,21 @@ export default function AddWithHoldTracking() {
         >
           Cancel
         </button>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                WithHold added Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   );

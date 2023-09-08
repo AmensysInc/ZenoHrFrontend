@@ -31,11 +31,8 @@ const Breadcrumb = () => {
                 {nameToShow}
               </li>
             );
-          } else if (
-            name.toLowerCase() === "orders" || name.toLowerCase() === "tracking" || 
-            name.toLowerCase() === "editemployee" || name.toLowerCase() === "project-history" || 
-            name.toLowerCase() === "visa-details" || name.toLowerCase() === "withholdSheet") 
-          {            
+          } else if (name.toLowerCase() === "orders") {
+            
             return (
               <li key={index} className="breadcrumb-item">
                 <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
@@ -43,7 +40,53 @@ const Breadcrumb = () => {
                 </span>
               </li>
             );
-            }else {
+          } else if (name.toLowerCase() === "tracking") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          } else if (name.toLowerCase() === "project-history") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          } else if (name.toLowerCase() === "visa-details") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          }else if (name.toLowerCase() === "editemployee") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          } else if (name.toLowerCase() === "withholdSheet") {
+            
+            return (
+              <li key={index} className="breadcrumb-item">
+                <span onClick={() => window.history.back()} style={{ cursor: "pointer" }}>
+                  {nameToShow}
+                </span>
+              </li>
+            );
+          }
+          else {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
             return (
               <li key={index} className="breadcrumb-item">
