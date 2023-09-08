@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
+import  dayjs  from 'dayjs';
 
 export default function EditProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [projectHistory, setProjectHistory] = useState([]);
+  const navigate = useNavigate();
+  let { projectId, employeeId } = useParams();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projectHistory, setProjectHistory] = useState({});
   const [employeeDetails, setEmployeeDetails] = useState({});
+
   const [projectStatusOptions, setProjectStatusOptions] = useState([
     "Active",
     "Terminated",
@@ -12,10 +20,6 @@ export default function EditProjectHistory() {
     "On Hold",
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { projectId, employeeId } = location.state;
-  console.log("Location state:", location.state);
 
   useEffect(() => {
     fetchProjectHistoryAndEmployee();
@@ -29,25 +33,14 @@ export default function EditProjectHistory() {
           Authorization: `Bearer ${token}`,
         },
       };
-      const historyresponse = await fetch(
-        `${apiUrl}/projects/${projectId}`,
-        requestOptions
-      );
-      if (!historyresponse.ok) {
-        throw new Error("Failed to fetch project history");
-      }
-      const projectHistory = await historyresponse.json();
-      setProjectHistory(projectHistory);
-      const employeeResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
 
-      if (!employeeResponse.ok) {
-        throw new Error("Failed to fetch employee details");
-      }
-      const employeeData = await employeeResponse.json();
-      setEmployeeDetails(employeeData);
+      const [historyResponse, employeeResponse] = await Promise.all([
+        axios.get(`${apiUrl}/projects/${projectId}`, requestOptions),
+        axios.get(`${apiUrl}/employees/${employeeId}`, requestOptions),
+      ]);
+
+      setProjectHistory(historyResponse.data);
+      setEmployeeDetails(employeeResponse.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -59,24 +52,28 @@ export default function EditProjectHistory() {
     try {
       const token = localStorage.getItem("token");
       const requestOptions = {
-        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectHistory),
       };
-      const response = await fetch(
+
+      const response = await axios.put(
         `${apiUrl}/employees/projects/${projectId}`,
+        projectHistory,
         requestOptions
       );
-      if (!response.ok) {
-        throw new Error("Failed to update order");
+
+      if (response.status === 200) {
+        showModal();
       }
-      navigate("/");
     } catch (error) {
-      console.error("Error updating order:", error);
+      console.error("Error updating project history:", error);
     }
+  };
+
+  const handleNavigate = (employeeId) => {
+    navigate(`/editemployee/${employeeId}/project-history`);
   };
 
   const handleInputChange = (event) => {
@@ -87,105 +84,157 @@ export default function EditProjectHistory() {
     }));
   };
 
-  const handleNavigate = (employeeId) => {
-    navigate("/editemployee/project-history", { state: { employeeId } });
+  const handleInputChangeDate = (date, name) => {
+    setProjectHistory((prevDetails) => ({
+      ...prevDetails,
+      [name]: date.format("YYYY-MM-DD"),
+    }));
   };
-  
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
   return (
     <div>
-      <h2>Edit ProjectHistory</h2>
-      <form onSubmit={handleFormSubmit}>
-        <div>
-          <label>First Name:</label>
-          <input
-            type="text"
-            name="firstName"
-            value={employeeDetails.firstName || ""}
-            readOnly
-          />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input
-            type="text"
-            name="lastName"
-            value={employeeDetails.lastName || ""}
-            readOnly
-          />
-        </div>
-        <div>
-          <label>Sub VendorOne</label>
-          <input
-            type="text"
-            name="subVendorOne"
-            value={projectHistory.subVendorOne}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Sub VendorTwo</label>
-          <input
-            type="text"
-            name="subVendorTwo"
-            value={projectHistory.subVendorTwo}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Project Address</label>
-          <input
-            type="text"
-            name="projectAddress"
-            value={projectHistory.projectAddress}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Project Start Date</label>
-          <input
-            type="text"
-            name="projectStartDate"
-            value={projectHistory.projectStartDate}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Project End Date</label>
-          <input
-            type="text"
-            name="projectEndDate"
-            value={projectHistory.projectEndDate}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <label>Project Status</label>
-          <select
-            name="projectStatus"
-            value={projectHistory.projectStatus}
-            onChange={handleInputChange}
-          >
-            {projectStatusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="form-container">
+        <h2 className="text-center m-4">Edit Project History</h2>
+        <form onSubmit={handleFormSubmit}>
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label>First Name:</label>
+              <input
+                type="text"
+                name="firstName"
+                value={employeeDetails.firstName || ""}
+                readOnly
+                className="form-control"
+              />
+            </div>
+            <div className="form-group col-md-6">
+              <label>Last Name:</label>
+              <input
+                type="text"
+                name="lastName"
+                value={employeeDetails.lastName || ""}
+                readOnly
+                className="form-control"
+              />
+            </div>
+          </div>
 
-        <button type="submit">Update</button>
-        <button
-          type="button"
-          className="btn btn-outline-danger mx-2"
-          onClick={() => handleNavigate(employeeId)}
-        >
-          Cancel
-        </button>
-      </form>
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label>Sub Vendor One:</label>
+              <input
+                type="text"
+                name="subVendorOne"
+                value={projectHistory.subVendorOne}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+            <div className="form-group col-md-6">
+              <label>Sub Vendor Two:</label>
+              <input
+                type="text"
+                name="subVendorTwo"
+                value={projectHistory.subVendorTwo}
+                onChange={handleInputChange}
+                className="form-control"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Project Address:</label>
+            <input
+              type="text"
+              name="projectAddress"
+              value={projectHistory.projectAddress}
+              onChange={handleInputChange}
+              className="form-control"
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label>Project Start Date:</label>
+              <DatePicker
+                type="text"
+                name="projectStartDate"
+                className="form-control"
+                value={dayjs(projectHistory.projectStartDate)}
+                onChange={(date) =>
+                  handleInputChangeDate(date, "projectStartDate")
+                }
+                required
+              />
+            </div>
+            <div className="form-group col-md-6">
+              <label>Project End Date:</label>
+              <DatePicker
+                type="text"
+                name="projectEndDate"
+                className="form-control"
+                value={dayjs(projectHistory.projectEndDate)}
+                onChange={(date) =>
+                  handleInputChangeDate(date, "projectEndDate")
+                }
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Project Status:</label>
+            <select
+              name="projectStatus"
+              value={projectHistory.projectStatus}
+              onChange={handleInputChange}
+              className="form-control"
+            >
+              {projectStatusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <button type="submit" className="btn btn-outline-primary">
+                Update
+              </button>
+            </div>
+            <div className="form-group col-md-6">
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                onClick={() => handleNavigate(employeeId)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </form>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>ProjectHistory Updated succesfully</p>
+        </Modal>
+      </div>
     </div>
   );
 }

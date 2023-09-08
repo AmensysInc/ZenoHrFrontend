@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import "../PurchaseOrder/PurchaseOrder.css";
-import { BiSolidAddToQueue } from "react-icons/bi";
-import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../pages/Pagination";
 
-export default function PurchaseOrder() {
+export default function PurchaseOrders() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [orders, setOrders] = useState([]);
-  const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const navigate = useNavigate();
-  let { employeeId } = useParams();
-  
+
   useEffect(() => {
     loadOrders();
-  }, [currentPage, pageSize]);
+  }, []);
 
   const loadOrders = async () => {
     try {
@@ -29,51 +22,19 @@ export default function PurchaseOrder() {
         headers: myHeaders,
         redirect: "follow",
       };
-      const ordersResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/orders?page=${currentPage}&size=${pageSize}`,
-        requestOptions
-      );
-      const detailsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-      const ordersData = await ordersResponse.json(); 
-      const detailsData = await detailsResponse.json();
-  
+      const ordersResponse = await fetch(`${apiUrl}/orders?page=${currentPage}&size=${pageSize}`, requestOptions);
+      const ordersData = await ordersResponse.json();
       const ordersArray = ordersData.content;
-  
       setOrders(ordersArray);
       setTotalPages(ordersData.totalPages);
-      setUserDetail({
-        first: detailsData.firstName,
-        last: detailsData.lastName,
-      });
     } catch (error) {
       console.error("Error loading orders:", error);
     }
   };
-  const handleAddOrder = (employeeId) => {
-    navigate(`/orders/${employeeId}/addorder`);
-  };
-  const handleEditOrder = (employeeId, orderId) => {
-    navigate(`/orders/${employeeId}/${orderId}/editorder`);
-  };
-  
+
   return (
     <div className="container">
       <div className="py-4">
-        <h4 className="text-center">
-          {userDetail.first} {userDetail.last}
-        </h4>
-        <div className="add-orders d-flex justify-content-start">
-          <button
-            className="btn btn-primary"
-            onClick={() => handleAddOrder(employeeId)}
-          >
-            <BiSolidAddToQueue size={15} />
-            Orders
-          </button>
-        </div>
         <table className="table border shadow">
           <thead>
             <tr>
@@ -99,11 +60,6 @@ export default function PurchaseOrder() {
                   <td>{employeeOrder.endClientName}</td>
                   <td>{employeeOrder.vendorPhoneNo}</td>
                   <td>{employeeOrder.vendorEmailId}</td>
-                  <td>
-                    <div className="icon-container">
-                      <FiEdit2 onClick={() => handleEditOrder(employeeId,employeeOrder.orderId)} size={20}/>
-                    </div>
-                  </td>
                 </tr>
               );
             })

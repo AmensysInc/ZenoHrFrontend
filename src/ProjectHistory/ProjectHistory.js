@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
+import Pagination from "../pages/Pagination";
 
 export default function ProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [projectHistory, setProjectHistory] = useState([]);
-  const [userDetail, setUserDetail] = useState({}); 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [userDetail, setUserDetail] = useState({});
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
-  const location = useLocation();
-  const employeeId = location.state.employeeId;
+  let { employeeId } = useParams();
 
   useEffect(() => {
     fetchProjectHistory();
-  }, [currentPage]);
+  }, [currentPage, pageSize]);
 
   const fetchProjectHistory = async () => {
     try {
@@ -28,7 +29,7 @@ export default function ProjectHistory() {
         redirect: "follow",
       };
       const projectHistoryResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/projects`,
+        `${apiUrl}/employees/${employeeId}/projects?page=${currentPage}&size=${pageSize}`,
         requestOptions
       );
       const detailsResponse = await fetch(
@@ -40,37 +41,29 @@ export default function ProjectHistory() {
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
-    });
-      const indexOfLastItem = currentPage * itemsPerPage;
-      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-      const currentprojectHistory = projectHistoryData.slice(indexOfFirstItem, indexOfLastItem);
-
-      setProjectHistory(currentprojectHistory);
-      
+      });
+      setProjectHistory(projectHistoryData.content);
+      setTotalPages(projectHistoryData.totalPages);
     } catch (error) {
       console.error("Error loading projects:", error);
     }
   };
-  const totalPages = Math.ceil(projectHistory.length / itemsPerPage);
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
 
-  const handleEditHistory = (projectId) => {
-    navigate("/editemployee/project-history/editprojecthistory", { state: { employeeId,projectId } });
+  const handleEditHistory = (employeeId,projectId) => {
+    navigate(`/editemployee/${employeeId}/project-history/${projectId}/editproject`);
   };
 
   const handleAddProject = (employeeId) => {
-    navigate("/editemployee/project-history/addproject", { state: { employeeId } });
+    navigate(`/editemployee/${employeeId}/project-history/add-project`);
   };
 
   return (
     <div className="container">
       <div className="py-4">
-      <h4 className="text-center">
+        <h4 className="text-center">
           {userDetail.first} {userDetail.last}
-      </h4>
-      <div className="add-orders d-flex justify-content-start">
+        </h4>
+        <div className="add-orders d-flex justify-content-start">
           <button
             className="btn btn-primary"
             onClick={() => handleAddProject(employeeId)}
@@ -79,7 +72,6 @@ export default function ProjectHistory() {
             New Projects
           </button>
         </div>
-        {/* <h4 className="text-center">Project History</h4> */}
         <table className="table border shadow">
           <thead>
             <tr>
@@ -94,11 +86,11 @@ export default function ProjectHistory() {
           </thead>
           <tbody>
             {projectHistory.length > 0 ? (
-              projectHistory.map((history, index) => (
-                <tr key={index}>
-                  <th scope="row">
-                    {index + 1 + (currentPage - 1) * itemsPerPage}
-                  </th>
+              projectHistory.map((history, index) => {
+                const userIndex = index + currentPage * pageSize;
+                return (
+                <tr key={userIndex}>
+                  <th scope="row">{userIndex + 1}</th>
                   <td>{history.subVendorOne}</td>
                   <td>{history.subVendorTwo}</td>
                   <td>{history.projectAddress}</td>
@@ -107,15 +99,15 @@ export default function ProjectHistory() {
                   <td>{history.projectStatus}</td>
                   <td>
                     <div className="icon-container">
-                        <FiEdit2
-                          onClick={() => handleEditHistory(history.projectId)}
-                          size={20}
-                          title="Edit Project History"
-                        />
+                      <FiEdit2
+                        onClick={() => handleEditHistory(employeeId,history.projectId)}
+                        size={20}
+                        title="Edit Project History"
+                      />
                     </div>
-                  </td>      
+                  </td>
                 </tr>
-              ))
+              )})
             ) : (
               <tr>
                 <td colSpan="7">No Project History</td>
@@ -123,19 +115,7 @@ export default function ProjectHistory() {
             )}
           </tbody>
         </table>
-      </div>
-      <div className="pagination">
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-          (page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={currentPage === page ? "active" : ""}
-            >
-              {page}
-            </button>
-          )
-        )}
+        <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage}/>
       </div>
     </div>
   );

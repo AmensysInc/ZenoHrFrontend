@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
 
 export default function AddVisaDetails() {
     const apiUrl = process.env.REACT_APP_API_URL;
     let navigate = useNavigate();
-    let location = useLocation();
-    const { employeeId } = location.state;
+    const { employeeId } = useParams();
     const [employeeDetails, setEmployeeDetails] = useState({});
+    const [validationError, setValidationError] = useState("");
+    const [startDateValidationError, setStartDateValidationError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [details, setDetails] = useState({
       firstName: "",
       lastName: "",
@@ -50,6 +51,16 @@ export default function AddVisaDetails() {
 
       const onSubmit = async (e) => { 
         e.preventDefault();
+      
+        const startDate = new Date(visaStartDate);
+    const expiryDate = new Date(visaExpiryDate);
+
+    if (startDate >= expiryDate) {
+      setStartDateValidationError("Please Enter Valid Details.");
+      setValidationError("");
+      return;
+    }
+      
         try {
           const requestOptions = {
             method: 'POST',
@@ -59,23 +70,42 @@ export default function AddVisaDetails() {
             },
             body: JSON.stringify(details)
           };
-          await fetch(`${apiUrl}/employees/${employeeId}/visa-details`, requestOptions);
-          navigate("/");
+          const response = await fetch(`${apiUrl}/employees/${employeeId}/visa-details`, requestOptions);
+          if(response.status === 200){
+            showModal();
+          }
         } catch (error) {
           console.error("Error adding order:", error);
         }
       };
 
       const handleNavigate = (employeeId) => {
-        navigate("/editemployee/visa-details", { state: { employeeId } });
+        navigate(`/editemployee/${employeeId}/visa-details`);
       };
 
-      const visaTypeOptions = ["h1b", "opt", "greencard", "h4ad", "cpt"];
+      const showModal = () => {
+        setIsModalOpen(true);
+      };
+    
+      const handleOk = () => {
+        setIsModalOpen(false);
+        handleNavigate(employeeId);
+      };
+    
+      const handleCancel = () => {
+        setIsModalOpen(false);
+        handleNavigate(employeeId);
+      };
+
+  const visaTypeOptions = ["H1B", "OPT", "GREENCARD", "H4AD", "CPT"];
 
   return (
     <div className="form-container">
       <h2 className="text-center m-4">New Visa Details</h2>
+      {startDateValidationError && <p className="text-danger">{startDateValidationError}</p>}
+      {validationError && <p className="text-danger">{validationError}</p>}
       <form onSubmit={(e) => onSubmit(e)}>
+
         <div className="form-row">
           <div className="form-group col-md-6">
             <label htmlFor="firstName">First Name</label>
@@ -120,26 +150,23 @@ export default function AddVisaDetails() {
         <div className="form-row">
           <div className="form-group col-md-6">
             <label htmlFor="visaStartDate">Visa Start Date</label>
-            <DatePicker
+          <DatePicker
               className="form-control"
-              selected={visaStartDate ? new Date(visaStartDate) : null}
-              onChange={(date) => setDetails({ ...details, visaStartDate: date })}
-              dateFormat="MM/dd/yyyy"
-              placeholderText="Select Visa Start Date"
+              value={visaStartDate}
+              onChange={(date) => onInputChange({ target: { name: "visaStartDate", value: date } })}
+              required
             />
           </div>
           <div className="form-group col-md-6">
             <label htmlFor="visaExpiryDate">Visa Expiry Date</label>
-            <DatePicker
+          <DatePicker
               className="form-control"
-              selected={visaExpiryDate ? new Date(visaExpiryDate) : null}
-              onChange={(date) => setDetails({ ...details, visaExpiryDate: date })}
-              dateFormat="MM/dd/yyyy"
-              placeholderText="Select Visa Expiry Date"
+              value={visaExpiryDate}
+              onChange={(date) => onInputChange({ target: { name: "visaExpiryDate", value: date } })}
+              required
             />
           </div>
           </div>
-
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
@@ -150,6 +177,9 @@ export default function AddVisaDetails() {
         >
           Cancel
         </button>
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>VisaDetails added succesfully</p>
+      </Modal>        
       </form>
     </div>
   )

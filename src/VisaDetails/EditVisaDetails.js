@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
+import  dayjs  from 'dayjs';
 
 export default function EditVisaDetails() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [visaDetails, setVisaDetails] = useState([]);
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [visaTypeOptions, setVisaTypeOptions] = useState([
     "H1B",
     "OPT",
@@ -14,8 +18,7 @@ export default function EditVisaDetails() {
   ]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { visaId, employeeId } = location.state;
+  const { employeeId, visaId } = useParams();
 
   useEffect(() => {
     fetchVisaDetailsAndEmployee();
@@ -73,7 +76,9 @@ export default function EditVisaDetails() {
       if (!response.ok) {
         throw new Error("Failed to update order");
       }
-      navigate("/");
+      if (response.status === 200) {
+        showModal();
+      }
     } catch (error) {
       console.error("Error updating order:", error);
     }
@@ -87,8 +92,28 @@ export default function EditVisaDetails() {
     }));
   };
 
+  const handleInputChangeDate = (date, name) => {
+    setVisaDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: date.format("YYYY-MM-DD"),
+    }));
+  };  
   const handleNavigate = (employeeId) => {
-    navigate("/editemployee/visa-details", { state: { employeeId } });
+    navigate(`/editemployee/${employeeId}/visa-details`);
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
   };
 
   if (isLoading) {
@@ -96,8 +121,8 @@ export default function EditVisaDetails() {
   }
 
   return (
-    <div>
-      <h2>Edit Visa Details</h2>
+    <div className="form-container">
+      <h2 className="text-center m-4">Edit Visa Details</h2>
       <form onSubmit={handleFormSubmit}>
         <div>
           <label>First Name:</label>
@@ -136,23 +161,29 @@ export default function EditVisaDetails() {
         </div>
         <div>
           <label>Visa Start Date</label>
-          <input
-            type="text"
-            name="visaStartDate"
-            value={visaDetails.visaStartDate}
-            onChange={handleInputChange}
-          />
+          <DatePicker
+               type="text"
+               name="visaStartDate"
+               className="form-control"
+               value={dayjs(visaDetails.visaStartDate)}
+               onChange={(date) => handleInputChangeDate(date, "visaStartDate")}
+               required
+          />  
         </div>
         <div>
           <label>Visa Expiry Date</label>
-          <input
-            type="text"
-            name="visaExpiryDate"
-            value={visaDetails.visaExpiryDate}
-            onChange={handleInputChange}
-          />
+          <DatePicker
+               type="text"
+               name="visaExpiryDate"
+               className="form-control"
+               value={dayjs(visaDetails.visaExpiryDate)}
+               onChange={(date) => handleInputChangeDate(date, "visaExpiryDate")}
+               required
+          />          
         </div>
-        <button type="submit">Update</button>
+        <button type="submit" className="btn btn-outline-primary">
+          Update
+        </button>
         <button
           type="button"
           className="btn btn-outline-danger mx-2"
@@ -160,6 +191,9 @@ export default function EditVisaDetails() {
         >
           Cancel
         </button>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>VisaDetails Updated succesfully</p>
+        </Modal>        
       </form>
     </div>
   );

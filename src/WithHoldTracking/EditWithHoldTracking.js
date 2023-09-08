@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/js/plugins.pkgd.min.js';
 import FroalaEditor from 'react-froala-wysiwyg';
+import { Modal } from 'antd';
+
+
 
 export default function EditWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -12,6 +15,20 @@ export default function EditWithHoldTracking() {
   const [isLoading, setIsLoading] = useState(true);
   const [editorHtml, setEditorHtml] = useState('');
   const [tableData, setTableData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  let { employeeId, trackingId } = useParams();
+
+  const [monthOptions] = useState([
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ]);
+
+  const startYear = 1990;
+  const endYear = 2099;
+  const [yearOptions] = useState(
+    Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index)
+  );
 
   const handlePaste = (e) => {
     e.preventDefault();
@@ -20,11 +37,7 @@ export default function EditWithHoldTracking() {
     const parsedData = rows.map(row => row.split('\t'));
     setTableData(parsedData);
   };
-  const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state;
 
-  const { employeeId, trackingId } = state || {};
   useEffect(() => {
     if (employeeId && trackingId) {
       fetchTracking();
@@ -99,14 +112,33 @@ export default function EditWithHoldTracking() {
         body: JSON.stringify(tracking),
       };
       const response = await fetch(`${apiUrl}/employees/trackings/${trackingId}`, requestOptions);
-      if (!response.ok) {
+      if (response.status === 200) {
+        showModal();
+      }else if (!response.ok) {
         throw new Error('Failed to update tracking');
       }
-      navigate('/');
     } catch (error) {
       console.error('Error updating tracking:', error);
     }
   };
+
+  const handleNavigate = (employeeId) => {
+    navigate(`/tracking/${employeeId}`);
+  };
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -119,9 +151,6 @@ export default function EditWithHoldTracking() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  const handleNavigate = (employeeId) => {
-    navigate("/tracking", { state: { employeeId } });
-  };
 
   const handleEditorChange = (html) => {
     setEditorHtml(html);
@@ -157,23 +186,35 @@ export default function EditWithHoldTracking() {
         <div className="form-group row">
           <div className="col">
             <label>Month:</label>
-            <input
-              type="text"
+            <select
               className="form-control"
               name="month"
               value={tracking.month}
               onChange={handleInputChange}
-            />
+            >
+              <option value="" disabled>Select month</option>
+              {monthOptions.map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="col">
             <label>Year:</label>
-            <input
-              type="text"
+            <select
               className="form-control"
               name="year"
               value={tracking.year}
               onChange={handleInputChange}
-            />
+            >
+              <option value="" disabled>Select year</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="form-group row">
@@ -252,11 +293,10 @@ export default function EditWithHoldTracking() {
             />
           </div>
           <div>
-        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
+        <label htmlFor="editorHtml">Excel Data :</label>
       <FroalaEditor
         model={tracking.excelData}
         name="editorHtml"
-
         onModelChange={handleEditorChange}
         onPaste={handlePaste}
       />
@@ -272,6 +312,9 @@ export default function EditWithHoldTracking() {
         >
           Cancel
         </button>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>WithHold Updated succesfully</p>
+        </Modal>  
       </form>
     </div>
   );

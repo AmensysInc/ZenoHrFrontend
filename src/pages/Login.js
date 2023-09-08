@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login({ onLogin }) {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -17,15 +18,18 @@ export default function Login({ onLogin }) {
         },
         body: JSON.stringify({ email, password }),
       });
-      const data = await response.json();
-      const { role, access_token, id } = data;
-      // const role = data.role;
-      // const token = data.access_token;
-      localStorage.setItem("token", access_token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("id", id);
-      onLogin(role);     
-      navigate("/");
+
+      if (response.status === 403) {
+        setErrorMessage("Invalid Credentials!");
+      } else {
+        const data = await response.json();
+        const { role, access_token, id } = data;
+        localStorage.setItem("token", access_token);
+        localStorage.setItem("role", role);
+        localStorage.setItem("id", id);
+        onLogin(role);
+        navigate("/");
+      }
     } catch (error) {
       console.error("Error authenticating user:", error);
     }
@@ -37,7 +41,7 @@ export default function Login({ onLogin }) {
       <form onSubmit={handleLogin}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
-            Username
+            Email Address
           </label>
           <input
             type="text"
@@ -61,6 +65,9 @@ export default function Login({ onLogin }) {
             required
           />
         </div>
+        <div>
+          {errorMessage && <p className="text-danger">{errorMessage}</p>}
+        </div>
         <button type="submit" className="btn btn-primary">
           Login
         </button>
@@ -68,4 +75,5 @@ export default function Login({ onLogin }) {
     </div>
   );
 }
+
 

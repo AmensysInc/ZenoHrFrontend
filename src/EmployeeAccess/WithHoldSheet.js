@@ -3,7 +3,7 @@ import axios from 'axios';
 import '../pages/Home.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/js/plugins.pkgd.min.js';
-import FroalaEditor from 'react-froala-wysiwyg';
+import FroalaEditorView from 'react-froala-wysiwyg';
 
 const Tracking = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -14,6 +14,18 @@ const Tracking = () => {
   useEffect(() => {
     fetchTrackings();
   }, []);
+
+  const config = {
+    events: {
+      'initialized': function () {
+        setTimeout(() => {
+          this.edit.off();
+        }, 1);
+      }
+    }
+  };
+
+
 
   const fetchTrackings = async () => {
     try {
@@ -36,12 +48,12 @@ const Tracking = () => {
 
   return (
     <div className="container">
-      <h2 className="text-center">Tracking Details</h2>
+      <h2 className="text-center">WithHold Details</h2>
       <div className="table-container">
         <table className="table border shadow">
           <thead>
             <tr>
-              <th>Excel Date</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -49,12 +61,16 @@ const Tracking = () => {
               <tr key={index}>
                 <td>{index + 1}</td>
                 <div>
-        <label htmlFor="editorHtml">Froala Rich Text Editor:</label>
-      <FroalaEditor
+        <label htmlFor="editorHtml"></label>
+       
+      <FroalaEditorView
+      contenteditable="false"
         model={tracking.excelData}
         name="editorHtml"
+        config={config}
         readOnly
       />
+
     </div>
               </tr>
             ))}

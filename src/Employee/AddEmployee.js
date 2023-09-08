@@ -1,69 +1,75 @@
-import './Employee.css';
+import "./Employee.css";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
-export default function AddUser() {
+export default function AddEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-
+  const [open, setOpen] = useState(false);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     emailID: "",
     dob: "",
     clgOfGrad: "",
-    visaStatus: "",
-    visaStartDate: null,
-    visaExpiryDate: null,
+    phoneNo:"",
     onBench: "",
     email: "",
-    password: ""
+    password: "",
   });
 
-  const { firstName, lastName, emailID, dob, clgOfGrad, visaStatus, visaStartDate, visaExpiryDate, onBench, email, password } = user;
+  const {
+    firstName,
+    lastName,
+    emailID,
+    dob,
+    clgOfGrad,
+    phoneNo,
+    onBench,
+    email,
+    password,
+  } = user;
 
   const onInputChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const onVisaStartDateChange = (date) => {
-    setUser({ ...user, visaStartDate: date });
-  };
-
-  const onVisaExpiryDateChange = (date) => {
-    setUser({ ...user, visaExpiryDate: date });
-  };
-  
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (visaStartDate > visaExpiryDate) {
-      alert('Visa start date cannot be after visa expiry date');
-      return;
-    }
-    if (visaExpiryDate < visaStartDate) {
-      alert('Visa expiry date cannot be before visa start date');
-      return;
-    }
     try {
       const requestOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(user)
+        body: JSON.stringify(user),
       };
-      
-      await fetch(`${apiUrl}/employees`, requestOptions);
-      navigate("/");
+
+      const response = await fetch(`${apiUrl}/employees`, requestOptions);
+      if(response.status === 201){
+        handleOpenPopup();
+      }
     } catch (error) {
-      console.error('Error adding employee:', error);
+      console.error("Error adding employee:", error);
     }
   };
+    const handleOpenPopup = () => {
+    setOpen(true);
+  };
 
-  
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/");
+  };
 
   return (
     <div className="form-container">
@@ -105,16 +111,15 @@ export default function AddUser() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="dob">Date of Birth(yyyy-MM-dd)</label>
+        <label htmlFor="emailID">Date of Birth</label>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             className="form-control"
-            name="dob"
-            selected={dob}
-            onChange={(date) => setUser({ ...user, dob: date })}
-            dateFormat="yyyy-MM-dd"
+            value={dob}
+            onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
             required
           />
-
+        </LocalizationProvider>
         </div>
         <div className="form-group">
           <label htmlFor="clgOfGrad">Name of the college</label>
@@ -128,43 +133,16 @@ export default function AddUser() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="visaStatus">Visa Status</label>
-          <select
-            id="visaStatus"
-            name="visaStatus"
-            value={visaStatus}
+          <label htmlFor="clgOfGrad">Phone No</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="phoneNo"
+            value={phoneNo}
             onChange={(e) => onInputChange(e)}
             required
-          >
-            <option value="">-- Select --</option>
-            <option value="Working">H1B</option>
-            <option value="Bench">L1</option>
-          </select>
-        </div>
-        <div className="form-row">
-        <div className="form-group col-md-6">
-          <label htmlFor="visaStartDate">Visa Start Date</label>
-          <DatePicker
-            className="form-control"
-            name="visaStartDate"
-            selected={visaStartDate}
-            onChange={onVisaStartDateChange}
-            dateFormat="yyyy-MM-dd"
-            required
           />
         </div>
-        <div className="form-group col-md-6">
-          <label htmlFor="visaExpiryDate">Visa Expiry Date</label>
-          <DatePicker
-            className="form-control"
-            name="visaExpiryDate"
-            selected={visaExpiryDate}
-            onChange={onVisaExpiryDateChange}
-            dateFormat="yyyy-MM-dd"
-            required
-          />
-        </div>
-      </div>
         <div className="form-group">
           <label htmlFor="onBench">Working or Bench</label>
           <select
@@ -182,24 +160,24 @@ export default function AddUser() {
           </select>
         </div>
         <div className="form-group">
-            <label htmlFor="email">User Name</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="email"
-              value={email}
-              onChange={(e) => onInputChange(e)}
-            />
+          <label htmlFor="email">User Name</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="email"
+            value={email}
+            onChange={(e) => onInputChange(e)}
+          />
         </div>
         <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="password"
-              value={password}
-              onChange={(e) => onInputChange(e)}
-            />
+          <label htmlFor="password">Password</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="password"
+            value={password}
+            onChange={(e) => onInputChange(e)}
+          />
         </div>
         <button type="submit" className="btn btn-outline-primary">
           Submit
@@ -207,7 +185,23 @@ export default function AddUser() {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Employee added Successfully
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>ok</Button>
+            </DialogActions>
+          </Dialog>
       </form>
     </div>
   );
 }
+

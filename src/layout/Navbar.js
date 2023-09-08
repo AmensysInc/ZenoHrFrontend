@@ -1,7 +1,7 @@
 import React from "react";
 import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
-import { BsBoxArrowInLeft, BsFillPersonPlusFill } from "react-icons/bs";
+import { BsBoxArrowInLeft } from "react-icons/bs";
 
 export default function Navbar({setIsLoggedIn, setRole}) {
 
@@ -47,10 +47,7 @@ export default function Navbar({setIsLoggedIn, setRole}) {
             <span className="navbar-toggler-icon"></span>
           </button>
               <>
-                {/* <Link className="btn btn-outline-light" to="/adduser">
-                  <BsFillPersonPlusFill size={20}/>
-                </Link> */}
-                  <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
+                <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
               </>
         </div>
       </nav>

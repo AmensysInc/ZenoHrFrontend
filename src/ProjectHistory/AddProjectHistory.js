@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
 
 export default function AddProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
+  let { employeeId } = useParams();
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectStatusOptions, setProjectStatusOptions] = useState([
     "Active",
     "Terminated",
@@ -76,16 +78,31 @@ export default function AddProjectHistory() {
         },
         body: JSON.stringify(project),
       };
-      await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
-      navigate("/");
+      const response = await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
+      if(response.status === 200){
+        showModal();
+      }
     } catch (error) {
       console.error("Error adding order:", error);
     }
   };
-
   const handleNavigate = (employeeId) => {
-    navigate("/editemployee/project-history", { state: { employeeId } });
+    navigate(`/editemployee/${employeeId}/project-history`);
   };
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
 
   return (
     <div className="form-container">
@@ -152,27 +169,23 @@ export default function AddProjectHistory() {
         </div>
         <div className="form-group">
           <label htmlFor="projectStartDate">Project Start Date</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Project Start Date"
-            name="projectStartDate"
-            value={projectStartDate}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
+          <DatePicker
+               className="form-control"
+               name="projectStartDate"
+               value={projectStartDate}
+               onChange={(date) => onInputChange({ target: { name: "projectStartDate", value: date } })}
+               required
+            />
         </div>
         <div className="form-group">
           <label htmlFor="projectEndDate">Project End Date</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Project End Date"
-            name="projectEndDate"
-            value={projectEndDate}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
+          <DatePicker
+               className="form-control"
+               name="projectEndDate"
+               value={projectEndDate}
+               onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
+               required
+            />
         </div>
         <div className="form-group">
           <label htmlFor="projectStatus">Project Status</label>
@@ -204,6 +217,9 @@ export default function AddProjectHistory() {
         >
           Cancel
         </button>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>ProjectHistory added succesfully</p>
+      </Modal>
       </form>
     </div>
   );
