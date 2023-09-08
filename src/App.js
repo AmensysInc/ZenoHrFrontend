@@ -26,6 +26,8 @@ import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
 import Sidebar from "./layout/Sidebar";
 import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
 import ChangePasswordForm from "./pages/ChangePasswordForm";
+import ForgotPassword from "./pages/ForgotPassword";
+
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -75,6 +77,7 @@ function App() {
             <div className="col-md-10"></div>
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/forgot-password" element={<ForgotPassword/>} />
           {isLoggedIn ?(
             role === "ADMIN" ? (
                   <>
@@ -94,7 +97,8 @@ function App() {
                     <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisa-details" element={<EditVisaDetails/>} />
                     <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
                     <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
-                    
+                    <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
+
                   </>
                 ): role === "EMPLOYEE"? (
                       <>
