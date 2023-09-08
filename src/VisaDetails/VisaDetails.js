@@ -16,7 +16,7 @@ export default function VisaDetails() {
   const employeeId = location.state.employeeId;
 
   useEffect(() => {
-    fetchVisaDetails(currentPage, pageSize);
+    fetchVisaDetails();
   }, [currentPage, pageSize]);
 
   const fetchVisaDetails = async () => {
@@ -37,12 +37,12 @@ export default function VisaDetails() {
         last: detailsData.lastName,
       });
       const response = await fetch(
-        `${apiUrl}/employees/${employeeId}/visa-details`,
+        `${apiUrl}/employees/${employeeId}/visa-details?page=${currentPage}&size=${pageSize}`,
         config
       );
       const data = await response.json();
       console.log(data);
-      setVisaDetails(data);
+      setVisaDetails(data.content);
       setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching visa details:", error);

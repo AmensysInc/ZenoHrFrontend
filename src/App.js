@@ -4,7 +4,8 @@ import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./layout/Navbar";
 import Home from "./pages/Home";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import AddUser from "./Employee/Employee";
+import AddEmployee from "./Employee/Employee";
+// import { AddEmployee, EditEmployee, } from "./Employee/Employee";
 import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
 import AddOrder from "./PurchaseOrder/AddOrder";
 import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
@@ -63,20 +64,20 @@ function App() {
     <div className="App">
       <Router>
         <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
-        {role === "ADMIN" && <Breadcrumb />}
+        {isLoggedIn && <Breadcrumb />}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           {isLoggedIn ?(
             role === "ADMIN" ? (
                   <>
                     <Route path="/" element={<Home />} />
-                    <Route path="/adduser" element={<AddUser />} />
+                    <Route path="/adduser" element={<AddEmployee />} />
                     <Route path="/orders" element={<PurchaseOrder />} />
                     <Route path="/orders/addorder" element={<AddOrder />} />
                     <Route path="/orders/editorder" element={<EditOrder />} />
                     <Route path="/tracking" element={<WithHoldTracking />} />
                     <Route path="/tracking/edittracking" element={<EditWithHoldTracking />} />
-                    <Route path="/withholdtracking/addtracking" element={<AddWithHoldTracking />} />
+                    <Route path="/tracking/addtracking" element={<AddWithHoldTracking />} />
                     <Route path="/editemployee" element={<EditEmployee />} />
                     <Route path="/editemployee/project-history" element={<ProjectHistory />} />
                     <Route path="/editemployee/project-history/addproject" element={<AddProjectHistory/>} />
@@ -89,6 +90,7 @@ function App() {
                       <>
                         <Route path="/" element={<EmployeeDetails/>} />
                         <Route path="/trackings" element={<Tracking/>} />
+                        <Route path="/withholdSheet" element={<WithHoldSheet/>} />
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          

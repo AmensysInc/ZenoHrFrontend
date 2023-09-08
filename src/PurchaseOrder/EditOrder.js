@@ -59,7 +59,7 @@ export default function EditOrder() {
       if (!response.ok) {
         throw new Error("Failed to update order");
       }
-      navigate("/");
+      navigate("/orders", {state : {employeeId}});
     } catch (error) {
       console.error("Error updating order:", error);
     }

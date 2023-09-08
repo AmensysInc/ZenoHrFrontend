@@ -102,7 +102,7 @@ export default function EditWithHoldTracking() {
       if (!response.ok) {
         throw new Error('Failed to update tracking');
       }
-      navigate('/');
+      navigate("/tracking", { state: { employeeId } });
     } catch (error) {
       console.error('Error updating tracking:', error);
     }
