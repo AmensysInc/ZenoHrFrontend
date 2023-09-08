@@ -12,6 +12,7 @@ export default function EditEmployee() {
   let { employeeId } = useParams();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [employee, setEmployee] = useState({
     firstName: "",
     lastName: "",
@@ -66,6 +67,30 @@ export default function EditEmployee() {
   };
   const onInputChangeDate = (date, name) => {
     setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+  };
+
+  const handleSendDetails = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${apiUrl}/auth/resetPassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailID }),
+      });
+      // if (response.status === 201) {
+
+      // }
+      if (response.ok) {
+        console.log("Password reset email sent successfully.");
+      } else {
+        console.error("Password reset request failed.");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+    navigate("/");
   };
 
   const onSubmit = async (event) => {
@@ -248,12 +273,24 @@ export default function EditEmployee() {
               onChange={(e) => onInputChange(e)}
             />
           </div>
-          <button type="submit" className="btn btn-outline-primary" onClick={showModal}>
+          <button type="submit" className="btn btn-outline-primary">
             Update
           </button>
           <Link className="btn btn-outline-danger mx-2" to="/">
             Cancel
           </Link>
+          <button
+            type="submit"
+            className="btn btn-outline-primary"
+            onClick={handleSendDetails}
+          >
+            Send Details
+          </button>
+
+          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <p>Details Emailed succesfully</p>
+          </Modal>
+
           <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
             <p>Employee Updated succesfully</p>
           </Modal>

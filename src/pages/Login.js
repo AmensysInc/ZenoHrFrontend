@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login({ onLogin }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -30,7 +30,7 @@ export default function Login({ onLogin }) {
         localStorage.setItem("id", id);
         localStorage.setItem("tempPassword", tempPassword);
 
-        if (role === "EMPLOYEE" && tempPassword === true) {
+        if ( tempPassword === true) {
           console.log("Role:", role);
           console.log("Temporary Password:", tempPassword);
           onLogin(role);
@@ -82,9 +82,9 @@ export default function Login({ onLogin }) {
           Login
         </button>
       </form>
-      <div>
-        {/* <Link to="/forgot-password">Forgot Password?</Link> */}
-      </div>
+      <p>
+        <Link to="/forgot-password">Forgot Password?</Link>
+      </p>
     </div>
   );
 }
