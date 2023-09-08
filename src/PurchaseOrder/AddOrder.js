@@ -209,7 +209,7 @@ export default function AddOrder() {
         >
           Cancel
         </button>
-        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
         <p>PurchaseOrder added succesfully</p>
       </Modal>
       </form>
