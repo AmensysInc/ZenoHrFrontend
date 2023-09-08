@@ -6,6 +6,7 @@
   
   .icon-container > * {
     margin-right: 10px;
+    
   }
 
   .icon-container > *:hover {
@@ -19,8 +20,6 @@
 
 .add-user-link {
   position: fixed;
-  /* bottom: 600px; 
-  right: 20px; */
   bottom: 80vh; 
   right: 2vw;
   background-color: #7d6565;
@@ -36,4 +35,8 @@
 
 .add-user:hover {
   background-color: #555;
+}
+.container {
+  padding-left: 180px;
+  padding-right: 180px;
 }
