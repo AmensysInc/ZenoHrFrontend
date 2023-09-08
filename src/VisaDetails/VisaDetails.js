@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../pages/Pagination";
@@ -12,12 +12,13 @@ export default function VisaDetails() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
-  const location = useLocation();
-  const employeeId = location.state.employeeId;
+  let {employeeId} = useParams();
 
   useEffect(() => {
-    fetchVisaDetails();
-  }, [currentPage, pageSize]);
+    if (employeeId) {
+      fetchVisaDetails();
+    }
+  }, [currentPage, pageSize, employeeId]);
 
   const fetchVisaDetails = async () => {
     try {
@@ -41,7 +42,6 @@ export default function VisaDetails() {
         config
       );
       const data = await response.json();
-      console.log(data);
       setVisaDetails(data.content);
       setTotalPages(data.totalPages);
     } catch (error) {
@@ -49,16 +49,12 @@ export default function VisaDetails() {
     }
   };
 
-  const handleEditDetails = (visaId) => {
-    navigate("/editemployee/visa-details/editvisadetails", {
-      state: { employeeId: employeeId, visaId: visaId },
-    });
+  const handleEditDetails = (employeeId,visaId) => {
+    navigate(`/editemployee/${employeeId}/visa-details/${visaId}/editvisa-details`);
   };
 
   const handleAddDetails = (employeeId) => {
-    navigate("/editemployee/visa-details/addvisadetails", {
-      state: { employeeId },
-    });
+    navigate(`/editemployee/${employeeId}/visa-details/add-visa-details`);
   };
 
   return (
@@ -98,7 +94,7 @@ export default function VisaDetails() {
                   <td>
                     <div className="icon-container">
                       <FiEdit2
-                        onClick={() => handleEditDetails(details.visaId)}
+                        onClick={() => handleEditDetails(employeeId,details.visaId)}
                         size={20}
                         title="Edit Visa Details"
                       />

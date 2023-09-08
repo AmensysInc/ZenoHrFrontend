@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../PurchaseOrder/PurchaseOrder.css";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
@@ -14,13 +13,8 @@ export default function PurchaseOrder() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
-
-  const handleAddOrder = (employeeId) => {
-    navigate("/orders/addorder", { state: { employeeId } });
-  };
-
+  let { employeeId } = useParams();
+  
   useEffect(() => {
     loadOrders();
   }, [currentPage, pageSize]);
@@ -58,8 +52,11 @@ export default function PurchaseOrder() {
       console.error("Error loading orders:", error);
     }
   };
-  const handleEditOrder = (orderId) => {
-    navigate("/orders/editorder", { state: { employeeId, orderId } });
+  const handleAddOrder = (employeeId) => {
+    navigate(`/orders/${employeeId}/addorder`);
+  };
+  const handleEditOrder = (employeeId, orderId) => {
+    navigate(`/orders/${employeeId}/${orderId}/editorder`);
   };
   
   return (
@@ -104,7 +101,7 @@ export default function PurchaseOrder() {
                   <td>{employeeOrder.vendorEmailId}</td>
                   <td>
                     <div className="icon-container">
-                      <FiEdit2 onClick={() => handleEditOrder(employeeOrder.orderId)} size={20}/>
+                      <FiEdit2 onClick={() => handleEditOrder(employeeId,employeeOrder.orderId)} size={20}/>
                     </div>
                   </td>
                 </tr>

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/js/plugins.pkgd.min.js';
 import FroalaEditor from 'react-froala-wysiwyg';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import { Modal } from 'antd';
+
+
 
 export default function EditWithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -17,7 +15,9 @@ export default function EditWithHoldTracking() {
   const [isLoading, setIsLoading] = useState(true);
   const [editorHtml, setEditorHtml] = useState('');
   const [tableData, setTableData] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  let { employeeId, trackingId } = useParams();
 
   const [monthOptions] = useState([
     "January", "February", "March", "April", "May", "June",
@@ -37,11 +37,7 @@ export default function EditWithHoldTracking() {
     const parsedData = rows.map(row => row.split('\t'));
     setTableData(parsedData);
   };
-  const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state;
 
-  const { employeeId, trackingId } = state || {};
   useEffect(() => {
     if (employeeId && trackingId) {
       fetchTracking();
@@ -117,7 +113,7 @@ export default function EditWithHoldTracking() {
       };
       const response = await fetch(`${apiUrl}/employees/trackings/${trackingId}`, requestOptions);
       if (response.status === 200) {
-        handleOpenPopup();
+        showModal();
       }else if (!response.ok) {
         throw new Error('Failed to update tracking');
       }
@@ -125,14 +121,24 @@ export default function EditWithHoldTracking() {
       console.error('Error updating tracking:', error);
     }
   };
-  const handleOpenPopup = () => {
-    setOpen(true);
+
+  const handleNavigate = (employeeId) => {
+    navigate(`/tracking/${employeeId}`);
+  };
+  const showModal = () => {
+    setIsModalOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/tracking", { state: { employeeId } });
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
   };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -145,9 +151,6 @@ export default function EditWithHoldTracking() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  const handleNavigate = (employeeId) => {
-    navigate("/tracking", { state: { employeeId } });
-  };
 
   const handleEditorChange = (html) => {
     setEditorHtml(html);
@@ -294,7 +297,6 @@ export default function EditWithHoldTracking() {
       <FroalaEditor
         model={tracking.excelData}
         name="editorHtml"
-
         onModelChange={handleEditorChange}
         onPaste={handlePaste}
       />
@@ -310,21 +312,9 @@ export default function EditWithHoldTracking() {
         >
           Cancel
         </button>
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                WithHold Updated Successfully
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>ok</Button>
-            </DialogActions>
-          </Dialog>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>WithHold Updated succesfully</p>
+        </Modal>  
       </form>
     </div>
   );

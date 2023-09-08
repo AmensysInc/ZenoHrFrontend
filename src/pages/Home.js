@@ -45,16 +45,20 @@ export default function Home() {
     }
   };
 
+  // const handleViewOrders = (employeeId) => {
+  //   navigate(`/orders`, { state: { employeeId } });
+  // };
   const handleViewOrders = (employeeId) => {
-    navigate(`/orders`, { state: { employeeId } });
+    navigate(`/orders/${employeeId}`);
   };
-
+  
+  
   const handleViewTracking = (employeeId) => {
-    navigate("/tracking", { state: { employeeId } });
+    navigate(`/tracking/${employeeId}`);
   };
 
   const handleEditEmployee = (employeeId) => {
-    navigate("/editemployee", { state: { employeeId } });
+    navigate(`/editemployee/${employeeId}`);
   };
 
   const handleDeleteEmployee = async (employeeId) => {

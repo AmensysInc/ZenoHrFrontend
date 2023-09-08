@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from "react-router-dom";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
 
 export default function AddOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
+  let { employeeId } = useParams();
   const [employeeDetails, setEmployeeDetails] = useState({});
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [orders, setOrders] = useState({
     firstName: "",
     lastName: "",
@@ -24,10 +17,17 @@ export default function AddOrder() {
     billRate: "",
     endClientName: "",
     vendorPhoneNo: "",
-    vendorEmailId: ""
+    vendorEmailId: "",
   });
 
-  const { dateOfJoining, projectEndDate, billRate, endClientName, vendorPhoneNo, vendorEmailId } = orders;
+  const {
+    dateOfJoining,
+    projectEndDate,
+    billRate,
+    endClientName,
+    vendorPhoneNo,
+    vendorEmailId,
+  } = orders;
 
   useEffect(() => {
     loadEmployeeDetails();
@@ -41,12 +41,15 @@ export default function AddOrder() {
       myHeaders.append("Authorization", `Bearer ${token}`);
 
       var requestOptions = {
-        method: 'GET',
+        method: "GET",
         headers: myHeaders,
-        redirect: 'follow'
+        redirect: "follow",
       };
 
-      const response = await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
+      const response = await fetch(
+        `${apiUrl}/employees/${employeeId}`,
+        requestOptions
+      );
       const data = await response.json();
       setEmployeeDetails(data);
     } catch (error) {
@@ -59,36 +62,43 @@ export default function AddOrder() {
   };
 
   const handleNavigate = (employeeId) => {
-    navigate("/orders", { state: { employeeId } });
+    navigate(`/orders/${employeeId}`);
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
       const requestOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(orders)
+        body: JSON.stringify(orders),
       };
-      const response = await fetch(`${apiUrl}/employees/${employeeId}/orders`, requestOptions);
-      if(response.status === 200){
-        handleOpenPopup();
+      const response = await fetch(
+        `${apiUrl}/employees/${employeeId}/orders`,
+        requestOptions
+      );
+      if (response.status === 200) {
+        showModal();
       }
     } catch (error) {
       console.error("Error adding order:", error);
     }
   };
-
-  const handleOpenPopup = () => {
-    setOpen(true);
+  const showModal = () => {
+    setIsModalOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/orders", {state: {employeeId} });
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
   };
 
   return (
@@ -121,25 +131,25 @@ export default function AddOrder() {
         </div>
         <div className="form-group">
           <label htmlFor="dateOfJoining">Date Of Joining:</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            className="form-control"
-            value={dateOfJoining}
-            onChange={(date) => onInputChange({ target: { name: "dateOfJoining", value: date } })}
-            required
-          />
-          </LocalizationProvider>
+            <DatePicker
+              className="form-control"
+              value={dateOfJoining}
+              onChange={(date) =>
+                onInputChange({
+                  target: { name: "dateOfJoining", value: date },
+                })
+              }
+              required
+            />
         </div>
         <div className="form-group">
           <label htmlFor="projectEndDate">Project End Date:</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
+            <DatePicker
             className="form-control"
             value={projectEndDate}
             onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
             required
-          />
-          </LocalizationProvider>
+            />
         </div>
         <div className="form-group">
           <label htmlFor="billRate">Bill Rate:</label>
@@ -189,7 +199,6 @@ export default function AddOrder() {
             required
           />
         </div>
-
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>
@@ -200,22 +209,10 @@ export default function AddOrder() {
         >
           Cancel
         </button>
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                PurchaseOrder added Successfully
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>ok</Button>
-            </DialogActions>
-          </Dialog>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>PurchaseOrder added succesfully</p>
+      </Modal>
       </form>
     </div>
-  )
+  );
 }

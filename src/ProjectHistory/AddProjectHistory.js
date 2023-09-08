@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "antd";
+import { Modal } from 'antd';
 
 export default function AddProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  let location = useLocation();
-  const { employeeId } = location.state;
+  let { employeeId } = useParams();
   const [employeeDetails, setEmployeeDetails] = useState({});
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectStatusOptions, setProjectStatusOptions] = useState([
     "Active",
     "Terminated",
@@ -87,25 +80,29 @@ export default function AddProjectHistory() {
       };
       const response = await fetch(`${apiUrl}/employees/${employeeId}/projects`, requestOptions);
       if(response.status === 200){
-        handleOpenPopup();
+        showModal();
       }
     } catch (error) {
       console.error("Error adding order:", error);
     }
   };
-
-  const handleOpenPopup = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/editemployee/project-history",{ state: { employeeId } });
-  };
-
   const handleNavigate = (employeeId) => {
-    navigate("/editemployee/project-history", { state: { employeeId } });
+    navigate(`/editemployee/${employeeId}/project-history`);
   };
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    handleNavigate(employeeId);
+  };
+
 
   return (
     <div className="form-container">
@@ -172,27 +169,23 @@ export default function AddProjectHistory() {
         </div>
         <div className="form-group">
           <label htmlFor="projectStartDate">Project Start Date</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
-            className="form-control"
-            name="projectStartDate"
-            value={projectStartDate}
-            onChange={(date) => onInputChange({ target: { name: "projectStartDate", value: date } })}
-            required
-          />
-          </LocalizationProvider>
+               className="form-control"
+               name="projectStartDate"
+               value={projectStartDate}
+               onChange={(date) => onInputChange({ target: { name: "projectStartDate", value: date } })}
+               required
+            />
         </div>
         <div className="form-group">
           <label htmlFor="projectEndDate">Project End Date</label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
-            className="form-control"
-            name="projectEndDate"
-            value={projectEndDate}
-            onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
-            required
-          />
-          </LocalizationProvider>
+               className="form-control"
+               name="projectEndDate"
+               value={projectEndDate}
+               onChange={(date) => onInputChange({ target: { name: "projectEndDate", value: date } })}
+               required
+            />
         </div>
         <div className="form-group">
           <label htmlFor="projectStatus">Project Status</label>
@@ -224,21 +217,9 @@ export default function AddProjectHistory() {
         >
           Cancel
         </button>
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                Project added Successfully
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>ok</Button>
-            </DialogActions>
-          </Dialog>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>ProjectHistory added succesfully</p>
+      </Modal>
       </form>
     </div>
   );
