@@ -50,7 +50,7 @@ export default function VisaDetails() {
   };
 
   const handleEditDetails = (employeeId,visaId) => {
-    navigate(`/editemployee/${employeeId}/visa-details/${visaId}/editvisa-details`);
+    navigate(`/editemployee/${employeeId}/visa-details/${visaId}/editvisadetails`);
   };
 
   const handleAddDetails = (employeeId) => {

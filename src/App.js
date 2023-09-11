@@ -27,7 +27,7 @@ import Sidebar from "./layout/Sidebar";
 import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
 import ChangePasswordForm from "./pages/ChangePasswordForm";
 import ForgotPassword from "./pages/ForgotPassword";
-
+import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -94,7 +94,7 @@ function App() {
                     <Route path="/editemployee/:employeeId/project-history/:projectId/editproject" element={<EditProjectHistory />} />
                     <Route path="/editemployee/:employeeId/project-history/add-project" element={<AddProjectHistory/>} />
                     <Route path="/editemployee/:employeeId/visa-details" element={<VisaDetails/>} />
-                    <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisa-details" element={<EditVisaDetails/>} />
+                    <Route path="/editemployee/:employeeId/visa-details/:visaId/editvisadetails" element={<EditVisaDetails/>} />
                     <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
                     <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
                     <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
@@ -106,6 +106,10 @@ function App() {
                         <Route path="/" element={<EmployeeDetails/>} />
                         <Route path="/trackings" element={<Tracking/>} />
                         <Route path="/withholdSheet" element={<WithHoldSheet/>} />
+                      </>
+                    ): role === "PROSPECT"? (
+                      <>
+                        <Route path="/" element={<ProspetEmployee/>} />
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          
