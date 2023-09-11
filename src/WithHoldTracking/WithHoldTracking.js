@@ -35,7 +35,8 @@ export default function WithHoldTracking() {
       );
       const trackingsData = await trackingsResponse.json();
       const detailsData = await detailsResponse.json();
-      setTrackings(trackingsData); 
+      setTrackings(trackingsData.content); 
+      console.log(trackingsData);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
