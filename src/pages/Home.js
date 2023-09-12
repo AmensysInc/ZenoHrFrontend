@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { BiDollar } from "react-icons/bi";
 import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
-import { AiFillDelete } from "react-icons/ai";
+import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../pages/Pagination";
 
@@ -80,9 +80,14 @@ export default function Home() {
         <h4 className="text-center">Employee details</h4>
         <div className="add-orders d-flex justify-content-end">
         <Link className="add-user-link" to="/adduser">
-            <BsFillPersonPlusFill size={25} />
+            <BsFillPersonPlusFill size={25} title="Add Employee"/>
           </Link>
         </div>
+        <div className="add-orders d-flex justify-content-end">
+          <Link className="add-pro-link" to="/addprospect">
+            <AiOutlineUsergroupAdd size={25} title="Prospect Employee"/>
+          </Link>
+          </div>
         <table className="table border shadow">
           <thead>
             <tr>

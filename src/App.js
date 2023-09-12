@@ -28,6 +28,7 @@ import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
 import ChangePasswordForm from "./pages/ChangePasswordForm";
 import ForgotPassword from "./pages/ForgotPassword";
 import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
+import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -98,6 +99,7 @@ function App() {
                     <Route path="/editemployee/:employeeId/visa-details/add-visa-details" element={<AddVisaDetails/>} />
                     <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
                     <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
+                    <Route path="/addprospect" element={<AddProspectEmployee/>}/>
 
                   </>
                 ): role === "EMPLOYEE"? (
@@ -110,6 +112,8 @@ function App() {
                     ): role === "PROSPECT"? (
                       <>
                         <Route path="/" element={<ProspetEmployee/>} />
+                        <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
+
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          

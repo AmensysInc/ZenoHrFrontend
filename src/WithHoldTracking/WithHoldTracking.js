@@ -138,6 +138,9 @@ export default function WithHoldTracking() {
 }
 
 function groupByProject(trackings) {
+  if (!Array.isArray(trackings)) {
+    return {};
+  }
   return trackings.reduce((groups, tracking) => {
     const projectName = tracking.projectName;
     if (!groups[projectName]) {
