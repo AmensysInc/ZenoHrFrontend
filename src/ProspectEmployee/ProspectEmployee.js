@@ -38,7 +38,8 @@ export default function ProspectEmployee() {
     const apiUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const employeeId = localStorage.getItem("id");
-    const [tabValue, setTabValue] = React.useState(0);
+    const [tabValue, setTabValue] = useState(0);
+    const [documents, setDocuments] = useState();
 
     const [employee, setEmployee] = useState({
         firstName: "",
@@ -145,11 +146,43 @@ export default function ProspectEmployee() {
         }
       };
 
+      const onDocumentSubmit = async (event) => {
+        event.preventDefault();
+        try {
+          const token = localStorage.getItem("token");
+          let formData = new FormData();
+          formData.append("documents", documents);
+          const requestOptions = {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          };
+          const response = await fetch(
+            `${apiUrl}/employees/prospect/${employeeId}`,
+            requestOptions
+          );
+          if (response.status === 200) {
+            navigate("/")
+          }
+          if (!response.ok) {
+            throw new Error("Failed to update employee");
+          }
+        } catch (error) {
+          console.error("Error updating employee:", error);
+        }
+      };
+
       const onInputChange = (e) => {
         setEmployee({ ...employee, [e.target.name]: e.target.value });
       };
       const onInputChangeDate = (date, name) => {
         setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+      };
+
+      const onDocumentInputChange = (e) => {
+        setDocuments( e.target.files[0] );
       };
 
       const handleTabChange = (event, newValue) => {
@@ -480,20 +513,23 @@ export default function ProspectEmployee() {
               </form>
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={1}>
-              <form onSubmit={(e) => onSubmit(e)}>
+              <form onSubmit={(e) => onDocumentSubmit(e)} enctype="multipart/form-data">
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="Document">Document</label>
                     <input
                       type="file"
                       className="form-control"
-                      placeholder="First Name"
-                      name="firstName"
-                      onChange={(e) => onInputChange(e)}
+                      name="document"
+                      onChange={(e) => {onDocumentInputChange(e)}}
                       required
                     />
                   </div>
                 </div>
+                {console.log(documents)}
+                <button type="submit" className="btn btn-outline-primary">
+                  upload
+                </button>
               </form>
             </CustomTabPanel>
           </Box>
