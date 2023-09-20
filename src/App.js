@@ -29,6 +29,7 @@ import ChangePasswordForm from "./pages/ChangePasswordForm";
 import ForgotPassword from "./pages/ForgotPassword";
 import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
+import ProspectDocument from "./ProspetEmployee/ProspectDocument";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -112,6 +113,7 @@ function App() {
                     ): role === "PROSPECT"? (
                       <>
                         <Route path="/" element={<ProspetEmployee/>} />
+                        <Route path="/uploadDocs" element={<ProspectDocument/>}/>
                         <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
 
                       </>

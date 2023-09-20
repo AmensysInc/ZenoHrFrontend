@@ -224,18 +224,6 @@ export default function EditEmployee() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="clgOfGrad">College of Graduation</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Name of the college"
-              name="clgOfGrad"
-              value={clgOfGrad}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="clgOfGrad">Phone No</label>
             <input
               type="text"
