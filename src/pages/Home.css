@@ -32,6 +32,20 @@
   text-decoration: none; 
   display: inline-block; 
 }
+.add-pro-link {
+  position: fixed;
+  bottom: 80vh; 
+  right: 8vw;
+  background-color: #7d6565;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+  text-decoration: none; 
+  display: inline-block; 
+}
 
 .add-user:hover {
   background-color: #555;
