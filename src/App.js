@@ -27,8 +27,14 @@ import Sidebar from "./layout/Sidebar";
 import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
 import ChangePasswordForm from "./pages/ChangePasswordForm";
 import ForgotPassword from "./pages/ForgotPassword";
+<<<<<<< HEAD
+import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
+import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
+import ProspectDocument from "./ProspetEmployee/ProspectDocument";
+=======
 import ProspectEmployee from "./ProspectEmployee/ProspectEmployee";
 import AddProspectEmployee from "./ProspectEmployee/AddProspectEmployee";
+>>>>>>> master
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -111,7 +117,12 @@ function App() {
                       </>
                     ): role === "PROSPECT"? (
                       <>
+<<<<<<< HEAD
+                        <Route path="/" element={<ProspetEmployee/>} />
+                        <Route path="/uploadDocs" element={<ProspectDocument/>}/>
+=======
                         <Route path="/" element={<ProspectEmployee/>} />
+>>>>>>> master
                         <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
 
                       </>
