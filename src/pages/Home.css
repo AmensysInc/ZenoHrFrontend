@@ -54,3 +54,14 @@
   padding-left: 180px;
   padding-right: 180px;
 }
+
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center; 
+  margin-right: 0px; 
+}
