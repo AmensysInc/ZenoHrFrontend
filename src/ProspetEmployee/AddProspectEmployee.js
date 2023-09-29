@@ -156,7 +156,7 @@ export default function AddProspectEmployee() {
             <option value="OnSick">OnSick</option>
           </select>
         </div>
-        <div className="form-group">
+        {/* <div className="form-group">
           <label htmlFor="password">Password</label>
           <input
             type={"text"}
@@ -165,7 +165,7 @@ export default function AddProspectEmployee() {
             value={password}
             onChange={(e) => onInputChange(e)}
           />
-        </div>
+        </div> */}
         <button type="submit" className="btn btn-outline-primary">
           Submit
         </button>

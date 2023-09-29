@@ -8,7 +8,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../pages/Pagination";
-import { Select, Input, Space, Button } from "antd";
+import { Select, Input , Button } from "antd";
 
 export default function Home() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -133,7 +133,6 @@ export default function Home() {
           </div>
           <Button onClick={handleClearSearch}>Clear</Button>
         </div>
-
         <table className="table border shadow">
           <thead>
             <tr>

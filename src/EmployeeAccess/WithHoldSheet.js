@@ -26,7 +26,6 @@ const Tracking = () => {
   };
 
 
-
   const fetchTrackings = async () => {
     try {
       const config = {
@@ -34,13 +33,16 @@ const Tracking = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-
+  
       const response = await axios.get(
         `${apiUrl}/employees/${employeeId}/trackings`,
         config
       );
-      setTrackings(response.data);
-      console.log(response.data)
+      if (Array.isArray(response.data.content)) {
+        setTrackings(response.data.content);
+      } else {
+        console.error('Error: response.data.content is not an array:', response.data.content);
+      }
     } catch (error) {
       console.error('Error fetching trackings:', error);
     }

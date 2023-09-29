@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../pages/Pagination";
+import { Select, Input , Button } from "antd";
 
 export default function VisaDetails() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -11,6 +12,8 @@ export default function VisaDetails() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
   const navigate = useNavigate();
   let {employeeId} = useParams();
 
@@ -18,11 +21,18 @@ export default function VisaDetails() {
     if (employeeId) {
       fetchVisaDetails();
     }
-  }, [currentPage, pageSize, employeeId]);
+  }, [currentPage, pageSize, employeeId, searchQuery, searchField]);
 
   const fetchVisaDetails = async () => {
     try {
       const token = localStorage.getItem("token");
+      const searchParams = new URLSearchParams();
+      searchParams.append("page", currentPage);
+      searchParams.append("size", pageSize);
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -38,7 +48,7 @@ export default function VisaDetails() {
         last: detailsData.lastName,
       });
       const response = await fetch(
-        `${apiUrl}/employees/${employeeId}/visa-details?page=${currentPage}&size=${pageSize}`,
+        `${apiUrl}/employees/${employeeId}/visa-details?${searchParams.toString()}`,
         config
       );
       const data = await response.json();
@@ -56,6 +66,14 @@ export default function VisaDetails() {
   const handleAddDetails = (employeeId) => {
     navigate(`/editemployee/${employeeId}/visa-details/add-visa-details`);
   };
+  const handleSearch = () => {
+    fetchVisaDetails();
+  };
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchField("");
+    fetchVisaDetails();
+  };
 
   return (
     <div className="container">
@@ -71,6 +89,28 @@ export default function VisaDetails() {
             <BiSolidAddToQueue size={15} />
             Visa Details
           </button>
+        </div>
+        <div className="search-container">
+          <div className="search-bar">
+            <Select
+              value={searchField}
+              onChange={(value) => setSearchField(value)}
+              style={{ width: 120 }}
+            >
+              <Select.Option value="">Select Field</Select.Option>
+              <Select.Option value="visaStartDate">Visa StartDate</Select.Option>
+              <Select.Option value="visaExpiryDate">Visa EndDate</Select.Option>
+              <Select.Option value="visaType">Visa Type</Select.Option>
+            </Select>
+            <Input.Search
+              placeholder="Search..."
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              enterButton
+            />
+          </div>
+          <Button onClick={handleClearSearch}>Clear</Button>
         </div>
         <table className="table border shadow">
           <thead>

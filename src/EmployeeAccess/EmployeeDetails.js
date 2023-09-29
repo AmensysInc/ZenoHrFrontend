@@ -70,7 +70,7 @@ const EmployeeDetails = () => {
         </table>
       </div>
         <Link to={"/trackings"}>
-          <button>View WithHoldTracking</button>
+          <button disabled>View WithHoldTracking</button>
         </Link>
         <Link to={"/withholdSheet"}>
           <button>View WithHoldSheet</button>

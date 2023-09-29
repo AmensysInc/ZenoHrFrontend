@@ -1,32 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { useParams , useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import "../PurchaseOrder/PurchaseOrder.css";
+import Pagination from "../pages/Pagination";
+import { Select, Input, Button } from "antd";
 
 export default function WithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
   const [userDetail, setUserDetail] = useState({});
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
   const navigate = useNavigate();
   const { employeeId } = useParams();
 
   useEffect(() => {
     loadTrackings();
-  }, []);
+  }, [currentPage, pageSize, searchQuery, searchField]);
 
   const loadTrackings = async () => {
     try {
       const token = localStorage.getItem("token");
+      const searchParams = new URLSearchParams();
+      searchParams.append("page", currentPage);
+      searchParams.append("size", pageSize);
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
       var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`); 
+      myHeaders.append("Authorization", `Bearer ${token}`);
       var requestOptions = {
         method: "GET",
         headers: myHeaders,
         redirect: "follow",
       };
       const trackingsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/trackings`,
+        `${apiUrl}/employees/${employeeId}/trackings?${searchParams.toString()}`,
         requestOptions
       );
       const detailsResponse = await fetch(
@@ -35,7 +49,7 @@ export default function WithHoldTracking() {
       );
       const trackingsData = await trackingsResponse.json();
       const detailsData = await detailsResponse.json();
-      setTrackings(trackingsData.content); 
+      setTrackings(trackingsData.content);
       console.log(trackingsData);
       setUserDetail({
         first: detailsData.firstName,
@@ -45,12 +59,21 @@ export default function WithHoldTracking() {
       console.error("Error loading trackings:", error);
     }
   };
+  const handleSearch = () => {
+    loadTrackings();
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchField("");
+    loadTrackings();
+  };
 
   const handleAddTracking = (employeeId) => {
     navigate(`/tracking/${employeeId}/addtracking`);
   };
 
-  const handleEditTracking = (employeeId,trackingId) => {
+  const handleEditTracking = (employeeId, trackingId) => {
     navigate(`/tracking/${employeeId}/${trackingId}/edittracking`);
   };
 
@@ -61,7 +84,10 @@ export default function WithHoldTracking() {
           {userDetail.first} {userDetail.last} - WithHold Details
         </h4>
         <div className="add-orders d-flex justify-content-start">
-          <button className="btn btn-primary" onClick={() => handleAddTracking(employeeId)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => handleAddTracking(employeeId)}
+          >
             <BiSolidAddToQueue size={15} />
             New WithHold
           </button>
@@ -76,9 +102,11 @@ export default function WithHoldTracking() {
                 (sum, tracking) => sum + tracking.balance,
                 0
               );
+              
 
               return (
                 <div key={projectName} className="project-grid">
+                  
                   <h5>Project: {projectName}</h5>
                   <table className="table border shadow">
                     <thead>
@@ -112,7 +140,10 @@ export default function WithHoldTracking() {
                             <div className="icon-container">
                               <FiEdit2
                                 onClick={() =>
-                                  handleEditTracking(employeeId,tracking.trackingId)
+                                  handleEditTracking(
+                                    employeeId,
+                                    tracking.trackingId
+                                  )
                                 }
                                 size={20}
                               />
@@ -127,6 +158,11 @@ export default function WithHoldTracking() {
                       </tr>
                     </tbody>
                   </table>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    setCurrentPage={setCurrentPage}
+                  />
                 </div>
               );
             }

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../pages/Pagination";
+import { Select, Input , Button } from "antd";
 
 export default function ProjectHistory() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -11,16 +12,25 @@ export default function ProjectHistory() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
   const navigate = useNavigate();
   let { employeeId } = useParams();
 
   useEffect(() => {
     fetchProjectHistory();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchQuery, searchField]);
 
   const fetchProjectHistory = async () => {
     try {
       const token = localStorage.getItem("token");
+      const searchParams = new URLSearchParams();
+      searchParams.append("page", currentPage);
+      searchParams.append("size", pageSize);
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
       var myHeaders = new Headers();
       myHeaders.append("Authorization", `Bearer ${token}`);
       var requestOptions = {
@@ -29,7 +39,7 @@ export default function ProjectHistory() {
         redirect: "follow",
       };
       const projectHistoryResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/projects?page=${currentPage}&size=${pageSize}`,
+        `${apiUrl}/employees/${employeeId}/projects?${searchParams.toString()}`,
         requestOptions
       );
       const detailsResponse = await fetch(
@@ -56,6 +66,15 @@ export default function ProjectHistory() {
   const handleAddProject = (employeeId) => {
     navigate(`/editemployee/${employeeId}/project-history/add-project`);
   };
+  const handleSearch = () => {
+    fetchProjectHistory();
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchField("");
+    fetchProjectHistory();
+  };
 
   return (
     <div className="container">
@@ -72,12 +91,37 @@ export default function ProjectHistory() {
             New Projects
           </button>
         </div>
+        <div className="search-container">
+          <div className="search-bar">
+            <Select
+              value={searchField}
+              onChange={(value) => setSearchField(value)}
+              style={{ width: 120 }}
+            >
+              <Select.Option value="">Select Field</Select.Option>
+              <Select.Option value="subVendorOne">Vendor One</Select.Option>
+              <Select.Option value="subVendorTwo">Vendor Two</Select.Option>
+              <Select.Option value="projectAddress">Project Address</Select.Option>
+              <Select.Option value="projectStartDate">Project StartDate</Select.Option>
+              <Select.Option value="projectEndDate">Project EndDate</Select.Option>
+              <Select.Option value="projectStatus">Project Status</Select.Option>
+            </Select>
+            <Input.Search
+              placeholder="Search..."
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              enterButton
+            />
+          </div>
+          <Button onClick={handleClearSearch}>Clear</Button>
+        </div>
         <table className="table border shadow">
           <thead>
             <tr>
               <th scope="col">S.No</th>
-              <th scope="col">Sub VendorOne</th>
-              <th scope="col">Sub VendorTwo</th>
+              <th scope="col">Vendor One</th>
+              <th scope="col">Vendor Two</th>
               <th scope="col">Project Address</th>
               <th scope="col">Project StartDate</th>
               <th scope="col">Project EndDate</th>

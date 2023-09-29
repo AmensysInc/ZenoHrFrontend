@@ -3,36 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
+import Grid from "@mui/material/Grid";
 
 export default function ProspectEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -46,7 +18,7 @@ export default function ProspectEmployee() {
     lastName: "",
     dob: "",
     fatherName: "",
-    SSN: "",
+    ssn: "",
     phoneNo: "",
     emailID: "",
     currentWorkLocation: "",
@@ -62,7 +34,7 @@ export default function ProspectEmployee() {
     routingNumber: "",
     accNumber: "",
     maritalStatus: "",
-    ITfilingState: "",
+    itFilingState: "",
     needInsurance: "",
     startDateWithAmensys: "",
   });
@@ -72,7 +44,7 @@ export default function ProspectEmployee() {
     lastName,
     dob,
     fatherName,
-    SSN,
+    ssn,
     phoneNo,
     emailID,
     currentWorkLocation,
@@ -88,7 +60,7 @@ export default function ProspectEmployee() {
     routingNumber,
     accNumber,
     maritalStatus,
-    ITfilingState,
+    itFilingState,
     needInsurance,
     startDateWithAmensys,
   } = employee;
@@ -134,6 +106,7 @@ export default function ProspectEmployee() {
         `${apiUrl}/employees/prospect/${employeeId}`,
         requestOptions
       );
+      console.log(response);
       if (response.status === 200) {
         navigate("/uploadDocs");
       }
@@ -159,55 +132,51 @@ export default function ProspectEmployee() {
   return (
     <div>
       <div className="form-container">
-        <Box sx={{ width: "100%" }}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="basic tabs example"
-            >
-              <Tab label="Employee Details" {...a11yProps(0)} />              
-            </Tabs>
-          </Box>
-          <CustomTabPanel value={tabValue} index={0}>
-            <form onSubmit={(e) => onSubmit(e)}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="FirstName">First Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="First Name"
-                    name="firstName"
-                    value={firstName}
-                    onChange={(e) => onInputChange(e)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="FirstName">Middle Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Middle Name"
-                    name="middleName"
-                    value={middleName}
-                    onChange={(e) => onInputChange(e)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Last Name"
-                    name="lastName"
-                    value={lastName}
-                    onChange={(e) => onInputChange(e)}
-                  />
-                </div>
+        <Typography variant="h4">Employee Details</Typography>
+        <form onSubmit={(e) => onSubmit(e)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <div className="form-group">
+                <label htmlFor="FirstName">First Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="First Name"
+                  name="firstName"
+                  value={firstName}
+                  onChange={(e) => onInputChange(e)}
+                  required
+                />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <div className="form-group">
+                <label htmlFor="FirstName">Middle Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Middle Name"
+                  name="middleName"
+                  value={middleName}
+                  onChange={(e) => onInputChange(e)}
+                  required
+                />
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Last Name"
+                  name="lastName"
+                  value={lastName}
+                  onChange={(e) => onInputChange(e)}
+                />
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="DOB">Date Of Birth</label>
                 <DatePicker
@@ -220,6 +189,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="fatherName">Father's Name</label>
                 <input
@@ -232,18 +203,22 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
-                <label htmlFor="SSN">SSN</label>
+                <label htmlFor="ssn">SSN</label>
                 <input
                   type="number"
                   className="form-control"
                   placeholder="Social Security Number"
-                  name="SSN"
-                  value={SSN}
+                  name="ssn"
+                  value={ssn}
                   onChange={(e) => onInputChange(e)}
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="clgOfGrad">Phone Number</label>
                 <input
@@ -256,6 +231,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="Email">Email</label>
                 <input
@@ -268,6 +245,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="currentWorkLocation">
                   Current Work Location
@@ -282,6 +261,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="residentialAddress">Residential Address</label>
                 <textarea
@@ -294,6 +275,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="homeCountryAddress">Home Country Address</label>
                 <textarea
@@ -306,6 +289,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="emergencyContactDetails">
                   Emergency Contact
@@ -320,8 +305,10 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
-                <label htmlFor="visaStatus">Status</label>
+                <label htmlFor="visaStatus">Visa Status</label>
                 <input
                   type="text"
                   className="form-control"
@@ -332,6 +319,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="clgOfGrad">University of Graduation</label>
                 <input
@@ -344,6 +333,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="bachelorsDegree">Bachelor's Degree</label>
                 <input
@@ -356,6 +347,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="mastersDegree">Master's Degree</label>
                 <input
@@ -368,6 +361,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="bankName">Bank Name</label>
                 <input
@@ -380,6 +375,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="accType">Account Type</label>
                 <input
@@ -392,10 +389,12 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="routingNumber">Routing Number</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   placeholder="Routing Number"
                   name="routingNumber"
@@ -404,10 +403,12 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="accNumber">Account Number</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   placeholder="Account Number"
                   name="accNumber"
@@ -416,6 +417,8 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="maritalStatus">Marital Status</label>
                 <input
@@ -428,18 +431,22 @@ export default function ProspectEmployee() {
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
-                <label htmlFor="ITfilingState">Income Tax Filing State</label>
+                <label htmlFor="itFilingState">Income Tax Filing State</label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder="Income Tax Filing State"
-                  name="ITfilingState"
-                  value={ITfilingState}
+                  name="itFilingState"
+                  value={itFilingState}
                   onChange={(e) => onInputChange(e)}
                   required
                 />
               </div>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <div className="form-group">
                 <label htmlFor="needInsurance">Need Insurance</label>
                 <select
@@ -454,31 +461,27 @@ export default function ProspectEmployee() {
                   <option value="OnProject">No</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label htmlFor="startDateWithAmensys">
-                  Start Date With Amensys
-                </label>
-                <DatePicker
-                  type="text"
-                  className="form-control"
-                  placeholder="Date of Birth"
-                  name="startDateWithAmensys"
-                  value={dayjs(startDateWithAmensys)}
-                  onChange={(date) =>
-                    onInputChangeDate(date, "startDateWithAmensys")
-                  }
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-outline-primary">
-                Update
-              </button>
-              <Link className="btn btn-outline-danger mx-2" to="/">
-                Cancel
-              </Link>
-            </form>
-          </CustomTabPanel>
-        </Box>
+            </Grid>
+          </Grid>
+          <div className="form-group">
+            <label htmlFor="startDateWithAmensys">Start Date With Amensys</label>
+            <DatePicker
+              type="text"
+              className="form-control"
+              placeholder="Date of Birth"
+              name="startDateWithAmensys"
+              value={dayjs(startDateWithAmensys)}
+              onChange={(date) => onInputChangeDate(date, "startDateWithAmensys")}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-outline-primary">
+            Update
+          </button>
+          <Link className="btn btn-outline-danger mx-2" to="/">
+            Cancel
+          </Link>
+        </form>
       </div>
     </div>
   );
