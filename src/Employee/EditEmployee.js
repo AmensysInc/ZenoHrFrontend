@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import "./EditEmployee.css";
+import "./Employee.css";
 import { DatePicker } from "antd";
 import { Modal } from "antd";
 import dayjs from "dayjs";
@@ -79,9 +79,6 @@ export default function EditEmployee() {
         },
         body: JSON.stringify({ email: emailID }),
       });
-      // if (response.status === 201) {
-
-      // }
       if (response.ok) {
         console.log("Password reset email sent successfully.");
       } else {
@@ -146,17 +143,19 @@ export default function EditEmployee() {
       <div className="button-container">
         <button
           type="button"
-          className="project-history"
+          className="add-user-link"
           onClick={() => handleProjectHistory(employeeId)}
+          title="Project History"
         >
-          Project History
+          P-H
         </button>
         <button
           type="button"
-          className="project-history"
+          className="add-pro-link"
           onClick={() => handleVisaDetails(employeeId)}
+          title="Visa Details"
         >
-          Visa Details
+          V-D
         </button>
       </div>
       <div className="form-container">
@@ -272,7 +271,7 @@ export default function EditEmployee() {
             className="btn btn-outline-primary"
             onClick={handleSendDetails}
           >
-            Send Details
+            Send Login Details
           </button>
 
           <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>

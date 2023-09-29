@@ -4,6 +4,7 @@ import "../PurchaseOrder/PurchaseOrder.css";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../pages/Pagination";
+import { Select, Input , Button } from "antd";
 
 export default function PurchaseOrder() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -12,16 +13,25 @@ export default function PurchaseOrder() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
   const navigate = useNavigate();
   let { employeeId } = useParams();
   
   useEffect(() => {
     loadOrders();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, searchQuery, searchField]);
 
   const loadOrders = async () => {
     try {
       const token = localStorage.getItem("token");
+      const searchParams = new URLSearchParams();
+      searchParams.append("page", currentPage);
+      searchParams.append("size", pageSize);
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
       var myHeaders = new Headers();
       myHeaders.append("Authorization", `Bearer ${token}`);
       var requestOptions = {
@@ -30,7 +40,7 @@ export default function PurchaseOrder() {
         redirect: "follow",
       };
       const ordersResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/orders?page=${currentPage}&size=${pageSize}`,
+        `${apiUrl}/employees/${employeeId}/orders?${searchParams.toString()}`,
         requestOptions
       );
       const detailsResponse = await fetch(
@@ -39,9 +49,7 @@ export default function PurchaseOrder() {
       );
       const ordersData = await ordersResponse.json(); 
       const detailsData = await detailsResponse.json();
-  
       const ordersArray = ordersData.content;
-  
       setOrders(ordersArray);
       setTotalPages(ordersData.totalPages);
       setUserDetail({
@@ -58,6 +66,14 @@ export default function PurchaseOrder() {
   const handleEditOrder = (employeeId, orderId) => {
     navigate(`/orders/${employeeId}/${orderId}/editorder`);
   };
+  const handleSearch = () => {
+    loadOrders();
+  };
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchField("");
+    loadOrders();
+  };
   
   return (
     <div className="container">
@@ -73,6 +89,31 @@ export default function PurchaseOrder() {
             <BiSolidAddToQueue size={15} />
             Orders
           </button>
+        </div>
+        <div className="search-container">
+          <div className="search-bar">
+            <Select
+              value={searchField}
+              onChange={(value) => setSearchField(value)}
+              style={{ width: 120 }}
+            >
+              <Select.Option value="">Select Field</Select.Option>
+              <Select.Option value="dateOfJoining">Data Of Joining</Select.Option>
+              <Select.Option value="projectEndDate">Project End Date</Select.Option>
+              <Select.Option value="billRate">Bill Rate</Select.Option>
+              <Select.Option value="endClientName">Client Name</Select.Option>
+              <Select.Option value="vendorPhoneNo">Vendor PhoneNo</Select.Option>
+              <Select.Option value="vendorEmailId">Vendor EmailID</Select.Option>
+            </Select>
+            <Input.Search
+              placeholder="Search..."
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              enterButton
+            />
+          </div>
+          <Button onClick={handleClearSearch}>Clear</Button>
         </div>
         <table className="table border shadow">
           <thead>
