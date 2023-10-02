@@ -11,10 +11,10 @@ export default function Navbar({setIsLoggedIn, setRole}) {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setRole("");
-    window.location.href = "/login";
+    window.location.href = "test/login";
   };
 
-  if (location.pathname === "/login") {
+  if (location.pathname === "test/login") {
     return (
       <div>
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
