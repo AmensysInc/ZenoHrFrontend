@@ -68,7 +68,7 @@ function App() {
 
   return (
     <div className="App">
-      <Router>
+      <Router basename={'/test'}>
         <Navbar location={window.location} setIsLoggedIn ={setIsLoggedIn} setRole ={setRole}/>
         {isLoggedIn && <Breadcrumb/>}
         <div className="container-fluid">
@@ -77,7 +77,7 @@ function App() {
               {isLoggedIn && role === "ADMIN" && <Sidebar/>}
             </div>
             <div className="col-md-10"></div>
-        <Routes>
+        <Routes basepath={'/test'}>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/forgot-password" element={<ForgotPassword/>} />
           {isLoggedIn ?(

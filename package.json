@@ -2,6 +2,7 @@
   "name": "quick-hr",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://www.quickhrms.com/test",
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
