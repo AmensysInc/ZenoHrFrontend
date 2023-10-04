@@ -46,7 +46,7 @@ const Tracking = () => {
     } catch (error) {
       console.error('Error fetching trackings:', error);
     }
-  };
+  }; 
 
   return (
     <div className="container">

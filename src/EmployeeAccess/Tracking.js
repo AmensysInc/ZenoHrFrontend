@@ -24,8 +24,8 @@ const Tracking = () => {
         `${apiUrl}/employees/${employeeId}/trackings`,
         config
       );
-      setTrackings(response.data);
-      console.log(response.data)
+      setTrackings(response.data.content);
+      console.log(response.data.content)
     } catch (error) {
       console.error('Error fetching trackings:', error);
     }
