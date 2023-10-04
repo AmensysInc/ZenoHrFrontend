@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "../pages/Pagination";
 import { Select, Input , Button } from "antd";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function PurchaseOrders() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -10,6 +11,7 @@ export default function PurchaseOrders() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
+  let { employeeId } = useParams();
 
   useEffect(() => {
     loadOrders();
@@ -32,7 +34,7 @@ export default function PurchaseOrders() {
         headers: myHeaders,
         redirect: "follow",
       };
-      const ordersResponse = await fetch(`${apiUrl}/orders?${searchParams.toString()}`, requestOptions);
+      const ordersResponse = await fetch(`${apiUrl}/employees/${employeeId}/orders?${searchParams.toString()}`, requestOptions);
       const ordersData = await ordersResponse.json();
       const ordersArray = ordersData.content;
       setOrders(ordersArray);
