@@ -146,16 +146,18 @@ export default function EditEmployee() {
           className="add-user-link"
           onClick={() => handleProjectHistory(employeeId)}
           title="Project History"
+          style={{ marginLeft: '4000px' }}
         >
-          P-H
+          Project History
         </button>
         <button
           type="button"
           className="add-pro-link"
           onClick={() => handleVisaDetails(employeeId)}
           title="Visa Details"
+          style={{ marginLeft: '4000px' }}
         >
-          V-D
+          Visa Details
         </button>
       </div>
       <div className="form-container">

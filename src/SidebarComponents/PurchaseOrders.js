@@ -34,7 +34,7 @@ export default function PurchaseOrders() {
         headers: myHeaders,
         redirect: "follow",
       };
-      const ordersResponse = await fetch(`${apiUrl}/employees/${employeeId}/orders?${searchParams.toString()}`, requestOptions);
+      const ordersResponse = await fetch(`${apiUrl}/orders?${searchParams.toString()}`, requestOptions);
       const ordersData = await ordersResponse.json();
       const ordersArray = ordersData.content;
       setOrders(ordersArray);
