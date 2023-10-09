@@ -23,6 +23,7 @@ export default function EditEmployee() {
     phoneNo: "",
     onBench: "",
     email: "",
+    securityGroup:"",
     password: "",
   });
   const {
@@ -34,6 +35,7 @@ export default function EditEmployee() {
     phoneNo,
     onBench,
     email,
+    securityGroup,
     password,
   } = employee;
 
@@ -250,6 +252,22 @@ export default function EditEmployee() {
               <option value="OnProject">OnProject</option>
               <option value="OnVacation">OnVacation</option>
               <option value="OnSick">OnSick</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="securityGroup">Authorization</label>
+            <select
+              id="securityGroup"
+              name="securityGroup"
+              value={securityGroup}
+              onChange={(e) => onInputChange(e)}
+              required
+            >
+              <option value="">-- Select --</option>
+              <option value="ADMIN">Admin</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="PROSPECT">Prospect</option>
+              <option value="CANDIDATE">Candidate</option>
             </select>
           </div>
           <div className="form-group">

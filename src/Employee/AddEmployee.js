@@ -17,6 +17,7 @@ export default function AddEmployee() {
     phoneNo:"",
     onBench: "",
     email: "",
+    securityGroup:"",
     password: "",
   });
 
@@ -29,6 +30,7 @@ export default function AddEmployee() {
     phoneNo,
     onBench,
     email,
+    securityGroup,
     password,
   } = user;
 
@@ -157,6 +159,22 @@ export default function AddEmployee() {
             <option value="OnSick">OnSick</option>
           </select>
         </div>
+        <div className="form-group">
+            <label htmlFor="securityGroup">Authorization</label>
+            <select
+              id="securityGroup"
+              name="securityGroup"
+              value={securityGroup}
+              onChange={(e) => onInputChange(e)}
+              required
+            >
+              <option value="">-- Select --</option>
+              <option value="ADMIN">Admin</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="PROSPECT">Prospect</option>
+              <option value="CANDIDATE">Candidate</option>
+            </select>
+          </div>
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <input
