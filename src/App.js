@@ -30,6 +30,11 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
 import ProspectDocument from "./ProspetEmployee/ProspectDocument";
+import CandidateList from "./Candidates/CandidateList";
+import MarketingList from "./Marketing/MarketingList";
+import EditCandidate from "./Candidates/EditCandidate";
+import AddCandidate from "./Candidates/AddCandidate";
+import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -74,7 +79,7 @@ function App() {
         <div className="container-fluid">
           <div className="row">
           <div className="col-md-2 bg-light">
-              {isLoggedIn && role === "ADMIN" && <Sidebar/>}
+              {isLoggedIn && (role === "ADMIN" || role === "RECRUITER") && <Sidebar/>}
             </div>
             <div className="col-md-10"></div>
         <Routes>
@@ -101,6 +106,10 @@ function App() {
                     <Route path="/purchase-orders" element={<PurchaseOrders/>}/>
                     <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
                     <Route path="/addprospect" element={<AddProspectEmployee/>}/>
+                    <Route path="/candidates" element={<CandidateList/>}/>
+                    <Route path="/addcandidate" element={<AddCandidate/>}/>
+                    <Route path="/editcandidate/:candidateID" element={<EditCandidate/>}/>
+                    <Route path="/marketing" element={<MarketingList/>}/>
 
                   </>
                 ): role === "EMPLOYEE"? (
@@ -116,6 +125,11 @@ function App() {
                         <Route path="/uploadDocs" element={<ProspectDocument/>}/>
                         <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
 
+                      </>
+                    ):role === "RECRUITER"? (
+                      <>
+                        <Route path="/" element={<RecruiterDashboard/>} />
+                        <Route path="/marketing" element={<MarketingList/>}/>
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          
