@@ -1,37 +1,33 @@
-import "./Employee.css";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { DatePicker } from "antd";
-import { Modal } from 'antd';
+import { Modal } from "antd";
 
-export default function AddEmployee() {
+export default function AddCandidate() {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
-    emailID: "",
-    dob: "",
-    clgOfGrad: "",
-    phoneNo:"",
-    onBench: "",
-    email: "",
-    securityGroup:"",
-    password: "",
+    emailAddress: "",
+    recruiterName: "",
+    skills: "",
+    phoneNo: "",
+    originalVisaStatus: "",
+    comments: "",
+    candidateStatus: "",
   });
 
   const {
     firstName,
     lastName,
-    emailID,
-    dob,
-    clgOfGrad,
+    emailAddress,
+    recruiterName,
+    skills,
     phoneNo,
-    onBench,
-    email,
-    securityGroup,
-    password,
+    originalVisaStatus,
+    comments,
+    candidateStatus,
   } = user;
 
   const onInputChange = (e) => {
@@ -50,13 +46,13 @@ export default function AddEmployee() {
         body: JSON.stringify(user),
       };
 
-      const response = await fetch(`${apiUrl}/employees`, requestOptions);
+      const response = await fetch(`${apiUrl}/candidates`, requestOptions);
       console.log(response);
-      if(response.status === 201){
+      if (response.status === 201) {
         showModal();
       }
     } catch (error) {
-      console.error("Error adding employee:", error);
+      console.error("Error adding candidate:", error);
     }
   };
   const showModal = () => {
@@ -65,17 +61,16 @@ export default function AddEmployee() {
 
   const handleOk = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/candidates");
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/candidates");
   };
-
   return (
     <div className="form-container">
-      <h2 className="text-center m-4">Add Employee</h2>
+      <h2 className="text-center m-4">Add Candidate</h2>
 
       <form onSubmit={(e) => onSubmit(e)}>
         <div className="form-row">
@@ -102,40 +97,42 @@ export default function AddEmployee() {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="emailID">Email Address</label>
+          <label htmlFor="emailAddress">Email Address</label>
           <input
             type={"text"}
             className="form-control"
-            name="emailID"
-            value={emailID}
+            name="emailAddress"
+            value={emailAddress}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        {/* <div className="form-group">
+          <label htmlFor="recruiterName">Recruiter Name</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="recruiterName"
+            value={recruiterName}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div> */}
+        <div className="form-group">
+          <label htmlFor="skills">Skills</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="skills"
+            value={skills}
             onChange={(e) => onInputChange(e)}
             required
           />
         </div>
         <div className="form-group">
-        <label htmlFor="emailID">Date of Birth</label>
-        <DatePicker
-              className="form-control"
-              value={dob}
-              onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
-              required
-        />
-        </div>
-        <div className="form-group">
-          <label htmlFor="clgOfGrad">Name of the college</label>
+          <label htmlFor="phoneNo">Phone No</label>
           <input
-            type={"text"}
-            className="form-control"
-            name="clgOfGrad"
-            value={clgOfGrad}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="clgOfGrad">Phone No</label>
-          <input
-            type={"text"}
+            type={"number"}
             className="form-control"
             name="phoneNo"
             value={phoneNo}
@@ -144,46 +141,45 @@ export default function AddEmployee() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="onBench">Working or Bench</label>
+          <label htmlFor="originalVisaStatus">Visa Status</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="originalVisaStatus"
+            value={originalVisaStatus}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="comments">Comments</label>
+          <input
+            type={"text"}
+            className="form-control"
+            name="comments"
+            value={comments}
+            onChange={(e) => onInputChange(e)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="candidateStatus">Working or Bench</label>
           <select
-            id="onBench"
-            name="onBench"
-            value={onBench}
+            id="candidateStatus"
+            name="candidateStatus"
+            value={candidateStatus}
             onChange={(e) => onInputChange(e)}
             required
           >
             <option value="">-- Select --</option>
-            <option value="Working">onBench</option>
-            <option value="OnProject">OnProject</option>
-            <option value="OnVacation">OnVacation</option>
-            <option value="OnSick">OnSick</option>
+            <option value="In Training">In Training</option>
+            <option value="InMarketing">In Marketing</option>
+            <option value="Needs Training">Needs Training</option>
+            <option value="Start Marketing">Start Marketing</option>
+            <option value="Stop Marketing">Stop Marketing</option>
+            <option value="Placed">Placed</option>
+            <option value="Resigned from company">Resigned from company</option>
           </select>
-        </div>
-        <div className="form-group">
-            <label htmlFor="securityGroup">Authorization</label>
-            <select
-              id="securityGroup"
-              name="securityGroup"
-              value={securityGroup}
-              onChange={(e) => onInputChange(e)}
-              required
-            >
-              <option value="">-- Select --</option>
-              <option value="ADMIN">Admin</option>
-              <option value="EMPLOYEE">Employee</option>
-              <option value="PROSPECT">Prospect</option>
-              <option value="CANDIDATE">Candidate</option>
-            </select>
-          </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="password"
-            value={password}
-            onChange={(e) => onInputChange(e)}
-          />
         </div>
         <button type="submit" className="btn btn-outline-primary">
           Submit
@@ -191,11 +187,10 @@ export default function AddEmployee() {
         <Link className="btn btn-outline-danger mx-2" to="/">
           Cancel
         </Link>
-      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <p>Employee added succesfully</p>
-      </Modal>
+        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>Candidate added succesfully</p>
+        </Modal>
       </form>
     </div>
   );
 }
-
