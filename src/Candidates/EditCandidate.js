@@ -1,11 +1,12 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import { Modal } from "antd";
 
 export default function EditCandidate() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
+  const location = useLocation();
   let { candidateID } = useParams();
 
   const [candidateDetails, setCandidateDetails] = useState({
@@ -109,7 +110,11 @@ export default function EditCandidate() {
   };
 
   const handleNavigate = () => {
-    navigate("/candidates");
+    if (location.pathname.includes("/marketing")) {
+      navigate("/marketing");
+    } else {
+      navigate("/candidates");
+    }
   };
 
   const showModal = () => {

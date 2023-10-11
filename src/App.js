@@ -130,6 +130,7 @@ function App() {
                       <>
                         <Route path="/" element={<RecruiterDashboard/>} />
                         <Route path="/marketing" element={<MarketingList/>}/>
+                        <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          
