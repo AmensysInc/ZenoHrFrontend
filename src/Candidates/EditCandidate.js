@@ -285,3 +285,15 @@ export default function EditCandidate() {
     </div>
   );
 }
+
+// import React from 'react'
+// import CandidateForm from './CandidateForm'
+
+// function EditCandidate() {
+
+//   return (
+//     <CandidateForm mode="edit" />
+//   )
+// }
+
+// export default EditCandidate

@@ -107,7 +107,7 @@ export default function AddCandidate() {
             required
           />
         </div>
-        {/* <div className="form-group">
+        <div className="form-group">
           <label htmlFor="recruiterName">Recruiter Name</label>
           <input
             type={"text"}
@@ -115,9 +115,8 @@ export default function AddCandidate() {
             name="recruiterName"
             value={recruiterName}
             onChange={(e) => onInputChange(e)}
-            required
           />
-        </div> */}
+        </div>
         <div className="form-group">
           <label htmlFor="skills">Skills</label>
           <input

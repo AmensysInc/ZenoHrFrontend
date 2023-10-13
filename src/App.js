@@ -79,7 +79,7 @@ function App() {
         <div className="container-fluid">
           <div className="row">
           <div className="col-md-2 bg-light">
-              {isLoggedIn && (role === "ADMIN" || role === "RECRUITER") && <Sidebar/>}
+              {isLoggedIn && (role === "ADMIN" || role === "RECRUITER" || role === "SALES") && <Sidebar/>}
             </div>
             <div className="col-md-10"></div>
         <Routes>
@@ -110,7 +110,7 @@ function App() {
                     <Route path="/addcandidate" element={<AddCandidate/>}/>
                     <Route path="/editcandidate/:candidateID" element={<EditCandidate/>}/>
                     <Route path="/marketing" element={<MarketingList/>}/>
-
+                    <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
                   </>
                 ): role === "EMPLOYEE"? (
                       <>
@@ -129,6 +129,15 @@ function App() {
                     ):role === "RECRUITER"? (
                       <>
                         <Route path="/" element={<RecruiterDashboard/>} />
+                        <Route path="/marketing" element={<MarketingList/>}/>
+                        <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
+                      </>
+                    ):role === "SALES"? (
+                      <>
+                        <Route path="/candidates" element={<CandidateList/>}/>
+                        <Route path="/addcandidate" element={<AddCandidate/>}/>
+                        <Route path="/" element={<RecruiterDashboard/>} />
+                        <Route path="/editcandidate/:candidateID" element={<EditCandidate/>}/>
                         <Route path="/marketing" element={<MarketingList/>}/>
                         <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
                       </>
