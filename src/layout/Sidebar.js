@@ -4,9 +4,11 @@ import "./Sidebar.css";
 
 export default function SideBar() {
   const roleFromLocalStorage = localStorage.getItem("role");
-  const role = roleFromLocalStorage ? roleFromLocalStorage.replace(/"/g, "") : "";
+  const role = roleFromLocalStorage
+    ? roleFromLocalStorage.replace(/"/g, "")
+    : "";
 
-  if (role !== "RECRUITER") {
+  if (role !== "RECRUITER" && role !== "SALES") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
@@ -20,6 +22,23 @@ export default function SideBar() {
               Purchase Orders
             </Link>
           </li>
+          <li className="sidebar-item">
+            <Link to="/candidates" className="sidebar-link">
+              Candidate List
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/marketing" className="sidebar-link">
+              Marketing List
+            </Link>
+          </li>
+        </ul>
+      </div>
+    );
+  } else if (role === "SALES") {
+    return (
+      <div className="sidebar">
+        <ul className="sidebar-list">
           <li className="sidebar-item">
             <Link to="/candidates" className="sidebar-link">
               Candidate List
