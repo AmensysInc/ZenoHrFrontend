@@ -172,7 +172,8 @@ export default function AddEmployee() {
               <option value="ADMIN">Admin</option>
               <option value="EMPLOYEE">Employee</option>
               <option value="PROSPECT">Prospect</option>
-              <option value="CANDIDATE">Candidate</option>
+              <option value="SALES">Sales</option>
+              <option value="RECRUITER">Recruiter</option>
             </select>
           </div>
         <div className="form-group">
