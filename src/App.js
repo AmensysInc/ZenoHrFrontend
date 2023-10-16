@@ -131,6 +131,7 @@ function App() {
                         <Route path="/" element={<RecruiterDashboard/>} />
                         <Route path="/marketing" element={<MarketingList/>}/>
                         <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
+                        <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
                       </>
                     ):role === "SALES"? (
                       <>
@@ -140,6 +141,7 @@ function App() {
                         <Route path="/editcandidate/:candidateID" element={<EditCandidate/>}/>
                         <Route path="/marketing" element={<MarketingList/>}/>
                         <Route path="/marketing/editcandidate/:candidateID" element={<EditCandidate/>}/>
+                        <Route path="/change-password/:id" element={<ChangePasswordForm/>}/>
                       </>
                     ):(
                       <Route path="/*" element={<Navigate to="/login" />} />                          
