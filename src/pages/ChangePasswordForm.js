@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useLocalStorage from "./useLocalStorage";
 
 const ChangePasswordForm = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -7,6 +8,14 @@ const [password, setPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [errorMessage, setErrorMessage] = useState("");
 const navigate = useNavigate();
+const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
+const [role, setRole] = useLocalStorage("role", "");
+const handleLogout = () => {
+  localStorage.clear();
+  setIsLoggedIn(false);
+  setRole("");
+  window.location.href = "/login";
+};
 
 const handleChangePassword = async (e) => {
   e.preventDefault();
@@ -17,8 +26,6 @@ const handleChangePassword = async (e) => {
   try {
 
     const userId = localStorage.getItem("id");
-    console.log(userId);
-
     const queryParams = new URLSearchParams();
     queryParams.append("userId", userId);
     queryParams.append("password", password);
@@ -34,7 +41,15 @@ const handleChangePassword = async (e) => {
     });
 
     if (response.status === 201) {
-      navigate("/");
+      // localStorage.clear();
+      // localStorage.setItem("isLoggedIn", false);
+      // localStorage.setItem("role", "");
+      // window.history.pushState(null, "", window.location.href);
+      // window.onpopstate = function () {
+      //   window.history.pushState(null, "", window.location.href);
+      // };
+      // navigate("/login");
+      handleLogout();
     } else {
       setErrorMessage("Failed to update password.");
     }

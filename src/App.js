@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./layout/Navbar";
@@ -40,51 +40,46 @@ import MarketingList from "./Marketing/MarketingList";
 import EditCandidate from "./Candidates/EditCandidate";
 import AddCandidate from "./Candidates/AddCandidate";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
+import useLocalStorage from "./pages/useLocalStorage";
 
-function useLocalStorage(key, initialValue) {
-  const [storedValue, setStoredValue] = useState(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.error("Error getting data from localStorage:", error);
-      return initialValue;
-    }
-  });
+// function useLocalStorage(key, initialValue) {
+//   const [storedValue, setStoredValue] = useState(() => {
+//     try {
+//       const item = window.localStorage.getItem(key);
+//       return item ? JSON.parse(item) : initialValue;
+//     } catch (error) {
+//       console.error("Error getting data from localStorage:", error);
+//       return initialValue;
+//     }
+//   });
 
-  const setValue = (value) => {
-    try {
-      setStoredValue(value);
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.error("Error setting data to localStorage:", error);
-    }
-  };
+//   const setValue = (value) => {
+//     try {
+//       setStoredValue(value);
+//       window.localStorage.setItem(key, JSON.stringify(value));
+//     } catch (error) {
+//       console.error("Error setting data to localStorage:", error);
+//     }
+//   };
 
-  return [storedValue, setValue];
-}
+//   return [storedValue, setValue];
+// }
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
-  const [tempPassword, setTempPassword] = useLocalStorage("tempPassword", false);
   const [role, setRole] = useLocalStorage("role", "");
 
   const handleLogin = (userRole) => {
     if (localStorage.getItem("token")) {
       setIsLoggedIn(true);
-      setRole(userRole);
+      setRole(userRole);  
     }
   };
 
   useEffect(() => {
-    const storedTempPassword = localStorage.getItem("tempPassword");
-    if (storedTempPassword === "true") {
-      setTempPassword(true);
-    } else {
-      setTempPassword(false);
-    }
-  }, [isLoggedIn]);
-
+  }, [isLoggedIn, role]);
+  
   return (
     <div className="App">
       <Router>
@@ -93,15 +88,15 @@ function App() {
           setIsLoggedIn={setIsLoggedIn}
           setRole={setRole}
         />
-        {isLoggedIn && <Breadcrumb />}
+        {isLoggedIn && shouldRenderBreadcrumb() && <Breadcrumb />}
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-2 bg-light">
-            {isLoggedIn && !tempPassword && (
+              {isLoggedIn &&
                 (role === "ADMIN" ||
                   role === "RECRUITER" ||
-                  role === "SALES") && <Sidebar />
-              )}
+                  role === "SALES") &&
+                  !window.location.pathname.includes('change-password') && <Sidebar />}
             </div>
             <div className="col-md-10"></div>
             <Routes>
@@ -251,6 +246,10 @@ function App() {
       </Router>
     </div>
   );
+  function shouldRenderBreadcrumb() {
+    const isChangePasswordRoute = window.location.pathname.includes('change-password');
+    return !isChangePasswordRoute;
+  }
 }
 
 export default App;

@@ -8,7 +8,7 @@ export default function Navbar({setIsLoggedIn, setRole}) {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.clear();
     setIsLoggedIn(false);
     setRole("");
     window.location.href = "/login";
