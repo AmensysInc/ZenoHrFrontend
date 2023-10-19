@@ -92,6 +92,27 @@ export default function EmployeeForm({ mode }) {
       );
     }
   };
+  
+  const handleSendDetails = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${apiUrl}/auth/resetPassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailID }),
+      });
+      if (response.ok) {
+        console.log("Password reset email sent successfully.");
+      } else {
+        console.error("Password reset request failed.");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+    navigate("/");
+  };
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -260,6 +281,15 @@ export default function EmployeeForm({ mode }) {
           <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
             <p>Employee {isEditMode ? "Updated" : "Added"} successfully</p>
           </Modal>
+          {isEditMode && (
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleSendDetails}
+            >
+              Send Login Details
+            </button>
+          )}
         </form>
       </div>
     </div>

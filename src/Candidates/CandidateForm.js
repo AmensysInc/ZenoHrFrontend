@@ -11,6 +11,7 @@ export default function CandidateForm({ mode, recruiters }) {
     firstName: "",
     lastName: "",
     emailAddress: "",
+    university : "",
     recruiterName: "",
     skills: "",
     phoneNo: "",
@@ -21,7 +22,7 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, originalVisaStatus, comments, candidateStatus } = user;
+  const { firstName, lastName, emailAddress, university, recruiterName, skills, phoneNo, originalVisaStatus, comments, candidateStatus } = user;
 
   useEffect(() => {
     if (mode === "edit" && candidateID) {
@@ -127,6 +128,18 @@ export default function CandidateForm({ mode, recruiters }) {
               placeholder="Email Address"
               name="emailAddress"
               value={emailAddress}
+              onChange={(e) => onInputChange(e)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="university">University Name</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="University Name"
+              name="university"
+              value={university}
               onChange={(e) => onInputChange(e)}
               required
             />

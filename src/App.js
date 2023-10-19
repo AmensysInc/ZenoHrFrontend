@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import "./App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./layout/Navbar";
@@ -42,30 +42,6 @@ import AddCandidate from "./Candidates/AddCandidate";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
 import useLocalStorage from "./pages/useLocalStorage";
 
-// function useLocalStorage(key, initialValue) {
-//   const [storedValue, setStoredValue] = useState(() => {
-//     try {
-//       const item = window.localStorage.getItem(key);
-//       return item ? JSON.parse(item) : initialValue;
-//     } catch (error) {
-//       console.error("Error getting data from localStorage:", error);
-//       return initialValue;
-//     }
-//   });
-
-//   const setValue = (value) => {
-//     try {
-//       setStoredValue(value);
-//       window.localStorage.setItem(key, JSON.stringify(value));
-//     } catch (error) {
-//       console.error("Error setting data to localStorage:", error);
-//     }
-//   };
-
-//   return [storedValue, setValue];
-// }
-
-
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
   const [role, setRole] = useLocalStorage("role", "");
@@ -73,13 +49,12 @@ function App() {
   const handleLogin = (userRole) => {
     if (localStorage.getItem("token")) {
       setIsLoggedIn(true);
-      setRole(userRole);  
+      setRole(userRole);
     }
   };
 
-  useEffect(() => {
-  }, [isLoggedIn, role]);
-  
+  useEffect(() => {}, [isLoggedIn, role]);
+
   return (
     <div className="App">
       <Router>
@@ -96,7 +71,9 @@ function App() {
                 (role === "ADMIN" ||
                   role === "RECRUITER" ||
                   role === "SALES") &&
-                  !window.location.pathname.includes('change-password') && <Sidebar />}
+                !window.location.pathname.includes("change-password") && (
+                  <Sidebar />
+                )}
             </div>
             <div className="col-md-10"></div>
             <Routes>
@@ -165,7 +142,13 @@ function App() {
                     />
                     <Route
                       path="/change-password/:id"
-                      element={<ChangePasswordForm />}
+                      element={
+                        <ChangePasswordForm
+                          location={window.location}
+                          setIsLoggedIn={setIsLoggedIn}
+                          setRole={setRole}
+                        />
+                      }
                     />
                     <Route
                       path="/addprospect"
@@ -187,7 +170,13 @@ function App() {
                   <>
                     <Route
                       path="/change-password/:id"
-                      element={<ChangePasswordForm />}
+                      element={
+                        <ChangePasswordForm
+                          location={window.location}
+                          setIsLoggedIn={setIsLoggedIn}
+                          setRole={setRole}
+                        />
+                      }
                     />
                     <Route path="/" element={<EmployeeDetails />} />
                     <Route path="/trackings" element={<Tracking />} />
@@ -199,7 +188,13 @@ function App() {
                     <Route path="/uploadDocs" element={<ProspectDocument />} />
                     <Route
                       path="/change-password/:id"
-                      element={<ChangePasswordForm />}
+                      element={
+                        <ChangePasswordForm
+                          location={window.location}
+                          setIsLoggedIn={setIsLoggedIn}
+                          setRole={setRole}
+                        />
+                      }
                     />
                   </>
                 ) : role === "RECRUITER" ? (
@@ -212,7 +207,13 @@ function App() {
                     />
                     <Route
                       path="/change-password/:id"
-                      element={<ChangePasswordForm />}
+                      element={
+                        <ChangePasswordForm
+                          location={window.location}
+                          setIsLoggedIn={setIsLoggedIn}
+                          setRole={setRole}
+                        />
+                      }
                     />
                   </>
                 ) : role === "SALES" ? (
@@ -231,7 +232,13 @@ function App() {
                     />
                     <Route
                       path="/change-password/:id"
-                      element={<ChangePasswordForm />}
+                      element={
+                        <ChangePasswordForm
+                          location={window.location}
+                          setIsLoggedIn={setIsLoggedIn}
+                          setRole={setRole}
+                        />
+                      }
                     />
                   </>
                 ) : (
@@ -247,7 +254,8 @@ function App() {
     </div>
   );
   function shouldRenderBreadcrumb() {
-    const isChangePasswordRoute = window.location.pathname.includes('change-password');
+    const isChangePasswordRoute =
+      window.location.pathname.includes("change-password");
     return !isChangePasswordRoute;
   }
 }
