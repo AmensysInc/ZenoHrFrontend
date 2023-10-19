@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -238,3 +239,122 @@ export default function EditProjectHistory() {
     </div>
   );
 }
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import axios from "axios";
+// import ProjectHistoryForm from "./ProjectHistoryForm";
+
+// export default function EditProjectHistory() {
+//   const apiUrl = process.env.REACT_APP_API_URL;
+//   const navigate = useNavigate();
+//   const { projectId, employeeId } = useParams();
+//   const [employeeDetails, setEmployeeDetails] = useState({});
+//   const [projectDetails, setProjectDetails] = useState({});
+//   const [isLoading, setIsLoading] = useState(true);
+
+//   useEffect(() => {
+//     fetchEmployeeDetails();
+//     fetchProjectDetails();
+//   }, []);
+
+//   const fetchEmployeeDetails = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+//       const requestOptions = {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       };
+
+//       const employeeResponse = await axios.get(
+//         `${apiUrl}/employees/${employeeId}`,
+//         requestOptions
+//       );
+//       setEmployeeDetails(employeeResponse.data);
+//       setIsLoading(false);
+//     } catch (error) {
+//       console.error("Error fetching employee data:", error);
+//     }
+//   };
+
+//   const handleUpdate = async (updatedProject) => {
+//     try {
+//       const token = localStorage.getItem("token");
+//       const requestOptions = {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${token}`,
+//         },
+//       };
+
+//       const response = await axios.put(
+//         `${apiUrl}/employees/projects/${projectId}`,
+//         updatedProject,
+//         requestOptions
+//       );
+
+//       if (response.status === 200) {
+//         showModal();
+//       }
+//     } catch (error) {
+//       console.error("Error updating project history:", error);
+//     }
+//   };
+
+//   const handleCancel = () => {
+//     navigate(`/editemployee/${employeeId}/project-history`);
+//   };
+
+//   const fetchProjectDetails = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+//       const requestOptions = {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       };
+
+//       const [projectResponse] = await Promise.all([
+//         axios.get(`${apiUrl}/projects/${projectId}`, requestOptions),
+//       ]);
+
+//       setProjectDetails(projectResponse.data);
+//       setIsLoading(false);
+//     } catch (error) {
+//       console.error("Error fetching project data:", error);
+//     }
+//   };
+
+//   const showModal = () => {
+//     // Implement the modal logic here
+//   };
+
+//   if (isLoading) {
+//     return <div>Loading...</div>;
+//   }
+
+//   return (
+//     <div>
+//       <ProjectHistoryForm
+//        projectHistory={projectDetails}
+//         initialData={{
+//           firstName: employeeDetails.firstName || "",
+//           lastName: employeeDetails.lastName || "",
+//           subVendorOne: projectDetails.subVendorOne || "",
+//           subVendorTwo: projectDetails.subVendorTwo || "",
+//           projectAddress: projectDetails.projectAddress || "",
+//           projectStartDate: projectDetails.projectStartDate || "",
+//           projectEndDate: projectDetails.projectEndDate || "",
+//           projectStatus: projectDetails.projectStatus || "",
+//         }}
+//         onSubmit={handleUpdate}
+//         onCancel={handleCancel}
+//         isEdit={true}
+//         employeeDetails={employeeDetails}
+//       />
+//     </div>
+//   );
+// }
