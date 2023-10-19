@@ -4,7 +4,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { useNavigate, Link } from "react-router-dom";
 import Pagination from "../pages/Pagination";
-import { Select, Input , Button } from "antd";
+import { Select, Input, Button } from "antd";
+import { AiFillDelete } from "react-icons/ai";
 
 export default function CandidateList() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -72,25 +73,51 @@ export default function CandidateList() {
     { field: "recruiterName", label: "Recruiter Name" },
     { field: "phoneNo", label: "Phone Number" },
     { field: "emailAddress", label: "Email" },
+    { field: "university", label: "University" },
     { field: "originalVisaStatus", label: "Visa Status" },
     { field: "comments", label: "Comments" },
-    { field: "candidateStatus", label: "Candidate Status" },
+    { field: "candidateStatus", label: "CandidateStatus" },
   ];
   const customColumns = [
     {
       render: (candidate) => (
-        <FiEdit2
-          onClick={() => handleEditCandidate(candidate.candidateID)}
-          size={20}
-          title="Edit Candidate"
-          style={{ cursor: "pointer" }}
-        />
+        <div className="icon-container">
+          <FiEdit2
+            onClick={() => handleEditCandidate(candidate.candidateID)}
+            size={20}
+            title="Edit Candidate"
+            style={{ cursor: "pointer" }}
+          />
+          <AiFillDelete
+            onClick={() => handleDeleteCandidate(candidate.candidateID)}
+            size={20}
+            className="delete-icon"
+            title="Delete"
+            style={{ cursor: "pointer" }}
+          />
+        </div>
       ),
     },
   ];
 
   const handleEditCandidate = (candidateID) => {
     navigate(`/editcandidate/${candidateID}`);
+  };
+  const handleDeleteCandidate = async (candidateID) => {
+    try {
+      const token = localStorage.getItem("token");
+      const requestOptions = {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await fetch(`${apiUrl}/candidates/${candidateID}`, requestOptions);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+    }
   };
 
   return (
@@ -114,9 +141,13 @@ export default function CandidateList() {
               <Select.Option value="lastName">Last Name</Select.Option>
               <Select.Option value="emailAddress">Email Id</Select.Option>
               <Select.Option value="phoneNo">Phone No</Select.Option>
-              <Select.Option value="recruiterName">Recruiter Name</Select.Option>
+              <Select.Option value="recruiterName">
+                Recruiter Name
+              </Select.Option>
               <Select.Option value="skills">Skills</Select.Option>
-              <Select.Option value="candidateStatus">Candidate Status</Select.Option>
+              <Select.Option value="candidateStatus">
+                Candidate Status
+              </Select.Option>
             </Select>
             <Input.Search
               placeholder="Search..."
