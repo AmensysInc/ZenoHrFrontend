@@ -73,10 +73,11 @@ export default function CandidateList() {
     { field: "recruiterName", label: "Recruiter Name" },
     { field: "phoneNo", label: "Phone Number" },
     { field: "emailAddress", label: "Email" },
-    { field: "university", label: "University" },
     { field: "originalVisaStatus", label: "Visa Status" },
+    { field: "marketingVisaStatus", label: "Marketing Visa"},
     { field: "comments", label: "Comments" },
     { field: "candidateStatus", label: "CandidateStatus" },
+    {field: "reference", label: "Reference"}
   ];
   const customColumns = [
     {

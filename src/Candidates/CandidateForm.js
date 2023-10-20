@@ -14,14 +14,17 @@ export default function CandidateForm({ mode, recruiters }) {
     recruiterName: "",
     skills: "",
     phoneNo: "",
+    university: "",
     originalVisaStatus: "",
+    marketingVisaStatus: "",
     comments: "",
     candidateStatus: "",
+    reference: ""
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, originalVisaStatus, comments, candidateStatus } = user;
+  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
   useEffect(() => {
     if (mode === "edit" && candidateID) {
@@ -165,7 +168,7 @@ export default function CandidateForm({ mode, recruiters }) {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="clgOfGrad">Phone No</label>
+            <label htmlFor="phone">Phone No</label>
             <input
               type="text"
               className="form-control"
@@ -177,12 +180,34 @@ export default function CandidateForm({ mode, recruiters }) {
             />
           </div>
           <div className="form-group">
+            <label htmlFor="clgOfGrad">University</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="University"
+              name="university"
+              value={university}
+              onChange={(e) => onInputChange(e)}
+              required
+            />
+          </div>
+          <div className="form-group">
             <label htmlFor="originalVisaStatus">Visa Status</label>
             <input
               type={"text"}
               className="form-control"
               name="originalVisaStatus"
               value={originalVisaStatus}
+              onChange={(e) => onInputChange(e)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="marketingVisaStatus">Marketing Visa</label>
+            <input
+              type={"text"}
+              className="form-control"
+              name="marketingVisaStatus"
+              value={marketingVisaStatus}
               onChange={(e) => onInputChange(e)}
             />
           </div>
@@ -216,6 +241,18 @@ export default function CandidateForm({ mode, recruiters }) {
                 Resigned from company
               </option>
             </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="reference">Reference</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Reference"
+              name="reference"
+              value={reference}
+              onChange={(e) => onInputChange(e)}
+              required
+            />
           </div>
 
           <button type="submit" className="btn btn-outline-primary">
