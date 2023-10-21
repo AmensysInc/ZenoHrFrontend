@@ -2,16 +2,14 @@ import React from "react";
 import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
+import { logoutUser } from "../pages/authUtils";
 
 export default function Navbar({setIsLoggedIn, setRole}) {
 
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.clear();
-    setIsLoggedIn(false);
-    setRole("");
-    window.location.href = "/login";
+    logoutUser(setIsLoggedIn, setRole);
   };
 
   if (location.pathname === "/login") {

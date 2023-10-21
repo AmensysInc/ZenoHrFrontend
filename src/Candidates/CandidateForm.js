@@ -11,6 +11,7 @@ export default function CandidateForm({ mode, recruiters }) {
     firstName: "",
     lastName: "",
     emailAddress: "",
+    university : "",
     recruiterName: "",
     skills: "",
     phoneNo: "",
