@@ -15,7 +15,6 @@ export default function CandidateForm({ mode, recruiters }) {
     recruiterName: "",
     skills: "",
     phoneNo: "",
-    university: "",
     originalVisaStatus: "",
     marketingVisaStatus: "",
     comments: "",
