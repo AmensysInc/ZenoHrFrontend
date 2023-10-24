@@ -4,32 +4,33 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { DatePicker,Modal } from "antd";
 import dayjs from "dayjs";
 
-export default function ProjectHistoryForm({ mode }) {
+export default function PurchaseOrderForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
-  let { projectId, employeeId } = useParams();
+  let { orderId, employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [employeeDetails, setEmployeeDetails] = useState({
     firstName: "",
     lastName: "",
-  })
-  const [project, setProject] = useState({
-    subVendorOne: "",
-    subVendorTwo: "",
-    projectAddress: "",
-    projectStartDate: "",
+  });
+
+  const [orders, setOrders] = useState({
+    dateOfJoining: "",
     projectEndDate: "",
-    projectStatus: "",
+    billRate: "",
+    endClientName: "",
+    vendorPhoneNo: "",
+    vendorEmailId: "",
   });
 
   const {
-    subVendorOne,
-    subVendorTwo,
-    projectAddress,
-    projectStartDate,
+    dateOfJoining,
     projectEndDate,
-    projectStatus,
-  } = project;
+    billRate,
+    endClientName,
+    vendorPhoneNo,
+    vendorEmailId,
+  } = orders;
 
   const fetchEmployeeDetails = async () => {
     try {
@@ -65,16 +66,16 @@ export default function ProjectHistoryForm({ mode }) {
         };
 
         axios
-          .get(`${apiUrl}/projects/${projectId}`, requestOptions)
+          .get(`${apiUrl}/orders/${orderId}`, requestOptions)
           .then((historyResponse) => {
-            setProject(historyResponse.data);
+            setOrders(historyResponse.data);
           })
           .catch((error) => {
             console.error("Error fetching project data:", error);
           });
       }
     }
-  }, [mode, employeeId, projectId]);
+  }, [mode, employeeId, orderId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -85,11 +86,11 @@ export default function ProjectHistoryForm({ mode }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(project),
+        body: JSON.stringify(orders),
       };
 
       const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/projects/${projectId}` : `/${employeeId}/projects`}`,
+        `${apiUrl}/employees${mode === "edit" ? `/orders/${orderId}` : `/${employeeId}/orders`}`,
         requestOptions
       );
 
@@ -98,13 +99,14 @@ export default function ProjectHistoryForm({ mode }) {
       }
     } catch (error) {
       console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} project:`,
+        `Error ${mode === "edit" ? "updating" : "adding"} orders:`,
         error
       );
     }
   };
+
   const handleNavigate = (employeeId) => {
-    navigate(`/editemployee/${employeeId}/project-history`);
+    navigate(`/orders/${employeeId}`);
   };
 
   const showModal = () => {
@@ -123,15 +125,15 @@ export default function ProjectHistoryForm({ mode }) {
 
   const onInputChange = (e) => {
     const { name, value } = e.target;
-    setProject({
-      ...project,
+    setOrders({
+      ...orders,
       [name]: value,
     });
   };
   
 
   const onInputChangeDate = (date, name) => {
-    setProject({ ...project, [name]: date.format("YYYY-MM-DD") });
+    setOrders({ ...orders, [name]: date.format("YYYY-MM-DD") });
   };
 
   const isEditMode = mode === "edit";
@@ -140,7 +142,7 @@ export default function ProjectHistoryForm({ mode }) {
     <div>
       <div className="form-container">
         <h2 className="text-center m-4">
-          {isEditMode ? "Edit" : "Add"} Project
+          {isEditMode ? "Edit" : "Add"} Purchase Order
         </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
@@ -168,50 +170,16 @@ export default function ProjectHistoryForm({ mode }) {
             </div>
           </div>
           <div className="form-row">
-            <div className="form-group col-md-6">
-            <label htmlFor="subVendorOne">Sub VendorOne</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="SubVendorOne"
-            name="subVendorOne"
-            value={subVendorOne}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-            </div>
-            <div className="form-group col-md-6">
-            <label htmlFor="subVendorTwo">Sub VendorTwo</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Sub VendorTwo"
-            name="subVendorTwo"
-            value={subVendorTwo}
-            onChange={(e) => onInputChange(e)}
-          />
-            </div>
-          </div>
-          <div className="form-group">
-          <label htmlFor="projectAddress">Project Address</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Project Address"
-            name="projectAddress"
-            value={projectAddress}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
+            
           </div>
           <div className="form-row">
             <div className="form-group col-md-6">
-            <label htmlFor="projectStartDate">Project Start Date</label>
+            <label htmlFor="dateOfJoining">Date Of Joining</label>
           <DatePicker
             className="form-control"
-            name="projectStartDate"
-            value={projectStartDate ? dayjs(projectStartDate) : null}
-            onChange={(date) => onInputChangeDate(date, "projectStartDate")}
+            name="dateOfJoining"
+            value={dateOfJoining ? dayjs(dateOfJoining) : null}
+            onChange={(date) => onInputChangeDate(date, "dateOfJoining")}
             required
           />
             </div>
@@ -227,23 +195,47 @@ export default function ProjectHistoryForm({ mode }) {
               />
             </div>
           </div>
-
-          <div className="form-group">
-          <label htmlFor="projectStatus">Project Status:</label>
-            <select
-              id="projectStatus"
-              name="projectStatus"
-              value={projectStatus}
-              onChange={(e) => onInputChange(e)}
-              required
-            >
-              <option value="">-- Select --</option>
-              <option value="Active">Active</option>
-              <option value="Terminated">Terminated</option>
-              <option value="Ended">Ended</option>
-              <option value="OnHold">OnHold</option>
-            </select>
-          </div>
+          <div className="form-row">
+          <div>
+          <label>Bill Rate:</label>
+          <input
+            type="text"
+            name="billRate"
+            value={billRate}
+            onChange={(e) => onInputChange(e)}
+          />
+        </div>
+        <div>
+          <label>Client Name:</label>
+          <input
+            type="text"
+            name="endClientName"
+            value={endClientName}
+            onChange={(e) => onInputChange(e)}
+          />
+        </div>
+        </div>
+        <div className="form-row">
+        <div>
+          <label>Vendor PhoneNo:</label>
+          <input
+            type="text"
+            name="vendorPhoneNo"
+            value={vendorPhoneNo}
+            onChange={(e) => onInputChange(e)}
+          />
+        </div>
+        <div>
+          <label>Vendor Email:</label>
+          <input
+            type="text"
+            name="vendorEmailId"
+            value={vendorEmailId}
+            onChange={(e) => onInputChange(e)}
+          />
+        </div>
+        </div>
+        <br/>
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}
           </button>
@@ -251,11 +243,10 @@ export default function ProjectHistoryForm({ mode }) {
             Cancel
           </Link>
           <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-            <p>Project {isEditMode ? "Updated" : "Added"} successfully</p>
+            <p>PurchaseOrder {isEditMode ? "Updated" : "Added"} successfully</p>
           </Modal>
         </form>
       </div>
     </div>
   )
 }
-

@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "froala-editor/css/froala_editor.pkgd.min.css";
@@ -429,4 +430,14 @@ export default function AddWithHoldTracking() {
       </form>
     </div>
   );
+}
+*/
+
+import React from 'react'
+import WithHoldTrackingForm from './WithHoldTrackingForm'
+
+export default function AddWithHoldTracking() {
+  return (
+    <WithHoldTrackingForm mode="add"/>
+  )
 }

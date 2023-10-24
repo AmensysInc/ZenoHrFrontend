@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -318,4 +319,15 @@ export default function EditWithHoldTracking() {
       </form>
     </div>
   );
+}
+
+*/
+
+import React from 'react'
+import WithHoldTrackingForm from './WithHoldTrackingForm'
+
+export default function EditWithHoldTracking() {
+  return (
+    <WithHoldTrackingForm mode="edit"/>
+  )
 }

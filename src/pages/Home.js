@@ -7,7 +7,7 @@ import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
-import Pagination from "../pages/Pagination";
+import Pagination from "./Pagination";
 import { Select, Input , Button } from "antd";
 
 export default function Home() {

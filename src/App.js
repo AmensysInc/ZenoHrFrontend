@@ -18,7 +18,7 @@ import EditEmployee from "./Employee/EditEmployee";
 import Login from "./pages/Login";
 import EditOrder from "./PurchaseOrder/EditOrder";
 import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
-import Breadcrumb from "./Breadcrumbs";
+import Breadcrumb from "./pages/Breadcrumbs";
 import ProjectHistory from "./ProjectHistory/ProjectHistory";
 import VisaDetails from "./VisaDetails/VisaDetails";
 import EditProjectHistory from "./ProjectHistory/EditProjectHistory";

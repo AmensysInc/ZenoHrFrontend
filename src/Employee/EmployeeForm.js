@@ -66,7 +66,6 @@ export default function EmployeeForm({ mode }) {
 
   const onSubmit = async (event) => {
     event.preventDefault();
-
     try {
       const requestOptions = {
         method: mode === "edit" ? "PUT" : "POST",

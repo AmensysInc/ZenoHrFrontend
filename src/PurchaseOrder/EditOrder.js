@@ -1,3 +1,4 @@
+/*
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate,useParams } from "react-router-dom";
@@ -203,4 +204,14 @@ export default function EditOrder() {
       </div>
     </div>
   );
+}
+*/
+
+import React from 'react'
+import PurchaseOrderForm from './PurchaseOrderForm'
+
+export default function EditOrder() {
+  return (
+    <PurchaseOrderForm mode="edit"/>
+  )
 }

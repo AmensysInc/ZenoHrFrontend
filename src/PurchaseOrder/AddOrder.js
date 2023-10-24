@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DatePicker } from "antd";
@@ -215,4 +216,14 @@ export default function AddOrder() {
       </form>
     </div>
   );
+}
+*/
+
+import React from 'react'
+import PurchaseOrderForm from './PurchaseOrderForm'
+
+export default function AddOrder() {
+  return (
+    <PurchaseOrderForm mode="add"/>
+  )
 }
