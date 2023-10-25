@@ -67,7 +67,7 @@ export default function CandidateList() {
   };
 
   const gridColumns = [
-    { field: "firstName", label: "First Name" },
+    { field: "firstName", label: "First Name", resizable: true},
     { field: "lastName", label: "Last Name" },
     { field: "skills", label: "Skills" },
     { field: "recruiterName", label: "Recruiter Name" },
@@ -79,24 +79,26 @@ export default function CandidateList() {
     { field: "candidateStatus", label: "CandidateStatus" },
     {field: "reference", label: "Reference"}
   ];
+
   const customColumns = [
     {
-      render: (candidate) => (
-        <div className="icon-container">
+      label: "",
+      field: "actions",
+      render: (params) => (
+        <>
           <FiEdit2
-            onClick={() => handleEditCandidate(candidate.candidateID)}
+            onClick={() => handleEditCandidate(params.data.candidateID)}
             size={20}
             title="Edit Candidate"
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", marginRight: "10px" }}
           />
           <AiFillDelete
-            onClick={() => handleDeleteCandidate(candidate.candidateID)}
+            onClick={() => handleDeleteCandidate(params.data.candidateID)}
             size={20}
-            className="delete-icon"
             title="Delete"
             style={{ cursor: "pointer" }}
           />
-        </div>
+        </>
       ),
     },
   ];

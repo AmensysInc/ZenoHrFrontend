@@ -1,32 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useRef } from "react";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { Grid } from "antd";
+import { FiEdit2 } from "react-icons/fi";
+import { AiFillDelete } from "react-icons/ai";
 
 export default function CustomGrid({ data, columns, customColumns }) {
+  const gridOptions = {
+    domLayout: "autoWidth", // Remove horizontal scrollbar
+    defaultColDef: {
+      headerClass: "custom-header", // Apply custom header class
+    },
+  };
+
+  const gridColumns = [
+    ...columns.map((column) => ({
+      headerName: column.label,
+      field: column.field,
+      resizable: true,
+    })),
+    ...customColumns.map((customColumn) => ({
+      headerName: customColumn.label,
+      cellRenderer: customColumn.render,
+    })),
+  ];  
+
+  const gridRef = useRef();
+
+  const onGridReady = useCallback((params) => {
+    gridRef.current.api.sizeColumnsToFit();
+  });
 
   return (
-    <table className="table border shadow">
-      <thead>
-        <tr>
-          {columns.map((column) => (
-            <th key={column.field}>{column.label}</th>
-          ))}
-          {customColumns.map((customColumn) => (
-            <th key={customColumn.label}>{customColumn.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item, index) => (
-          <tr key={index}>
-            {columns.map((column) => (
-              <td key={column.field}>{item[column.field]}</td>
-            ))}
-            {customColumns.map((customColumn) => (
-              <td key={customColumn.label}>{customColumn.render(item)}</td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    
+    <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
+      <AgGridReact
+        ref={gridRef}
+        gridOptions={gridOptions}
+        columnDefs={gridColumns}
+        rowData={data}
+        onGridReady={onGridReady}
+      />
+    </div>
   );
 }
