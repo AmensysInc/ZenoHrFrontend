@@ -65,3 +65,7 @@
   align-items: center; 
   margin-right: 0px; 
 }
+
+.custom-header {
+  color: #555;
+}
