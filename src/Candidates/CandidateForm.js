@@ -24,7 +24,7 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, originalVisaStatus, comments, candidateStatus } = user;
+  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
   useEffect(() => {
     if (mode === "edit" && candidateID) {
