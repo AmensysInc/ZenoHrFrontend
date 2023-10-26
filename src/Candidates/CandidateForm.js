@@ -189,7 +189,6 @@ export default function CandidateForm({ mode, recruiters }) {
               name="university"
               value={university}
               onChange={(e) => onInputChange(e)}
-              required
             />
           </div>
           <div className="form-group">
