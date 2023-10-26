@@ -245,7 +245,7 @@ export default function CandidateForm({ mode, recruiters }) {
               </option>
             </select>
           </div>
-<div className="form-group">
+          <div className="form-group">
             <label htmlFor="reference">Reference</label>
             <input
               type="text"
