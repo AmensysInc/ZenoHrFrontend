@@ -11,7 +11,6 @@ export default function CandidateForm({ mode, recruiters }) {
     firstName: "",
     lastName: "",
     emailAddress: "",
-    university : "",
     recruiterName: "",
     skills: "",
     phoneNo: "",
@@ -119,6 +118,7 @@ export default function CandidateForm({ mode, recruiters }) {
                 className="form-control"
                 name="lastName"
                 value={lastName}
+                required
                 onChange={(e) => onInputChange(e)}
               />
             </div>
@@ -199,6 +199,7 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="originalVisaStatus"
               value={originalVisaStatus}
+              required
               onChange={(e) => onInputChange(e)}
             />
           </div>
@@ -209,6 +210,7 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="marketingVisaStatus"
               value={marketingVisaStatus}
+              required
               onChange={(e) => onInputChange(e)}
             />
           </div>
