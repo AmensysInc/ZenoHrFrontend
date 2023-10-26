@@ -11,7 +11,6 @@ export default function CandidateForm({ mode, recruiters }) {
     firstName: "",
     lastName: "",
     emailAddress: "",
-    university : "",
     recruiterName: "",
     skills: "",
     phoneNo: "",
@@ -25,7 +24,7 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
+  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, originalVisaStatus, comments, candidateStatus } = user;
 
   useEffect(() => {
     if (mode === "edit" && candidateID) {
@@ -119,6 +118,7 @@ export default function CandidateForm({ mode, recruiters }) {
                 className="form-control"
                 name="lastName"
                 value={lastName}
+                required
                 onChange={(e) => onInputChange(e)}
               />
             </div>
@@ -199,6 +199,7 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="originalVisaStatus"
               value={originalVisaStatus}
+              required
               onChange={(e) => onInputChange(e)}
             />
           </div>
@@ -209,6 +210,7 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="marketingVisaStatus"
               value={marketingVisaStatus}
+              required
               onChange={(e) => onInputChange(e)}
             />
           </div>
@@ -243,7 +245,7 @@ export default function CandidateForm({ mode, recruiters }) {
               </option>
             </select>
           </div>
-          <div className="form-group">
+<div className="form-group">
             <label htmlFor="reference">Reference</label>
             <input
               type="text"
