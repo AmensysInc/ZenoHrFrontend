@@ -131,9 +131,10 @@ export default function PurchaseOrderForm({ mode }) {
     });
   };
   
-
   const onInputChangeDate = (date, name) => {
-    setOrders({ ...orders, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setOrders({ ...orders, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const isEditMode = mode === "edit";
@@ -199,7 +200,7 @@ export default function PurchaseOrderForm({ mode }) {
           <div>
           <label>Bill Rate:</label>
           <input
-            type="text"
+            type="number"
             name="billRate"
             value={billRate}
             onChange={(e) => onInputChange(e)}
@@ -219,7 +220,7 @@ export default function PurchaseOrderForm({ mode }) {
         <div>
           <label>Vendor PhoneNo:</label>
           <input
-            type="text"
+            type="number"
             name="vendorPhoneNo"
             value={vendorPhoneNo}
             onChange={(e) => onInputChange(e)}
@@ -228,7 +229,7 @@ export default function PurchaseOrderForm({ mode }) {
         <div>
           <label>Vendor Email:</label>
           <input
-            type="text"
+            type="email"
             name="vendorEmailId"
             value={vendorEmailId}
             onChange={(e) => onInputChange(e)}

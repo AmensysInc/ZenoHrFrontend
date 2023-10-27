@@ -11,7 +11,7 @@ export default function CandidateForm({ mode, recruiters }) {
     firstName: "",
     lastName: "",
     emailAddress: "",
-    university : "",
+    university: "",
     recruiterName: "",
     skills: "",
     phoneNo: "",
@@ -19,12 +19,25 @@ export default function CandidateForm({ mode, recruiters }) {
     marketingVisaStatus: "",
     comments: "",
     candidateStatus: "",
-    reference: ""
+    reference: "",
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
+  const {
+    firstName,
+    lastName,
+    emailAddress,
+    recruiterName,
+    skills,
+    phoneNo,
+    university,
+    originalVisaStatus,
+    marketingVisaStatus,
+    comments,
+    candidateStatus,
+    reference,
+  } = user;
 
   useEffect(() => {
     if (mode === "edit" && candidateID) {
@@ -37,7 +50,10 @@ export default function CandidateForm({ mode, recruiters }) {
             },
           };
 
-          const response = await fetch(`${apiUrl}/candidates/${candidateID}`, requestOptions);
+          const response = await fetch(
+            `${apiUrl}/candidates/${candidateID}`,
+            requestOptions
+          );
 
           if (response.status === 200) {
             const candidateData = await response.json();
@@ -64,13 +80,19 @@ export default function CandidateForm({ mode, recruiters }) {
         body: JSON.stringify(user),
       };
 
-      const response = await fetch(`${apiUrl}/candidates${mode === "edit" ? `/${candidateID}` : ""}`, requestOptions);
+      const response = await fetch(
+        `${apiUrl}/candidates${mode === "edit" ? `/${candidateID}` : ""}`,
+        requestOptions
+      );
 
       if (response.status === 200 || response.status === 201) {
         showModal();
-      }
+      } 
     } catch (error) {
-      console.error(`Error ${mode === "edit" ? "updating" : "adding"} candidate:`, error);
+      console.error(
+        `Error ${mode === "edit" ? "updating" : "adding"} candidate:`,
+        error
+      );
     }
   };
 
@@ -85,7 +107,7 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/candidates"); 
+    navigate("/candidates");
   };
 
   const onInputChange = (e) => {
@@ -97,7 +119,9 @@ export default function CandidateForm({ mode, recruiters }) {
   return (
     <div>
       <div className="form-container">
-        <h2 className="text-center m-4">{isEditMode ? "Edit" : "Add"} Candidate</h2>
+        <h2 className="text-center m-4">
+          {isEditMode ? "Edit" : "Add"} Candidate
+        </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
             <div className="form-group">
@@ -125,7 +149,7 @@ export default function CandidateForm({ mode, recruiters }) {
           <div className="form-group">
             <label htmlFor="emailAddress">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-control"
               placeholder="Email Address"
               name="emailAddress"
@@ -170,7 +194,7 @@ export default function CandidateForm({ mode, recruiters }) {
           <div className="form-group">
             <label htmlFor="phone">Phone No</label>
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="Phone no"
               name="phoneNo"

@@ -130,8 +130,11 @@ export default function EmployeeForm({ mode }) {
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
+  
   const onInputChangeDate = (date, name) => {
-    setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const isEditMode = mode === "edit";
@@ -169,7 +172,7 @@ export default function EmployeeForm({ mode }) {
           <div className="form-group">
             <label htmlFor="emailID">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-control"
               placeholder="Email Address"
               name="emailID"
@@ -209,7 +212,7 @@ export default function EmployeeForm({ mode }) {
             <input
               type="text"
               className="form-control"
-              placeholder="clgOfGrad"
+              placeholder="College of Graduation"
               name="clgOfGrad"
               value={clgOfGrad}
               onChange={(e) => onInputChange(e)}
@@ -219,7 +222,7 @@ export default function EmployeeForm({ mode }) {
           <div className="form-group">
             <label htmlFor="phoneNo">Phone No</label>
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="Phone no"
               name="phoneNo"

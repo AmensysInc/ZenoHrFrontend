@@ -103,6 +103,7 @@ export default function WithHoldTrackingForm({ mode }) {
     }));
     if (mode === "add" || (mode === "edit" && employeeId)) {
       fetchEmployeeDetails();
+      fetchProjectNames();
 
       if (mode === "edit") {
         const token = localStorage.getItem("token");
@@ -111,11 +112,12 @@ export default function WithHoldTrackingForm({ mode }) {
             Authorization: `Bearer ${token}`,
           },
         };
-
+      
         axios
           .get(`${apiUrl}/trackings/${trackingId}`, requestOptions)
           .then((historyResponse) => {
             setTracking(historyResponse.data);
+            setSelectedProjectName(historyResponse.data.projectName);
           })
           .catch((error) => {
             console.error("Error while fetching data:", error);
@@ -134,6 +136,10 @@ export default function WithHoldTrackingForm({ mode }) {
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    const updatedTracking = {
+      ...tracking,
+      projectName: selectedProjectName,
+    };
     try {
       const requestOptions = {
         method: mode === "edit" ? "PUT" : "POST",
@@ -141,7 +147,7 @@ export default function WithHoldTrackingForm({ mode }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(tracking),
+        body: JSON.stringify(updatedTracking),
       };
 
       const response = await fetch(
@@ -163,6 +169,43 @@ export default function WithHoldTrackingForm({ mode }) {
       );
     }
   };
+
+  const fetchProjectNames = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      var requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow",
+      };
+      const projectHistoryResponse = await fetch(
+        `${apiUrl}/employees/${employeeId}/projects`,
+        requestOptions
+      );
+      const projectHistoryData = await projectHistoryResponse.json();
+
+      const projects = projectHistoryData.content || [];
+
+      const uniqueProjectNames = [
+        ...new Set(
+          projects.map(
+            (project) =>
+              `${project.subVendorOne || ""} / ${project.subVendorTwo || ""}`
+          )
+        ),
+      ];
+      setProjectNames(uniqueProjectNames);
+    } catch (error) {
+      console.error("Error loading project names:", error);
+    }
+  };
+
+  const onProjectNameChange = (e) => {
+    setSelectedProjectName(e.target.value);
+  };
+
 
   const handleNavigate = (employeeId) => {
     navigate(`/tracking/${employeeId}`);
@@ -274,32 +317,53 @@ export default function WithHoldTrackingForm({ mode }) {
               </select>
             </div>
           </div>
+          {mode === "add" && (
+          <div className="form-group">
+                <label htmlFor="projectName">Project Name:</label>
+                <select
+                  className="form-control"
+                  name="projectName"
+                  value={selectedProjectName}
+                  onChange={onProjectNameChange}
+                >
+                  <option value="" disabled>
+                    Select project name
+                  </option>
+                  {projectNames.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+          )}
           <div className="form-group row">
             <div className="col">
               <label>Actual Hours:</label>
               <input
-                type="text"
+                type="number"
                 className="form-control"
                 name="actualHours"
                 value={actualHours}
                 onChange={(e) => onInputChange(e)}
               />
             </div>
-          </div>
           <div className="col">
             <label>Actual Rate:</label>
             <input
-              type="text"
+              type="number"
               className="form-control"
               name="actualRate"
               value={actualRate}
               onChange={(e) => onInputChange(e)}
             />
+            </div>
+            </div>
             <div className="form-group row">
               <div className="col">
                 <label>Paid Hours:</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   name="paidHours"
                   value={paidHours}
@@ -309,7 +373,7 @@ export default function WithHoldTrackingForm({ mode }) {
               <div className="col">
                 <label>Paid Rate:</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   name="paidRate"
                   value={paidRate}
@@ -321,7 +385,7 @@ export default function WithHoldTrackingForm({ mode }) {
               <div className="col">
                 <label>Actual Amount:</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   name="actualAmt"
                   value={tracking.actualAmt}
@@ -331,7 +395,7 @@ export default function WithHoldTrackingForm({ mode }) {
               <div className="col">
                 <label>Paid Amount:</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   name="paidAmt"
                   value={tracking.paidAmt}
@@ -341,7 +405,7 @@ export default function WithHoldTrackingForm({ mode }) {
               <div className="col">
                 <label>Balance:</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   name="balance"
                   value={tracking.balance}
@@ -358,7 +422,6 @@ export default function WithHoldTrackingForm({ mode }) {
                 onPaste={handlePaste}
               />
             </div>
-          </div>
 
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}

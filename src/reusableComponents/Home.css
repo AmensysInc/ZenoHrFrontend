@@ -1,0 +1,67 @@
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .icon-container > * {
+    margin-right: 10px;
+    
+  }
+
+  .icon-container > *:hover {
+    cursor: pointer;
+    color: #007bff;
+  }
+
+  .icon-container > .delete-icon:hover {
+    color: red; 
+  }
+
+.add-user-link {
+  position: fixed;
+  bottom: 80vh; 
+  right: 2vw;
+  background-color: #7d6565;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+  text-decoration: none; 
+  display: inline-block; 
+}
+.add-pro-link {
+  position: fixed;
+  bottom: 80vh; 
+  right: 8vw;
+  background-color: #7d6565;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+  text-decoration: none; 
+  display: inline-block; 
+}
+
+.add-user:hover {
+  background-color: #555;
+}
+.container {
+  padding-left: 180px;
+  padding-right: 180px;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center; 
+  margin-right: 0px; 
+}

@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import "./App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./layout/Navbar";
-import Home from "./pages/Home";
 import {
   BrowserRouter as Router,
   Routes,
@@ -41,6 +40,8 @@ import EditCandidate from "./Candidates/EditCandidate";
 import AddCandidate from "./Candidates/AddCandidate";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
 import useLocalStorage from "./pages/useLocalStorage";
+import Employee from "./Employee/Employee";
+import TimeSheets from "./TimeSheets/TimeSheets";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
@@ -82,7 +83,7 @@ function App() {
               {isLoggedIn ? (
                 role === "ADMIN" ? (
                   <>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/" element={<Employee/>} />
                     <Route path="/adduser" element={<AddEmployee />} />
                     <Route
                       path="/editemployee/:employeeId"

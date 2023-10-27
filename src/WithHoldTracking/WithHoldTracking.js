@@ -4,7 +4,6 @@ import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import "../PurchaseOrder/PurchaseOrder.css";
 import Pagination from "../pages/Pagination";
-import { Select, Input, Button } from "antd";
 
 export default function WithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -102,8 +101,6 @@ export default function WithHoldTracking() {
                 (sum, tracking) => sum + tracking.balance,
                 0
               );
-              
-
               return (
                 <div key={projectName} className="project-grid">
                   

@@ -128,10 +128,11 @@ export default function ProjectHistoryForm({ mode }) {
       [name]: value,
     });
   };
-  
 
   const onInputChangeDate = (date, name) => {
-    setProject({ ...project, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setProject({ ...project, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const isEditMode = mode === "edit";

@@ -59,12 +59,10 @@ const Tracking = () => {
         ) : (
         <table className="table border shadow">
           <tbody>
-            {trackings.map((tracking, index) => (
-              <tr key={index}>
-                <td>{index + 1}</td>
+            {trackings.map((tracking) => (
+              <tr>
                 <div>
                   <label htmlFor="editorHtml"></label>
-
                   <FroalaEditorView
                     contenteditable="false"
                     model={tracking.excelData}
