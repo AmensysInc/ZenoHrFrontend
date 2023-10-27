@@ -2,19 +2,17 @@ import React from "react";
 import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
+import { logoutUser } from "../pages/authUtils";
 
 export default function Navbar({setIsLoggedIn, setRole}) {
 
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setRole("");
-    window.location.href = "test/login";
+    logoutUser(setIsLoggedIn, setRole);
   };
 
-  if (location.pathname === "test/login") {
+  if (location.pathname === "/login") {
     return (
       <div>
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary">

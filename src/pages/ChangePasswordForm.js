@@ -1,54 +1,53 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { logoutUser } from "./authUtils";
 
-const ChangePasswordForm = () => {
+const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
   const apiUrl = process.env.REACT_APP_API_URL;
-const [password, setPassword] = useState("");
-const [confirmPassword, setConfirmPassword] = useState("");
-const [errorMessage, setErrorMessage] = useState("");
-const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-const handleChangePassword = async (e) => {
-  e.preventDefault();
-  if (password !== confirmPassword) {
-    setErrorMessage("Passwords do not match.");
-    return;
-  }
-  try {
-
-    const userId = localStorage.getItem("id");
-    console.log(userId);
-
-    const queryParams = new URLSearchParams();
-    queryParams.append("userId", userId);
-    queryParams.append("password", password);
-
-    const url = `${apiUrl}/auth/updatePassword?${queryParams.toString()}`;
-    const token = localStorage.getItem("token");
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 201) {
-      navigate("/");
-    } else {
-      setErrorMessage("Failed to update password.");
+  const handleLogout = () => {
+    logoutUser(setIsLoggedIn, setRole);
+  };
+  
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
     }
-  } catch (error) {
-    console.error("Error updating password:", error);
-  }
-};
+    try {
+      const userId = localStorage.getItem("id");
+      const queryParams = new URLSearchParams();
+      queryParams.append("userId", userId);
+      queryParams.append("password", password);
 
+      const url = `${apiUrl}/auth/updatePassword?${queryParams.toString()}`;
+      const token = localStorage.getItem("token");
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 201) {
+        handleLogout();
+      } else {
+        setErrorMessage("Failed to update password.");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+    }
+  };
 
   return (
     <div className="container">
       <h2>Change Password</h2>
       <form onSubmit={handleChangePassword}>
-      <div className="mb-3">
+        <div className="mb-3">
           <label htmlFor="password" className="form-label">
             New Password
           </label>
@@ -86,5 +85,3 @@ const handleChangePassword = async (e) => {
 };
 
 export default ChangePasswordForm;
-
-
