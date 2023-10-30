@@ -83,13 +83,17 @@ export default function MarketingList() {
 
   const customColumns = [
     {
-      render: (candidate) => (
-        <FiEdit2
-          onClick={() => handleEditCandidate(candidate.candidateID)}
-          size={20}
-          title="Edit Candidate"
-          style={{ cursor: "pointer" }}
-        />
+      label: "",
+      field: "actions",
+      render: (params) => (
+        <>
+          <FiEdit2
+            onClick={() => handleEditCandidate(params.data.candidateID)}
+            size={20}
+            title="Edit Candidate"
+            style={{ cursor: "pointer", marginRight: "10px" }}
+          />
+        </>
       ),
     },
   ];
