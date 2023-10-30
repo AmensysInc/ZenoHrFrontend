@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import "../PurchaseOrder/PurchaseOrder.css";
 import { useNavigate, Link } from "react-router-dom";
 import { BiDollar } from "react-icons/bi";
 import { HiShoppingCart } from "react-icons/hi";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
-import Pagination from "../reusableComponents/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
+import "./Employee.css";
 
 export default function Employee() {
   const apiUrl = process.env.REACT_APP_API_URL;

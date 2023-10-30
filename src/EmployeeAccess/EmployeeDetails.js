@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import '../pages/Home.css'; 
 
 const EmployeeDetails = () => {
   const apiUrl = process.env.REACT_APP_API_URL;

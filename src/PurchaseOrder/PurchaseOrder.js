@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "../PurchaseOrder/PurchaseOrder.css";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
 
 export default function PurchaseOrder() {
@@ -81,7 +80,7 @@ export default function PurchaseOrder() {
         <h4 className="text-center">
           {userDetail.first} {userDetail.last}
         </h4>
-        <div className="add-orders d-flex justify-content-start">
+        <div className="d-flex justify-content-end">
           <button
             className="btn btn-primary"
             onClick={() => handleAddOrder(employeeId)}

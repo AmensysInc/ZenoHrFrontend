@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import CustomGrid from "../pages/CustomGrid";
+import CustomGrid from "../SharedComponents/CustomGrid";
 import { FiEdit2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
 
 export default function MarketingList() {

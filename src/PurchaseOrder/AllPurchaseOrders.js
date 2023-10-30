@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { useParams } from "react-router-dom";
 
 export default function PurchaseOrders() {
   const apiUrl = process.env.REACT_APP_API_URL;

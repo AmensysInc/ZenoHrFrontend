@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import CustomGrid from "../pages/CustomGrid";
+import CustomGrid from "../SharedComponents/CustomGrid";
 import { FiEdit2 } from "react-icons/fi";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { useNavigate, Link } from "react-router-dom";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
 import { AiFillDelete } from "react-icons/ai";
 
@@ -124,7 +124,7 @@ export default function CandidateList() {
     <div className="container">
       <div className="py-4">
         <h2>Candidates List</h2>
-        <div className="add-orders d-flex justify-content-end">
+        <div className="d-flex justify-content-end">
           <Link className="add-user-link" to="/addcandidate">
             <BsFillPersonPlusFill size={25} title="Add Candidate" />
           </Link>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { loginUser } from "./authUtils";
 
 export default function Login({ onLogin }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -10,40 +10,11 @@ export default function Login({ onLogin }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`${apiUrl}/auth/authenticate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.status === 403) {
-        setErrorMessage("Invalid Credentials!");
-      } else {
-        const data = await response.json();
-        const { role, access_token, id, tempPassword } = data;
-
-        localStorage.setItem("token", access_token);
-        localStorage.setItem("role", role);
-        localStorage.setItem("id", id);
-        localStorage.setItem("tempPassword", tempPassword);
-
-        if ( tempPassword === true) {
-          console.log("Role:", role);
-          console.log("Temporary Password:", tempPassword);
-          onLogin(role);
-          navigate(`/change-password/${id}`);
-        } else {
-          onLogin(role);
-          navigate("/");
-        }
-      }
-    } catch (error) {
-      console.error("Error authenticating user:", error);
+    const error = await loginUser(email, password, onLogin, navigate);
+    if (error) {
+      setErrorMessage(error);
     }
-  };
+  }
 
   return (
     <div className="container">
