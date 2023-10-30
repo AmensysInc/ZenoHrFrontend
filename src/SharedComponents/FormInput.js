@@ -1,4 +1,5 @@
 import React from "react";
+import { DatePicker } from "antd";
 
 export default function FormInput({
   label,
@@ -28,6 +29,16 @@ export default function FormInput({
               </option>
             ))}
         </select>
+      ) : type === "date" ? (
+        <DatePicker
+          type={type}
+          className="form-control"
+          name={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+          placeholder={placeholder}
+        />
       ) : (
         <input
           type={type}

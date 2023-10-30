@@ -1,21 +1,7 @@
-// import React from "react";
-// import EmployeeForm from "./EmployeeForm";
-// import Buttons from "./Buttons";
-
-// export default function EditEmployee() {
-
-//   return (
-//     <div>
-//       <Buttons/>
-//       <EmployeeForm mode="edit" />
-//     </div>
-//   );
-// }
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import "./Employee.css";
-import { DatePicker } from "antd";
 import { Modal } from "antd";
 import dayjs from "dayjs";
 import FormInput from "../SharedComponents/FormInput";
@@ -37,7 +23,7 @@ export default function EditEmployee() {
     phoneNo: "",
     onBench: "",
     email: "",
-    securityGroup:"",
+    securityGroup: "",
     password: "",
   });
   const {
@@ -82,7 +68,9 @@ export default function EditEmployee() {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
   const onInputChangeDate = (date, name) => {
-    setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const handleSendDetails = async (e) => {
@@ -178,7 +166,7 @@ export default function EditEmployee() {
           className="add-user-link"
           onClick={() => handleProjectHistory(employeeId)}
           title="Project History"
-          style={{ marginLeft: '4000px' }}
+          style={{ marginLeft: "4000px" }}
         >
           Project History
         </button>
@@ -187,7 +175,7 @@ export default function EditEmployee() {
           className="add-pro-link"
           onClick={() => handleVisaDetails(employeeId)}
           title="Visa Details"
-          style={{ marginLeft: '4000px' }}
+          style={{ marginLeft: "4000px" }}
         >
           Visa Details
         </button>
@@ -195,103 +183,104 @@ export default function EditEmployee() {
       <div className="form-container">
         <h2 className="text-center m-4">Edit Employee</h2>
         <form onSubmit={(e) => onSubmit(e)}>
-        <div className="form-row">
+          <div className="form-row">
+            <FormInput
+              label="First Name"
+              type="text"
+              name="firstName"
+              value={firstName}
+              onChange={onInputChange}
+              required
+            />
+            <FormInput
+              label="Last Name"
+              type="text"
+              name="lastName"
+              value={lastName}
+              onChange={onInputChange}
+            />
+          </div>
           <FormInput
-            label="First Name"
+            label="Email"
             type="text"
-            name="firstName"
-            value={firstName}
+            name="emailID"
+            value={emailID}
+            onChange={onInputChange}
+            required
+            placeholder="Email Address"
+          />
+          <FormInput
+            label="dob"
+            type="date"
+            className="form-control"
+            name="dateOfJoining"
+            value={dob ? dayjs(dob) : null}
+            onChange={(date) => onInputChangeDate(date, "dob")}
+            required
+          />
+          <FormInput
+            label="College of Graduation"
+            type="text"
+            name="clgOfGrad"
+            value={clgOfGrad}
             onChange={onInputChange}
             required
           />
           <FormInput
-            label="Last Name"
+            label="Phone No"
             type="text"
-            name="lastName"
-            value={lastName}
+            name="phoneNo"
+            value={phoneNo}
+            onChange={onInputChange}
+            required
+          />
+          <FormInput
+            label="Working Status"
+            type="select"
+            name="onBench"
+            value={onBench}
+            onChange={onInputChange}
+            required
+            selectOptions={selectOptions}
+          />
+          <FormInput
+            label="Authorization"
+            type="select"
+            name="securityGroup"
+            value={securityGroup}
+            onChange={onInputChange}
+            required
+            selectOptions={selectOption}
+          />
+          <FormInput
+            label="Password"
+            type="text"
+            name="password"
+            value={password}
             onChange={onInputChange}
           />
-        </div>
-        <FormInput
-          label="Email"
-          type="text"
-          name="emailID"
-          value={emailID}
-          onChange={onInputChange}
-          required
-          placeholder="Email Address"
-        />
-        <FormInput
-          label="Date Of Birth"
-          type="text"
-          name="dob"
-          value={dayjs(dob)}
-          onChange={(date) => onInputChangeDate(date, "dob")}
-          required
-        />
-        <FormInput
-          label="College of Graduation"
-          type="text"
-          name="clgOfGrad"
-          value={clgOfGrad}
-          onChange={onInputChange}
-          required
-        />
-        <FormInput
-          label="Phone No"
-          type="text"
-          name="phoneNo"
-          value={phoneNo}
-          onChange={onInputChange}
-          required
-        />
-        <FormInput
-          label="Working Status"
-          type="select"
-          name="onBench"
-          value={onBench}
-          onChange={onInputChange}
-          required
-          selectOptions={selectOptions}
-        />
-        <FormInput
-          label="Authorization"
-          type="select"
-          name="securityGroup"
-          value={securityGroup}
-          onChange={onInputChange}
-          required
-          selectOptions={selectOption}
-        />
-        <FormInput
-          label="Password"
-          type="text"
-          name="password"
-          value={password}
-          onChange={onInputChange}
-        />
-        <button type="submit" className="btn btn-outline-primary">
-          Update
-        </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
-          Cancel
-        </Link>
-        <button
-          type="submit"
-          className="btn btn-outline-primary"
-          onClick={handleSendDetails}
-        >
-          Send Login Details
-        </button>
+          <button type="submit" className="btn btn-outline-primary">
+            Update
+          </button>
+          <Link className="btn btn-outline-danger mx-2" to="/">
+            Cancel
+          </Link>
+          <button
+            type="submit"
+            className="btn btn-outline-primary"
+            onClick={handleSendDetails}
+          >
+            Send Login Details
+          </button>
 
-        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-          <p>Details Emailed successfully</p>
-        </Modal>
+          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <p>Details Emailed successfully</p>
+          </Modal>
 
-        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-          <p>Employee Updated successfully</p>
-        </Modal>
-      </form>
+          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <p>Employee Updated successfully</p>
+          </Modal>
+        </form>
       </div>
     </div>
   );
