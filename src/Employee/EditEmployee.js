@@ -285,3 +285,14 @@ export default function EditEmployee() {
     </div>
   );
 }
+
+
+
+// import React from 'react'
+// import EmployeeForm from './EmployeeForm'
+
+// export default function EditEmployee({mode}) {
+//   return (
+//     <EmployeeForm mode= "edit"/>
+//   )
+// }

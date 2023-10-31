@@ -165,7 +165,6 @@ function App() {
                       path="/marketing/editcandidate/:candidateID"
                       element={<EditCandidate />}
                     />
-                    <Route path="/timesheets" element={<TimeSheets/>} />
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>

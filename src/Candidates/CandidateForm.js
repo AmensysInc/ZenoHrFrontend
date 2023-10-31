@@ -153,7 +153,7 @@ export default function CandidateForm({ mode, recruiters }) {
               name="recruiterName"
               value={recruiterName}
               onChange={(e) => onInputChange(e)}
-              required={mode === "edit"}
+              
             >
               <option value="">-- Select --</option>
               {Array.isArray(recruiters) &&
@@ -209,17 +209,6 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="originalVisaStatus"
               value={originalVisaStatus}
-              required
-              onChange={(e) => onInputChange(e)}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="marketingVisaStatus">Marketing Visa</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="marketingVisaStatus"
-              value={marketingVisaStatus}
               required
               onChange={(e) => onInputChange(e)}
             />
