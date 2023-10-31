@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Modal } from "antd";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
-export default function CandidateForm({ mode, recruiters }) {
+export default function CandidateForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { candidateID } = useParams();
-
+  const [recruiters, setRecruiters] = useState([]);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
@@ -26,6 +27,34 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
+  useEffect(() => {
+    const fetchRecruiters = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const requestOptions = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+  
+        const recruitersResponse = await axios.get(
+          `${apiUrl}/employees/role?securityGroup=RECRUITER`,
+          requestOptions
+        );
+  
+        if (recruitersResponse.status === 200) {
+          const recruiterData = recruitersResponse.data || [];
+          setRecruiters(recruiterData);
+        } else {
+          console.error("Error fetching recruiters:", recruitersResponse.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching recruiters:", error);
+      }
+    };
+    fetchRecruiters();
+  }, [mode]); 
+  
   useEffect(() => {
     if (mode === "edit" && candidateID) {
       const fetchCandidateData = async () => {
@@ -160,7 +189,7 @@ export default function CandidateForm({ mode, recruiters }) {
                 recruiters.map((recruiter) => (
                   <option
                     key={recruiter.employeeID}
-                    value={recruiter.firstName}
+                    value={recruiter.firstName && recruiter.lastName}
                   >
                     {recruiter.firstName} {recruiter.lastName}
                   </option>
