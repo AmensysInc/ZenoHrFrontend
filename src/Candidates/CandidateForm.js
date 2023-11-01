@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Modal } from "antd";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
-export default function CandidateForm({ mode, recruiters }) {
+export default function CandidateForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { candidateID } = useParams();
-
+  const [recruiters, setRecruiters] = useState([]);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
@@ -27,6 +28,34 @@ export default function CandidateForm({ mode, recruiters }) {
   const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
   useEffect(() => {
+    const fetchRecruiters = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const requestOptions = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+  
+        const recruitersResponse = await axios.get(
+          `${apiUrl}/employees/role?securityGroup=RECRUITER`,
+          requestOptions
+        );
+  
+        if (recruitersResponse.status === 200) {
+          const recruiterData = recruitersResponse.data || [];
+          setRecruiters(recruiterData);
+        } else {
+          console.error("Error fetching recruiters:", recruitersResponse.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching recruiters:", error);
+      }
+    };
+    fetchRecruiters();
+  }, [mode]); 
+  
+  useEffect(() => {
     if (mode === "edit" && candidateID) {
       const fetchCandidateData = async () => {
         try {
@@ -37,7 +66,10 @@ export default function CandidateForm({ mode, recruiters }) {
             },
           };
 
-          const response = await fetch(`${apiUrl}/candidates/${candidateID}`, requestOptions);
+          const response = await fetch(
+            `${apiUrl}/candidates/${candidateID}`,
+            requestOptions
+          );
 
           if (response.status === 200) {
             const candidateData = await response.json();
@@ -64,13 +96,19 @@ export default function CandidateForm({ mode, recruiters }) {
         body: JSON.stringify(user),
       };
 
-      const response = await fetch(`${apiUrl}/candidates${mode === "edit" ? `/${candidateID}` : ""}`, requestOptions);
+      const response = await fetch(
+        `${apiUrl}/candidates${mode === "edit" ? `/${candidateID}` : ""}`,
+        requestOptions
+      );
 
       if (response.status === 200 || response.status === 201) {
         showModal();
-      }
+      } 
     } catch (error) {
-      console.error(`Error ${mode === "edit" ? "updating" : "adding"} candidate:`, error);
+      console.error(
+        `Error ${mode === "edit" ? "updating" : "adding"} candidate:`,
+        error
+      );
     }
   };
 
@@ -85,7 +123,7 @@ export default function CandidateForm({ mode, recruiters }) {
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/candidates"); 
+    navigate("/candidates");
   };
 
   const onInputChange = (e) => {
@@ -97,7 +135,9 @@ export default function CandidateForm({ mode, recruiters }) {
   return (
     <div>
       <div className="form-container">
-        <h2 className="text-center m-4">{isEditMode ? "Edit" : "Add"} Candidate</h2>
+        <h2 className="text-center m-4">
+          {isEditMode ? "Edit" : "Add"} Candidate
+        </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
             <div className="form-group">
@@ -126,7 +166,7 @@ export default function CandidateForm({ mode, recruiters }) {
           <div className="form-group">
             <label htmlFor="emailAddress">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-control"
               placeholder="Email Address"
               name="emailAddress"
@@ -142,14 +182,14 @@ export default function CandidateForm({ mode, recruiters }) {
               name="recruiterName"
               value={recruiterName}
               onChange={(e) => onInputChange(e)}
-              required={mode === "edit"}
+              
             >
               <option value="">-- Select --</option>
               {Array.isArray(recruiters) &&
                 recruiters.map((recruiter) => (
                   <option
                     key={recruiter.employeeID}
-                    value={recruiter.firstName}
+                    value={recruiter.firstName && recruiter.lastName}
                   >
                     {recruiter.firstName} {recruiter.lastName}
                   </option>
@@ -171,7 +211,7 @@ export default function CandidateForm({ mode, recruiters }) {
           <div className="form-group">
             <label htmlFor="phone">Phone No</label>
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="Phone no"
               name="phoneNo"
@@ -209,7 +249,6 @@ export default function CandidateForm({ mode, recruiters }) {
               className="form-control"
               name="marketingVisaStatus"
               value={marketingVisaStatus}
-              required
               onChange={(e) => onInputChange(e)}
             />
           </div>

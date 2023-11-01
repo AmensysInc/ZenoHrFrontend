@@ -2,7 +2,8 @@ import React from "react";
 import './Navbar.css';
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
-import { logoutUser } from "../pages/authUtils";
+import { logoutUser } from "../authUtils/authUtils";
+
 
 export default function Navbar({setIsLoggedIn, setRole}) {
 

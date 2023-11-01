@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
 
 export default function ProjectHistory() {
@@ -82,7 +82,7 @@ export default function ProjectHistory() {
         <h4 className="text-center">
           {userDetail.first} {userDetail.last}
         </h4>
-        <div className="add-orders d-flex justify-content-start">
+        <div className="d-flex justify-content-end">
           <button
             className="btn btn-primary"
             onClick={() => handleAddProject(employeeId)}

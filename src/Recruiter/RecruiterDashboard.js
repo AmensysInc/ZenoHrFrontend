@@ -1,5 +1,5 @@
 import React from "react";
-import SideBar from "../layout/Sidebar";
+import SideBar from "../SharedComponents/layout/Sidebar";
 
 export default function RecruiterDashboard() {
   const roleFromLocalStorage = localStorage.getItem("role");

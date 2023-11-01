@@ -8,9 +8,9 @@ import { AiFillDelete } from "react-icons/ai";
 
 export default function CustomGrid({ data, columns, customColumns }) {
   const gridOptions = {
-    domLayout: "autoWidth", // Remove horizontal scrollbar
+    domLayout: "autoWidth",
     defaultColDef: {
-      headerClass: "custom-header", // Apply custom header class
+      headerClass: "custom-header",
     },
   };
 

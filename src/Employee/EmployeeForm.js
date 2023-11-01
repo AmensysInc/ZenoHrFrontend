@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import Buttons from "./Buttons";
 
 export default function EmployeeForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -66,7 +67,6 @@ export default function EmployeeForm({ mode }) {
 
   const onSubmit = async (event) => {
     event.preventDefault();
-
     try {
       const requestOptions = {
         method: mode === "edit" ? "PUT" : "POST",
@@ -131,8 +131,11 @@ export default function EmployeeForm({ mode }) {
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
+  
   const onInputChangeDate = (date, name) => {
-    setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const isEditMode = mode === "edit";
@@ -140,6 +143,7 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
+      {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
@@ -170,7 +174,7 @@ export default function EmployeeForm({ mode }) {
           <div className="form-group">
             <label htmlFor="emailID">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-control"
               placeholder="Email Address"
               name="emailID"
@@ -210,7 +214,7 @@ export default function EmployeeForm({ mode }) {
             <input
               type="text"
               className="form-control"
-              placeholder="clgOfGrad"
+              placeholder="College of Graduation"
               name="clgOfGrad"
               value={clgOfGrad}
               onChange={(e) => onInputChange(e)}
@@ -220,7 +224,7 @@ export default function EmployeeForm({ mode }) {
           <div className="form-group">
             <label htmlFor="phoneNo">Phone No</label>
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="Phone no"
               name="phoneNo"
@@ -295,3 +299,5 @@ export default function EmployeeForm({ mode }) {
     </div>
   );
 }
+
+

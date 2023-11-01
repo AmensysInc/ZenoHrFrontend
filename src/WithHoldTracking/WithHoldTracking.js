@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
-import "../PurchaseOrder/PurchaseOrder.css";
-import Pagination from "../pages/Pagination";
-import { Select, Input, Button } from "antd";
+import Pagination from "../SharedComponents/Pagination";
 
 export default function WithHoldTracking() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -83,7 +81,7 @@ export default function WithHoldTracking() {
         <h4 className="text-center">
           {userDetail.first} {userDetail.last} - WithHold Details
         </h4>
-        <div className="add-orders d-flex justify-content-start">
+        <div className="d-flex justify-content-end">
           <button
             className="btn btn-primary"
             onClick={() => handleAddTracking(employeeId)}
@@ -102,8 +100,6 @@ export default function WithHoldTracking() {
                 (sum, tracking) => sum + tracking.balance,
                 0
               );
-              
-
               return (
                 <div key={projectName} className="project-grid">
                   

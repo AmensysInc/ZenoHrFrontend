@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { Link, useParams, useNavigate } from "react-router-dom";
 
 export default function PurchaseOrders() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -11,7 +10,6 @@ export default function PurchaseOrders() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
-  let { employeeId } = useParams();
 
   useEffect(() => {
     loadOrders();

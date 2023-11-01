@@ -1,46 +1,39 @@
 import React, { useEffect } from "react";
-import "./App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
-import Navbar from "./layout/Navbar";
-import Home from "./pages/Home";
+import Navbar from "./SharedComponents/layout/Navbar";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import AddEmployee from "./Employee/AddEmployee";
 import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
-import AddOrder from "./PurchaseOrder/AddOrder";
 import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
-import AddWithHoldTracking from "./WithHoldTracking/AddWithHoldTracking";
-import EditEmployee from "./Employee/EditEmployee";
-import Login from "./pages/Login";
-import EditOrder from "./PurchaseOrder/EditOrder";
-import EditWithHoldTracking from "./WithHoldTracking/EditWithHoldTracking";
-import Breadcrumb from "./Breadcrumbs";
 import ProjectHistory from "./ProjectHistory/ProjectHistory";
 import VisaDetails from "./VisaDetails/VisaDetails";
-import EditProjectHistory from "./ProjectHistory/EditProjectHistory";
-import AddProjectHistory from "./ProjectHistory/AddProjectHistory";
-import EditVisaDetails from "./VisaDetails/EditVisaDetails";
-import AddVisaDetails from "./VisaDetails/AddVisaDetails";
 import Tracking from "./EmployeeAccess/Tracking";
 import EmployeeDetails from "./EmployeeAccess/EmployeeDetails";
 import WithHoldSheet from "./EmployeeAccess/WithHoldSheet";
-import Sidebar from "./layout/Sidebar";
-import PurchaseOrders from "./SidebarComponents/PurchaseOrders";
-import ChangePasswordForm from "./pages/ChangePasswordForm";
-import ForgotPassword from "./pages/ForgotPassword";
+import Sidebar from "./SharedComponents/layout/Sidebar";
+import PurchaseOrders from "./PurchaseOrder/AllPurchaseOrders";
+import ChangePasswordForm from "./SharedComponents/authUtils/ChangePasswordForm";
+import ForgotPassword from "./SharedComponents/authUtils/ForgotPassword";
 import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
 import ProspectDocument from "./ProspetEmployee/ProspectDocument";
 import CandidateList from "./Candidates/CandidateList";
 import MarketingList from "./Marketing/MarketingList";
-import EditCandidate from "./Candidates/EditCandidate";
-import AddCandidate from "./Candidates/AddCandidate";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
-import useLocalStorage from "./pages/useLocalStorage";
+import useLocalStorage from "./SharedComponents/useLocalStorage";
+import Employee from "./Employee/Employee";
+import Login from "./SharedComponents/authUtils/Login";
+import Breadcrumbs from "./SharedComponents/Breadcrumbs";
+import EmployeeForm from "./Employee/EmployeeForm";
+import PurchaseOrderForm from "./PurchaseOrder/PurchaseOrderForm";
+import WithHoldTrackingForm from "./WithHoldTracking/WithHoldTrackingForm";
+import ProjectHistoryForm from "./ProjectHistory/ProjectHistoryForm";
+import VisaDetailsForm from "./VisaDetails/VisaDetailsForm";
+import CandidateForm from "./Candidates/CandidateForm";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
@@ -63,7 +56,7 @@ function App() {
           setIsLoggedIn={setIsLoggedIn}
           setRole={setRole}
         />
-        {isLoggedIn && shouldRenderBreadcrumb() && <Breadcrumb />}
+        {isLoggedIn && shouldRenderBreadcrumb() && <Breadcrumbs/>}
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-2 bg-light">
@@ -82,11 +75,11 @@ function App() {
               {isLoggedIn ? (
                 role === "ADMIN" ? (
                   <>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/adduser" element={<AddEmployee />} />
+                    <Route path="/" element={<Employee/>} />
+                    <Route path="/adduser" element={<EmployeeForm mode= "add" />} />
                     <Route
                       path="/editemployee/:employeeId"
-                      element={<EditEmployee />}
+                      element={<EmployeeForm mode= "edit"/>}
                     />
                     <Route
                       path="/orders/:employeeId"
@@ -94,11 +87,11 @@ function App() {
                     />
                     <Route
                       path="/orders/:employeeId/:orderId/editorder"
-                      element={<EditOrder />}
+                      element={<PurchaseOrderForm mode= "edit" />}
                     />
                     <Route
                       path="/orders/:employeeId/addorder"
-                      element={<AddOrder />}
+                      element={<PurchaseOrderForm mode= "add"/>}
                     />
                     <Route
                       path="/tracking/:employeeId"
@@ -106,11 +99,11 @@ function App() {
                     />
                     <Route
                       path="/tracking/:employeeId/:trackingId/edittracking"
-                      element={<EditWithHoldTracking />}
+                      element={<WithHoldTrackingForm mode="edit"/>}
                     />
                     <Route
                       path="/tracking/:employeeId/addtracking"
-                      element={<AddWithHoldTracking />}
+                      element={<WithHoldTrackingForm mode="add"/>}
                     />
                     <Route
                       path="/editemployee/:employeeId/project-history"
@@ -118,23 +111,23 @@ function App() {
                     />
                     <Route
                       path="/editemployee/:employeeId/project-history/:projectId/editproject"
-                      element={<EditProjectHistory />}
+                      element={<ProjectHistoryForm mode="edit"/>}
                     />
                     <Route
                       path="/editemployee/:employeeId/project-history/add-project"
-                      element={<AddProjectHistory />}
+                      element={<ProjectHistoryForm mode="add" />}
                     />
                     <Route
                       path="/editemployee/:employeeId/visa-details"
-                      element={<VisaDetails />}
+                      element={<VisaDetails/>}
                     />
                     <Route
                       path="/editemployee/:employeeId/visa-details/:visaId/editvisadetails"
-                      element={<EditVisaDetails />}
+                      element={<VisaDetailsForm mode="edit"  />}
                     />
                     <Route
                       path="/editemployee/:employeeId/visa-details/add-visa-details"
-                      element={<AddVisaDetails />}
+                      element={<VisaDetailsForm mode="add"  />}
                     />
                     <Route
                       path="/purchase-orders"
@@ -155,15 +148,15 @@ function App() {
                       element={<AddProspectEmployee />}
                     />
                     <Route path="/candidates" element={<CandidateList />} />
-                    <Route path="/addcandidate" element={<AddCandidate />} />
+                    <Route path="/addcandidate" element={<CandidateForm mode="add" />} />
                     <Route
                       path="/editcandidate/:candidateID"
-                      element={<EditCandidate />}
+                      element={<CandidateForm mode="edit" />}
                     />
                     <Route path="/marketing" element={<MarketingList />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
-                      element={<EditCandidate />}
+                      element={<CandidateForm mode="edit" />}
                     />
                   </>
                 ) : role === "EMPLOYEE" ? (
@@ -203,7 +196,7 @@ function App() {
                     <Route path="/marketing" element={<MarketingList />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
-                      element={<EditCandidate />}
+                      element={<CandidateForm mode="edit" />}
                     />
                     <Route
                       path="/change-password/:id"
@@ -219,16 +212,16 @@ function App() {
                 ) : role === "SALES" ? (
                   <>
                     <Route path="/candidates" element={<CandidateList />} />
-                    <Route path="/addcandidate" element={<AddCandidate />} />
+                    <Route path="/addcandidate" element={<CandidateForm mode="add" />} />
                     <Route path="/" element={<RecruiterDashboard />} />
                     <Route
                       path="/editcandidate/:candidateID"
-                      element={<EditCandidate />}
+                      element={<CandidateForm mode="edit" />}
                     />
                     <Route path="/marketing" element={<MarketingList />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
-                      element={<EditCandidate />}
+                      element={<CandidateForm mode="edit" />}
                     />
                     <Route
                       path="/change-password/:id"
