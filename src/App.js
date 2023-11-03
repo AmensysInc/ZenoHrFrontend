@@ -24,7 +24,7 @@ import ProspectDocument from "./ProspetEmployee/ProspectDocument";
 import CandidateList from "./Candidates/CandidateList";
 import MarketingList from "./Marketing/MarketingList";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
-import useLocalStorage from "./SharedComponents/useLocalStorage";
+import useSessionStorage from "./SharedComponents/useSessionStorage";
 import Employee from "./Employee/Employee";
 import Login from "./SharedComponents/authUtils/Login";
 import Breadcrumbs from "./SharedComponents/Breadcrumbs";
@@ -36,11 +36,11 @@ import VisaDetailsForm from "./VisaDetails/VisaDetailsForm";
 import CandidateForm from "./Candidates/CandidateForm";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useLocalStorage("isLoggedIn", false);
-  const [role, setRole] = useLocalStorage("role", "");
+  const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
+  const [role, setRole] = useSessionStorage("role", "");
 
   const handleLogin = (userRole) => {
-    if (localStorage.getItem("token")) {
+    if (sessionStorage.getItem("token")) {
       setIsLoggedIn(true);
       setRole(userRole);
     }

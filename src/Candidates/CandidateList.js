@@ -24,7 +24,7 @@ export default function CandidateList() {
   }, [currentPage, pageSize, searchQuery, searchField]);
 
   const fetchData = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const searchParams = new URLSearchParams();
     searchParams.append("page", currentPage);
     searchParams.append("size", pageSize);

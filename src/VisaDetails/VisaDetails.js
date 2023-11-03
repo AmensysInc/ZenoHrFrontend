@@ -25,7 +25,7 @@ export default function VisaDetails() {
 
   const fetchVisaDetails = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const searchParams = new URLSearchParams();
       searchParams.append("page", currentPage);
       searchParams.append("size", pageSize);

@@ -30,7 +30,7 @@ export default function CandidateForm({ mode }) {
   useEffect(() => {
     const fetchRecruiters = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const requestOptions = {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ export default function CandidateForm({ mode }) {
     if (mode === "edit" && candidateID) {
       const fetchCandidateData = async () => {
         try {
-          const token = localStorage.getItem("token");
+          const token = sessionStorage.getItem("token");
           const requestOptions = {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -91,7 +91,7 @@ export default function CandidateForm({ mode }) {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body: JSON.stringify(user),
       };
@@ -103,7 +103,9 @@ export default function CandidateForm({ mode }) {
 
       if (response.status === 200 || response.status === 201) {
         showModal();
-      } 
+      } else {
+        console.error("Error response:", response.status, response.statusText);
+      }
     } catch (error) {
       console.error(
         `Error ${mode === "edit" ? "updating" : "adding"} candidate:`,

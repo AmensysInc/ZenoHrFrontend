@@ -72,7 +72,7 @@ export default function WithHoldTrackingForm({ mode }) {
 
   const fetchEmployeeDetails = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const requestOptions = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ export default function WithHoldTrackingForm({ mode }) {
       fetchProjectNames();
 
       if (mode === "edit") {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const requestOptions = {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -145,7 +145,7 @@ export default function WithHoldTrackingForm({ mode }) {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body: JSON.stringify(updatedTracking),
       };
@@ -172,7 +172,7 @@ export default function WithHoldTrackingForm({ mode }) {
 
   const fetchProjectNames = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       var myHeaders = new Headers();
       myHeaders.append("Authorization", `Bearer ${token}`);
       var requestOptions = {

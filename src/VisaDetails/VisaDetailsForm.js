@@ -28,7 +28,7 @@ export default function VisaDetailsForm({ mode }) {
 
   const fetchEmployeeDetails = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const requestOptions = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -52,7 +52,7 @@ export default function VisaDetailsForm({ mode }) {
       fetchEmployeeDetails();
 
       if (mode === "edit") {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const requestOptions = {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -87,7 +87,7 @@ export default function VisaDetailsForm({ mode }) {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body: JSON.stringify(details),
       };

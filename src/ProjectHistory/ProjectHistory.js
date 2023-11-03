@@ -23,7 +23,7 @@ export default function ProjectHistory() {
 
   const fetchProjectHistory = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const searchParams = new URLSearchParams();
       searchParams.append("page", currentPage);
       searchParams.append("size", pageSize);

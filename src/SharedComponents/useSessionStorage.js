@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 
-const useLocalStorage = (key, defaultValue) => {
+const useSessionStorage = (key, defaultValue) => {
   const [value, setValue] = useState(() => {
     let currentValue;
 
     try {
       currentValue = JSON.parse(
-        localStorage.getItem(key) || String(defaultValue)
+        sessionStorage.getItem(key) || String(defaultValue)
       );
     } catch (error) {
       currentValue = defaultValue;
@@ -16,10 +16,10 @@ const useLocalStorage = (key, defaultValue) => {
   });
 
   useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem(key, JSON.stringify(value));
   }, [value, key]);
 
   return [value, setValue];
 };
 
-export default useLocalStorage;
+export default useSessionStorage;
