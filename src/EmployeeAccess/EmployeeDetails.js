@@ -12,8 +12,8 @@ const EmployeeDetails = () => {
 
   const fetchEmployeeDetails = async () => {
     try {
-      const employeeId = localStorage.getItem("id");
-      const token = localStorage.getItem("token");
+      const employeeId = sessionStorage.getItem("id");
+      const token = sessionStorage.getItem("token");
 
       const config = {
         headers: {

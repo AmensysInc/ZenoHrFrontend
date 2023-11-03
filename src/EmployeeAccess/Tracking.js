@@ -4,8 +4,8 @@ import axios from 'axios';
 const Tracking = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
-  const employeeId = localStorage.getItem('id');
-  const token = localStorage.getItem('token');
+  const employeeId = sessionStorage.getItem('id');
+  const token = sessionStorage.getItem('token');
 
   useEffect(() => {
     fetchTrackings();
