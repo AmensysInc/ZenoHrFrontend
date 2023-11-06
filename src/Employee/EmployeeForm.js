@@ -3,10 +3,9 @@ import { Modal, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Buttons from "./Buttons";
-import { post, put } from "../SharedComponents/httpClient ";
+import { createEmployee, fetchEmployeeDataById, sendLoginDetails, updateEmployee } from "../SharedComponents/apicalls/EmployeeServices";
 
 export default function EmployeeForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,53 +39,24 @@ export default function EmployeeForm({ mode }) {
 
   useEffect(() => {
     if (mode === "edit" && employeeId) {
-      const fetchEmployeeData = async () => {
-        try {
-          const token = sessionStorage.getItem("token");
-          const requestOptions = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
-
-          const response = await fetch(
-            `${apiUrl}/employees/${employeeId}`,
-            requestOptions
-          );
-
-          if (response.status === 200) {
-            const employeeData = await response.json();
-            setEmployee(employeeData);
-          }
-        } catch (error) {
-          console.error("Error fetching employee data:", error);
+      const fetchData = async () => {
+        const employeeData = await fetchEmployeeDataById(employeeId);
+        if (employeeData) {
+          setEmployee(employeeData);
         }
       };
-      fetchEmployeeData();
+      fetchData();
     }
   }, [mode, employeeId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(employee),
-      };
-
-      const response =
-        mode === "edit"
-          ? await put(
-              `${apiUrl}/employees/${employeeId}`,
-              employee,
-              requestOptions
-            )
-          : await post(`${apiUrl}/employees`, employee, requestOptions);
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateEmployee(employeeId, employee)
+        : await createEmployee(employee);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
@@ -96,24 +66,16 @@ export default function EmployeeForm({ mode }) {
       );
     }
   };
-
+  
   const handleSendDetails = async (e) => {
     e.preventDefault();
-    try {
-      const response = await post(`${apiUrl}/auth/resetPassword`, {
-        email: emailID,
-      });
-  
-      if (response.status === 200 || response.status === 201) {
-        console.log("Password reset email sent successfully.");
-      } else {
-        console.error("Password reset request failed.");
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
+    const success = await sendLoginDetails(emailID);
+    if (success) {
+      console.log("Password reset email sent successfully.");
     }
     navigate("/");
   };
+  
 
   const showModal = () => {
     setIsModalOpen(true);

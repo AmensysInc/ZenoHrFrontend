@@ -8,7 +8,7 @@ import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
 import "./Employee.css";
-import { get,remove } from "../SharedComponents/httpClient ";
+import { deleteEmployee, fetchEmployees } from "../SharedComponents/apicalls/EmployeeServices";
 
 export default function Employee() {
   const [users, setUsers] = useState([]);
@@ -22,24 +22,18 @@ export default function Employee() {
   useEffect(() => {
     fetchData();
   }, [currentPage, pageSize, searchQuery, searchField]);
-
+  
   const fetchData = async () => {
-    try {
-      const searchParams = new URLSearchParams();
-      searchParams.append("page", currentPage);
-      searchParams.append("size", pageSize);
-      if (searchQuery) {
-        searchParams.append("searchField", searchField);
-        searchParams.append("searchString", searchQuery);
-      }
-      const response = await get(`/employees?${searchParams.toString()}`);
-      if (response.status === 200) {
-        const data = response.data;
-        setUsers(data.content);
-        setTotalPages(data.totalPages);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    const { content, totalPages } = await fetchEmployees(currentPage, pageSize, searchQuery, searchField);
+    setUsers(content);
+    setTotalPages(totalPages);
+  };
+  
+  
+  const handleDeleteEmployee = async (employeeId) => {
+    const success = await deleteEmployee(employeeId);
+    if (success) {
+      fetchData();
     }
   };
 
@@ -53,21 +47,6 @@ export default function Employee() {
 
   const handleEditEmployee = (employeeId) => {
     navigate(`/editemployee/${employeeId}`);
-  };
-
-  const handleDeleteEmployee = async (employeeId) => {
-    try {
-      const url = `/employees/${employeeId}`;
-      const response = await remove(url);
-  
-      if (response.status === 200) {
-        fetchData();
-      } else {
-        console.error("Error deleting employee:", response.status);
-      }
-    } catch (error) {
-      console.error("Error deleting employee:", error);
-    }
   };
 
   const handleSearch = () => {
