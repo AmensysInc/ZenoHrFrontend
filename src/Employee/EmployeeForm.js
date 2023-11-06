@@ -3,6 +3,7 @@ import { Modal, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Buttons from "./Buttons";
+import { post, put } from "../SharedComponents/httpClient ";
 
 export default function EmployeeForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -72,15 +73,18 @@ export default function EmployeeForm({ mode }) {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body: JSON.stringify(employee),
       };
 
-      const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/${employeeId}` : ""}`,
-        requestOptions
-      );
+      const response =
+        mode === "edit"
+          ? await put(
+              `${apiUrl}/employees/${employeeId}`,
+              employee,
+              requestOptions
+            )
+          : await post(`${apiUrl}/employees`, employee, requestOptions);
 
       if (response.status === 200 || response.status === 201) {
         showModal();
@@ -92,18 +96,15 @@ export default function EmployeeForm({ mode }) {
       );
     }
   };
-  
+
   const handleSendDetails = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${apiUrl}/auth/resetPassword`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailID }),
+      const response = await post(`${apiUrl}/auth/resetPassword`, {
+        email: emailID,
       });
-      if (response.ok) {
+  
+      if (response.status === 200 || response.status === 201) {
         console.log("Password reset email sent successfully.");
       } else {
         console.error("Password reset request failed.");
@@ -131,7 +132,7 @@ export default function EmployeeForm({ mode }) {
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
-  
+
   const onInputChangeDate = (date, name) => {
     if (date) {
       setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
@@ -143,7 +144,7 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
-      {isEditMode && <Buttons />}
+        {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
@@ -299,5 +300,3 @@ export default function EmployeeForm({ mode }) {
     </div>
   );
 }
-
-

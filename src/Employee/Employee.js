@@ -8,9 +8,9 @@ import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
 import "./Employee.css";
+import { get,remove } from "../SharedComponents/httpClient ";
 
 export default function Employee() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -25,7 +25,6 @@ export default function Employee() {
 
   const fetchData = async () => {
     try {
-      const token = sessionStorage.getItem("token");
       const searchParams = new URLSearchParams();
       searchParams.append("page", currentPage);
       searchParams.append("size", pageSize);
@@ -33,23 +32,12 @@ export default function Employee() {
         searchParams.append("searchField", searchField);
         searchParams.append("searchString", searchQuery);
       }
-
-      const response = await fetch(
-        `${apiUrl}/employees?${searchParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from the server");
+      const response = await get(`/employees?${searchParams.toString()}`);
+      if (response.status === 200) {
+        const data = response.data;
+        setUsers(data.content);
+        setTotalPages(data.totalPages);
       }
-
-      const jsonData = await response.json();
-      setUsers(jsonData.content);
-      setTotalPages(jsonData.totalPages);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -69,16 +57,14 @@ export default function Employee() {
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await fetch(`${apiUrl}/employees/${employeeId}`, requestOptions);
-      fetchData();
+      const url = `/employees/${employeeId}`;
+      const response = await remove(url);
+  
+      if (response.status === 200) {
+        fetchData();
+      } else {
+        console.error("Error deleting employee:", response.status);
+      }
     } catch (error) {
       console.error("Error deleting employee:", error);
     }
