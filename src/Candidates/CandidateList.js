@@ -6,9 +6,9 @@ import { useNavigate, Link } from "react-router-dom";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
 import { AiFillDelete } from "react-icons/ai";
+import { deleteCandidate, fetchCandidates } from "../SharedComponents/services/CandidateService";
 
 export default function CandidateList() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [rowData, setRowData] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -24,37 +24,11 @@ export default function CandidateList() {
   }, [currentPage, pageSize, searchQuery, searchField]);
 
   const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    const searchParams = new URLSearchParams();
-    searchParams.append("page", currentPage);
-    searchParams.append("size", pageSize);
-    if (searchQuery) {
-      searchParams.append("searchField", searchField);
-      searchParams.append("searchString", searchQuery);
-    }
-    try {
-      const response = await fetch(
-        `${apiUrl}/candidates?${searchParams.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from the server");
-      }
-      const responseData = await response.json();
-      setRowData(responseData.content);
+    const { content, totalPages } = await fetchCandidates(currentPage, pageSize, searchQuery, searchField);
+      setRowData(content);
       setIsLoading(false);
-      setTotalPages(responseData.totalPages);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      setTotalPages(totalPages);
     }
-  };
 
   const handleSearch = () => {
     fetchData();
@@ -107,19 +81,9 @@ export default function CandidateList() {
     navigate(`/editcandidate/${candidateID}`);
   };
   const handleDeleteCandidate = async (candidateID) => {
-    try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await fetch(`${apiUrl}/candidates/${candidateID}`, requestOptions);
+    const success = await deleteCandidate(candidateID);
+    if (success) {
       fetchData();
-    } catch (error) {
-      console.error("Error deleting employee:", error);
     }
   };
 

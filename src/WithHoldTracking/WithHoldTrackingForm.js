@@ -5,6 +5,8 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/js/plugins.pkgd.min.js";
 import FroalaEditor from "react-froala-wysiwyg";
+import { get } from "../SharedComponents/httpClient ";
+import { createTracking, fetchEmployeeDetails, fetchProjectNames, fetchTrackingDetails, updateTracking } from "../SharedComponents/services/WithHoldService";
 
 export default function WithHoldTrackingForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -70,27 +72,6 @@ export default function WithHoldTrackingForm({ mode }) {
     yearOptions.push(year);
   }
 
-  const fetchEmployeeDetails = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const employeeResponse = await axios.get(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-
-      const { firstName, lastName } = employeeResponse.data;
-      setEmployeeDetails({ firstName, lastName });
-    } catch (error) {
-      console.error("Error fetching employee data:", error);
-    }
-  };
-
   useEffect(() => {
     const actualAmtValue = tracking.actualHours * tracking.actualRate;
     const paidAmtValue = tracking.paidHours * tracking.paidRate;
@@ -101,29 +82,32 @@ export default function WithHoldTrackingForm({ mode }) {
       paidAmt: paidAmtValue,
       balance: balanceValue,
     }));
+    const fetchData = async () => {
     if (mode === "add" || (mode === "edit" && employeeId)) {
-      fetchEmployeeDetails();
-      fetchProjectNames();
-
-      if (mode === "edit") {
-        const token = localStorage.getItem("token");
-        const requestOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-      
-        axios
-          .get(`${apiUrl}/trackings/${trackingId}`, requestOptions)
-          .then((historyResponse) => {
-            setTracking(historyResponse.data);
-            setSelectedProjectName(historyResponse.data.projectName);
-          })
-          .catch((error) => {
-            console.error("Error while fetching data:", error);
+      try {
+        const employeeResponse = await fetchEmployeeDetails(employeeId);
+        if (employeeResponse) {
+          setEmployeeDetails(employeeResponse);
+        }
+        const projectNamesResponse = await fetchProjectNames(employeeId);
+        console.log("Project Names Response:", projectNamesResponse);
+        if (projectNamesResponse.length > 0) {
+          const projectNames = projectNamesResponse.map((project) => {
+            return `${project.subVendorOne || ""} / ${project.subVendorTwo || ""}`;
           });
+          setProjectNames(projectNames);
+        }
+        if (mode === "edit") {
+          const trackingResponse = await fetchTrackingDetails(trackingId);
+          setTracking(trackingResponse);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     }
+  }
+  fetchData();
+
   }, [
     mode,
     employeeId,
@@ -141,25 +125,11 @@ export default function WithHoldTrackingForm({ mode }) {
       projectName: selectedProjectName,
     };
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(updatedTracking),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/employees${
-          mode === "edit"
-            ? `/trackings/${trackingId}`
-            : `/${employeeId}/trackings`
-        }`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateTracking(trackingId, tracking)
+        : await createTracking(employeeId, updatedTracking);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
@@ -170,42 +140,9 @@ export default function WithHoldTrackingForm({ mode }) {
     }
   };
 
-  const fetchProjectNames = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      var requestOptions = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow",
-      };
-      const projectHistoryResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/projects`,
-        requestOptions
-      );
-      const projectHistoryData = await projectHistoryResponse.json();
-
-      const projects = projectHistoryData.content || [];
-
-      const uniqueProjectNames = [
-        ...new Set(
-          projects.map(
-            (project) =>
-              `${project.subVendorOne || ""} / ${project.subVendorTwo || ""}`
-          )
-        ),
-      ];
-      setProjectNames(uniqueProjectNames);
-    } catch (error) {
-      console.error("Error loading project names:", error);
-    }
-  };
-
   const onProjectNameChange = (e) => {
     setSelectedProjectName(e.target.value);
   };
-
 
   const handleNavigate = (employeeId) => {
     navigate(`/tracking/${employeeId}`);
@@ -318,24 +255,24 @@ export default function WithHoldTrackingForm({ mode }) {
             </div>
           </div>
           {mode === "add" && (
-          <div className="form-group">
-                <label htmlFor="projectName">Project Name:</label>
-                <select
-                  className="form-control"
-                  name="projectName"
-                  value={selectedProjectName}
-                  onChange={onProjectNameChange}
-                >
-                  <option value="" disabled>
-                    Select project name
+            <div className="form-group">
+              <label htmlFor="projectName">Project Name:</label>
+              <select
+                className="form-control"
+                name="projectName"
+                value={selectedProjectName}
+                onChange={onProjectNameChange}
+              >
+                <option value="" disabled>
+                  Select project name
+                </option>
+                {projectNames.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
-                  {projectNames.map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                ))}
+              </select>
+            </div>
           )}
           <div className="form-group row">
             <div className="col">
@@ -348,80 +285,80 @@ export default function WithHoldTrackingForm({ mode }) {
                 onChange={(e) => onInputChange(e)}
               />
             </div>
-          <div className="col">
-            <label>Actual Rate:</label>
-            <input
-              type="number"
-              className="form-control"
-              name="actualRate"
-              value={actualRate}
-              onChange={(e) => onInputChange(e)}
-            />
-            </div>
-            </div>
-            <div className="form-group row">
-              <div className="col">
-                <label>Paid Hours:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="paidHours"
-                  value={paidHours}
-                  onChange={(e) => onInputChange(e)}
-                />
-              </div>
-              <div className="col">
-                <label>Paid Rate:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="paidRate"
-                  value={paidRate}
-                  onChange={(e) => onInputChange(e)}
-                />
-              </div>
-            </div>
-            <div className="form-group row">
-              <div className="col">
-                <label>Actual Amount:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="actualAmt"
-                  value={tracking.actualAmt}
-                  readOnly
-                />
-              </div>
-              <div className="col">
-                <label>Paid Amount:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="paidAmt"
-                  value={tracking.paidAmt}
-                  readOnly
-                />
-              </div>
-              <div className="col">
-                <label>Balance:</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="balance"
-                  value={tracking.balance}
-                  readOnly
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="editorHtml">Excel Data :</label>
-              <FroalaEditor
-                model={tracking.excelData}
-                name="editorHtml"
-                onModelChange={handleEditorChange}
-                onPaste={handlePaste}
+            <div className="col">
+              <label>Actual Rate:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="actualRate"
+                value={actualRate}
+                onChange={(e) => onInputChange(e)}
               />
             </div>
+          </div>
+          <div className="form-group row">
+            <div className="col">
+              <label>Paid Hours:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="paidHours"
+                value={paidHours}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+            <div className="col">
+              <label>Paid Rate:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="paidRate"
+                value={paidRate}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+          </div>
+          <div className="form-group row">
+            <div className="col">
+              <label>Actual Amount:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="actualAmt"
+                value={tracking.actualAmt}
+                readOnly
+              />
+            </div>
+            <div className="col">
+              <label>Paid Amount:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="paidAmt"
+                value={tracking.paidAmt}
+                readOnly
+              />
+            </div>
+            <div className="col">
+              <label>Balance:</label>
+              <input
+                type="number"
+                className="form-control"
+                name="balance"
+                value={tracking.balance}
+                readOnly
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="editorHtml">Excel Data :</label>
+            <FroalaEditor
+              model={tracking.excelData}
+              name="editorHtml"
+              onModelChange={handleEditorChange}
+              onPaste={handlePaste}
+            />
+          </div>
 
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}

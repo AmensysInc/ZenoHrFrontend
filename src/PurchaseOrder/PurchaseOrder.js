@@ -4,9 +4,9 @@ import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
+import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/services/OrderService";
 
 export default function PurchaseOrder() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [orders, setOrders] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
@@ -23,33 +23,10 @@ export default function PurchaseOrder() {
 
   const loadOrders = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const searchParams = new URLSearchParams();
-      searchParams.append("page", currentPage);
-      searchParams.append("size", pageSize);
-      if (searchQuery) {
-        searchParams.append("searchField", searchField);
-        searchParams.append("searchString", searchQuery);
-      }
-      var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      var requestOptions = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow",
-      };
-      const ordersResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/orders?${searchParams.toString()}`,
-        requestOptions
-      );
-      const detailsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-      const ordersData = await ordersResponse.json(); 
-      const detailsData = await detailsResponse.json();
-      const ordersArray = ordersData.content;
-      setOrders(ordersArray);
+      const ordersData = await getOrdersForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
+      const detailsData = await getUserDetails(employeeId);
+
+      setOrders(ordersData.content);
       setTotalPages(ordersData.totalPages);
       setUserDetail({
         first: detailsData.firstName,
@@ -58,7 +35,8 @@ export default function PurchaseOrder() {
     } catch (error) {
       console.error("Error loading orders:", error);
     }
-  };
+  }
+
   const handleAddOrder = (employeeId) => {
     navigate(`/orders/${employeeId}/addorder`);
   };

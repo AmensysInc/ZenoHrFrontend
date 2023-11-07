@@ -3,9 +3,9 @@ import { Modal, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Buttons from "./Buttons";
+import { createEmployee, fetchEmployeeDataById, sendLoginDetails, updateEmployee } from "../SharedComponents/services/EmployeeServices";
 
 export default function EmployeeForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,50 +39,24 @@ export default function EmployeeForm({ mode }) {
 
   useEffect(() => {
     if (mode === "edit" && employeeId) {
-      const fetchEmployeeData = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const requestOptions = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
-
-          const response = await fetch(
-            `${apiUrl}/employees/${employeeId}`,
-            requestOptions
-          );
-
-          if (response.status === 200) {
-            const employeeData = await response.json();
-            setEmployee(employeeData);
-          }
-        } catch (error) {
-          console.error("Error fetching employee data:", error);
+      const fetchData = async () => {
+        const employeeData = await fetchEmployeeDataById(employeeId);
+        if (employeeData) {
+          setEmployee(employeeData);
         }
       };
-      fetchEmployeeData();
+      fetchData();
     }
   }, [mode, employeeId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(employee),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/${employeeId}` : ""}`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateEmployee(employeeId, employee)
+        : await createEmployee(employee);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
@@ -95,24 +69,13 @@ export default function EmployeeForm({ mode }) {
   
   const handleSendDetails = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`${apiUrl}/auth/resetPassword`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailID }),
-      });
-      if (response.ok) {
-        console.log("Password reset email sent successfully.");
-      } else {
-        console.error("Password reset request failed.");
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
+    const success = await sendLoginDetails(emailID);
+    if (success) {
+      console.log("Password reset email sent successfully.");
     }
     navigate("/");
   };
+  
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -131,7 +94,7 @@ export default function EmployeeForm({ mode }) {
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
-  
+
   const onInputChangeDate = (date, name) => {
     if (date) {
       setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
@@ -143,7 +106,7 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
-      {isEditMode && <Buttons />}
+        {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
@@ -299,5 +262,3 @@ export default function EmployeeForm({ mode }) {
     </div>
   );
 }
-
-

@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
+import { getEmployeeDetails, getTrackingForEmployee } from "../SharedComponents/services/WithHoldService";
 
 export default function WithHoldTracking() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
@@ -22,39 +22,17 @@ export default function WithHoldTracking() {
 
   const loadTrackings = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const searchParams = new URLSearchParams();
-      searchParams.append("page", currentPage);
-      searchParams.append("size", pageSize);
-      if (searchQuery) {
-        searchParams.append("searchField", searchField);
-        searchParams.append("searchString", searchQuery);
-      }
-      var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      var requestOptions = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow",
-      };
-      const trackingsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/trackings?${searchParams.toString()}`,
-        requestOptions
-      );
-      const detailsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-      const trackingsData = await trackingsResponse.json();
-      const detailsData = await detailsResponse.json();
-      setTrackings(trackingsData.content);
-      console.log(trackingsData);
+      const trackings = await getTrackingForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
+      const detailsData = await getEmployeeDetails(employeeId);
+
+      setTrackings(trackings.content);
+      setTotalPages(trackings.totalPages);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
       });
     } catch (error) {
-      console.error("Error loading trackings:", error);
+      console.error("Error loading orders:", error);
     }
   };
   const handleSearch = () => {

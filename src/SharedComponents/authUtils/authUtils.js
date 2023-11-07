@@ -1,5 +1,5 @@
 export const logoutUser = (setIsLoggedIn, setRole) => {
-  localStorage.clear();
+  sessionStorage.clear();
   setIsLoggedIn(false);
   setRole("");
   window.location.href = "/login";
@@ -23,10 +23,10 @@ export const loginUser = async (email, password, onLogin, navigate) => {
       const data = await response.json();
       const { role, access_token, id, tempPassword } = data;
 
-      localStorage.setItem("token", access_token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("id", id);
-      localStorage.setItem("tempPassword", tempPassword);
+      sessionStorage.setItem("token", access_token);
+      sessionStorage.setItem("role", role);
+      sessionStorage.setItem("id", id);
+      sessionStorage.setItem("tempPassword", tempPassword);
 
       if (tempPassword === true) {
         console.log("Role:", role);

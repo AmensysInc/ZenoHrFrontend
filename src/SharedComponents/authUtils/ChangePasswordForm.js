@@ -18,13 +18,13 @@ const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
       return;
     }
     try {
-      const userId = localStorage.getItem("id");
+      const userId = sessionStorage.getItem("id");
       const queryParams = new URLSearchParams();
       queryParams.append("userId", userId);
       queryParams.append("password", password);
 
       const url = `${apiUrl}/auth/updatePassword?${queryParams.toString()}`;
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await fetch(url, {
         method: "POST",
         headers: {

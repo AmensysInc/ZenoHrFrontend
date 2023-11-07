@@ -3,15 +3,20 @@ import { Link } from "react-router-dom";
 import "./Sidebar.css";
 
 export default function SideBar() {
-  const roleFromLocalStorage = localStorage.getItem("role");
-  const role = roleFromLocalStorage
-    ? roleFromLocalStorage.replace(/"/g, "")
+  const roleFromSessionStorage = sessionStorage.getItem("role");
+  const role = roleFromSessionStorage
+    ? roleFromSessionStorage.replace(/"/g, "")
     : "";
 
   if (role !== "RECRUITER" && role !== "SALES") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
+        <li className="sidebar-item">
+            <Link to="/companies" className="sidebar-link">
+              Company Details
+            </Link>
+          </li>
           <li className="sidebar-item">
             <Link to="/" className="sidebar-link">
               Employees

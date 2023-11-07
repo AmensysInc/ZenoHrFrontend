@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { DatePicker, Modal } from "antd";
 import dayjs from "dayjs";
+import { createVisa, fetchEmployeeDetails, fetchVisaDetails, updateVisa } from "../SharedComponents/services/VisaDetailsService";
 
 export default function VisaDetailsForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   let { visaId, employeeId } = useParams();
   const [validationError, setValidationError] = useState("");
@@ -23,57 +22,31 @@ export default function VisaDetailsForm({ mode }) {
     visaExpiryDate: "",
   });
 
-  const { firstName, lastName, visaType, visaStartDate, visaExpiryDate } =
-    details;
-
-  const fetchEmployeeDetails = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const employeeResponse = await axios.get(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-
-      const { firstName, lastName } = employeeResponse.data;
-      setEmployeeDetails({ firstName, lastName });
-    } catch (error) {
-      console.error("Error fetching employee data:", error);
-    }
-  };
+  const { firstName, lastName, visaType, visaStartDate, visaExpiryDate } = details;
 
   useEffect(() => {
-    if (mode === "add" || (mode === "edit" && employeeId)) {
-      fetchEmployeeDetails();
-
-      if (mode === "edit") {
-        const token = localStorage.getItem("token");
-        const requestOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        axios
-          .get(`${apiUrl}/visa-details/${visaId}`, requestOptions)
-          .then((historyResponse) => {
-            setDetails(historyResponse.data);
-          })
-          .catch((error) => {
-            console.error("Error fetching project data:", error);
-          });
+    const fetchData = async () => {
+      if (mode === "add" || (mode === "edit" && employeeId)) {
+        try {
+          const employeeResponse = await fetchEmployeeDetails(employeeId);
+          if (employeeResponse) {
+            setEmployeeDetails(employeeResponse);
+          }
+          if (mode === "edit") {
+            const response = await fetchVisaDetails(visaId);
+            setDetails(response);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
-    }
+    };
+    
+    fetchData();
   }, [mode, employeeId, visaId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
-
     const startDate = new Date(visaStartDate);
     const expiryDate = new Date(visaExpiryDate);
 
@@ -83,34 +56,17 @@ export default function VisaDetailsForm({ mode }) {
       return;
     }
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(details),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/employees${
-          mode === "edit"
-            ? `/visa-details/${visaId}`
-            : `/${employeeId}/visa-details`
-        }`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateVisa(visaId, details)
+        : await createVisa(employeeId, details);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
-      console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} VisaDetails:`,
-        error
-      );
+      console.error(`Error ${mode === "edit" ? "updating" : "adding"} project:`, error);
     }
-  };
+  }
 
   const handleNavigate = (employeeId) => {
     navigate(`/editemployee/${employeeId}/visa-details`);

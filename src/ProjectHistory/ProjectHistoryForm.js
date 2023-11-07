@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { DatePicker,Modal } from "antd";
 import dayjs from "dayjs";
+import { createProject, fetchEmployeeDetails, fetchProjectDetails, updateProject } from "../SharedComponents/services/ProjectHistoryService";
 
 export default function ProjectHistoryForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   let { projectId, employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,78 +30,42 @@ export default function ProjectHistoryForm({ mode }) {
     projectStatus,
   } = project;
 
-  const fetchEmployeeDetails = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const employeeResponse = await axios.get(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-
-      const { firstName, lastName } = employeeResponse.data;
-      setEmployeeDetails({ firstName, lastName });
-    } catch (error) {
-      console.error("Error fetching employee data:", error);
-    }
-  };
-
   useEffect(() => {
-    if (mode === "add" || (mode === "edit" && employeeId)) {
-      fetchEmployeeDetails();
-
-      if (mode === "edit") {
-        const token = localStorage.getItem("token");
-        const requestOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        axios
-          .get(`${apiUrl}/projects/${projectId}`, requestOptions)
-          .then((historyResponse) => {
-            setProject(historyResponse.data);
-          })
-          .catch((error) => {
-            console.error("Error fetching project data:", error);
-          });
+    const fetchData = async () => {
+      if (mode === "add" || (mode === "edit" && employeeId)) {
+        try {
+          const employeeResponse = await fetchEmployeeDetails(employeeId);
+          if (employeeResponse) {
+            setEmployeeDetails(employeeResponse);
+          }
+          if (mode === "edit") {
+            const response = await fetchProjectDetails(projectId);
+            setProject(response);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
-    }
+    };
+    
+    fetchData();
   }, [mode, employeeId, projectId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(project),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/projects/${projectId}` : `/${employeeId}/projects`}`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateProject(projectId, project)
+        : await createProject(employeeId, project);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
-      console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} project:`,
-        error
-      );
+      console.error(`Error ${mode === "edit" ? "updating" : "adding"} project:`, error);
     }
-  };
+  }
+   
   const handleNavigate = (employeeId) => {
     navigate(`/editemployee/${employeeId}/project-history`);
   };

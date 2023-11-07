@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal } from "antd";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { createCandidate, fetchCandidateById, fetchRecruiters, updateCandidates } from "../SharedComponents/services/CandidateService";
+import { get } from "../SharedComponents/httpClient ";
 
 export default function CandidateForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -28,85 +30,38 @@ export default function CandidateForm({ mode }) {
   const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
   useEffect(() => {
-    const fetchRecruiters = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const requestOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-  
-        const recruitersResponse = await axios.get(
-          `${apiUrl}/employees/role?securityGroup=RECRUITER`,
-          requestOptions
-        );
-  
-        if (recruitersResponse.status === 200) {
-          const recruiterData = recruitersResponse.data || [];
-          setRecruiters(recruiterData);
-        } else {
-          console.error("Error fetching recruiters:", recruitersResponse.statusText);
-        }
-      } catch (error) {
-        console.error("Error fetching recruiters:", error);
-      }
+    const fetchData = async () => {
+      const recruiterData = await fetchRecruiters();
+      setRecruiters(recruiterData);
     };
-    fetchRecruiters();
-  }, [mode]); 
+    fetchData();
+  }, []);
   
   useEffect(() => {
     if (mode === "edit" && candidateID) {
-      const fetchCandidateData = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const requestOptions = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
-
-          const response = await fetch(
-            `${apiUrl}/candidates/${candidateID}`,
-            requestOptions
-          );
-
-          if (response.status === 200) {
-            const candidateData = await response.json();
-            setUser(candidateData);
-          }
-        } catch (error) {
-          console.error("Error fetching candidate data:", error);
+      const fetchData = async () => {
+        const data = await fetchCandidateById(candidateID);
+        if (data) {
+          setUser(data);
         }
       };
-      fetchCandidateData();
+      fetchData();
     }
   }, [mode, candidateID]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
-
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(user),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/candidates${mode === "edit" ? `/${candidateID}` : ""}`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateCandidates(candidateID, user)
+        : await createCandidate(user);
+  
+      if (success) {
         showModal();
-      } 
+      }
     } catch (error) {
       console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} candidate:`,
+        `Error ${mode === "edit" ? "updating" : "adding"} employee:`,
         error
       );
     }
