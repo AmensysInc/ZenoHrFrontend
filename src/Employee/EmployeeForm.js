@@ -10,6 +10,7 @@ export default function EmployeeForm({ mode }) {
   let { employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -73,6 +74,8 @@ export default function EmployeeForm({ mode }) {
     const success = await sendLoginDetails(emailID);
     if (success) {
       setSendDetailsSuccess(true);
+    }else {
+      setError("An error occurred");
     }
   };
   
@@ -106,6 +109,9 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
+      {error && ( 
+        <Alert message={error} type="error" closable onClose={() => setError(null)} />
+      )}
       {sendDetailsSuccess && (
           <Alert
             message="Login Details emailed successfully"

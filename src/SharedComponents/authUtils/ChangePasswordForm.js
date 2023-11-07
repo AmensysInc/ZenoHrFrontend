@@ -3,7 +3,6 @@ import { logoutUser } from "./authUtils";
 import { post } from "../httpClient ";
 
 const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");

@@ -6,6 +6,7 @@ import { post } from "../httpClient ";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleForgotPassword = async (e) => {
@@ -14,10 +15,9 @@ export default function ForgotPassword() {
       const response = await post("/auth/resetPassword", { email });
       if (response.status === 200 || response.status === 201) {
         setSendDetailsSuccess(true);
-      } else {
-        console.error("Password reset request failed.");
       }
     } catch (error) {
+      setError("An error occurred");
       console.error("An error occurred:", error);
     }
   };
@@ -28,6 +28,9 @@ export default function ForgotPassword() {
 
   return (
     <div className="form-container">
+       {error && ( 
+        <Alert message={error} type="error" closable onClose={() => setError(null)} />
+      )}
       {sendDetailsSuccess && (
           <Alert
             message="Login Details emailed successfully"
