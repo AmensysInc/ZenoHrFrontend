@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { DatePicker,Modal } from "antd";
+import { DatePicker, Modal } from "antd";
 import dayjs from "dayjs";
+import { createOrder, fetchEmployeeDetails, fetchOrderDetails, updateOrder } from "../SharedComponents/apicalls/OrderService";
 
 export default function PurchaseOrderForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   let navigate = useNavigate();
   let { orderId, employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,78 +31,41 @@ export default function PurchaseOrderForm({ mode }) {
     vendorEmailId,
   } = orders;
 
-  const fetchEmployeeDetails = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const requestOptions = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const employeeResponse = await axios.get(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-
-      const { firstName, lastName } = employeeResponse.data;
-      setEmployeeDetails({ firstName, lastName });
-    } catch (error) {
-      console.error("Error fetching employee data:", error);
-    }
-  };
-
   useEffect(() => {
-    if (mode === "add" || (mode === "edit" && employeeId)) {
-      fetchEmployeeDetails();
-
-      if (mode === "edit") {
-        const token = sessionStorage.getItem("token");
-        const requestOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        axios
-          .get(`${apiUrl}/orders/${orderId}`, requestOptions)
-          .then((historyResponse) => {
-            setOrders(historyResponse.data);
-          })
-          .catch((error) => {
-            console.error("Error fetching project data:", error);
-          });
+    const fetchData = async () => {
+      if (mode === "add" || (mode === "edit" && employeeId)) {
+        try {
+          const employeeResponse = await fetchEmployeeDetails(employeeId);
+          if (employeeResponse) {
+            setEmployeeDetails(employeeResponse);
+          }
+          if (mode === "edit") {
+            const orderResponse = await fetchOrderDetails(orderId);
+            setOrders(orderResponse);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
-    }
+    };
+    
+    fetchData();
   }, [mode, employeeId, orderId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(orders),
-      };
-
-      const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/orders/${orderId}` : `/${employeeId}/orders`}`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      const success = mode === "edit"
+        ? await updateOrder(orderId, orders)
+        : await createOrder(employeeId, orders);
+  
+      if (success) {
         showModal();
       }
     } catch (error) {
-      console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} orders:`,
-        error
-      );
+      console.error(`Error ${mode === "edit" ? "updating" : "adding"} orders:`, error);
     }
-  };
+  }
 
   const handleNavigate = (employeeId) => {
     navigate(`/orders/${employeeId}`);
@@ -130,7 +92,7 @@ export default function PurchaseOrderForm({ mode }) {
       [name]: value,
     });
   };
-  
+
   const onInputChangeDate = (date, name) => {
     if (date) {
       setOrders({ ...orders, [name]: date.format("YYYY-MM-DD") });
@@ -148,41 +110,41 @@ export default function PurchaseOrderForm({ mode }) {
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
             <div className="form-group">
-            <label htmlFor="firstName">First Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="First Name"
-              name="firstName"
-              value={employeeDetails.firstName || ""}
-              disabled
+              <label htmlFor="firstName">First Name</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="First Name"
+                name="firstName"
+                value={employeeDetails?.firstName || ""}
+                disabled
               />
             </div>
             <div className="form-group">
-            <label htmlFor="lastName">Last Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Last Name"
-              name="lastName"
-              value={employeeDetails.lastName || ""}
-              disabled
+              <label htmlFor="lastName">Last Name</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Last Name"
+                name="lastName"
+                value={employeeDetails?.lastName || ""}
+                disabled
               />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group col-md-6">
-            <label htmlFor="dateOfJoining">Date Of Joining</label>
-          <DatePicker
-            className="form-control"
-            name="dateOfJoining"
-            value={dateOfJoining ? dayjs(dateOfJoining) : null}
-            onChange={(date) => onInputChangeDate(date, "dateOfJoining")}
-            required
-          />
+              <label htmlFor="dateOfJoining">Date Of Joining</label>
+              <DatePicker
+                className="form-control"
+                name="dateOfJoining"
+                value={dateOfJoining ? dayjs(dateOfJoining) : null}
+                onChange={(date) => onInputChangeDate(date, "dateOfJoining")}
+                required
+              />
             </div>
             <div className="form-group col-md-6">
-            <label>Project End Date:</label>
+              <label>Project End Date:</label>
               <DatePicker
                 type="text"
                 name="projectEndDate"
@@ -194,46 +156,46 @@ export default function PurchaseOrderForm({ mode }) {
             </div>
           </div>
           <div className="form-row">
-          <div>
-          <label>Bill Rate:</label>
-          <input
-            type="number"
-            name="billRate"
-            value={billRate}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        <div>
-          <label>Client Name:</label>
-          <input
-            type="text"
-            name="endClientName"
-            value={endClientName}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        </div>
-        <div className="form-row">
-        <div>
-          <label>Vendor PhoneNo:</label>
-          <input
-            type="number"
-            name="vendorPhoneNo"
-            value={vendorPhoneNo}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        <div>
-          <label>Vendor Email:</label>
-          <input
-            type="email"
-            name="vendorEmailId"
-            value={vendorEmailId}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div>
-        </div>
-        <br/>
+            <div>
+              <label>Bill Rate:</label>
+              <input
+                type="number"
+                name="billRate"
+                value={billRate}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+            <div>
+              <label>Client Name:</label>
+              <input
+                type="text"
+                name="endClientName"
+                value={endClientName}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div>
+              <label>Vendor PhoneNo:</label>
+              <input
+                type="number"
+                name="vendorPhoneNo"
+                value={vendorPhoneNo}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+            <div>
+              <label>Vendor Email:</label>
+              <input
+                type="email"
+                name="vendorEmailId"
+                value={vendorEmailId}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
+          </div>
+          <br />
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}
           </button>
@@ -246,5 +208,5 @@ export default function PurchaseOrderForm({ mode }) {
         </form>
       </div>
     </div>
-  )
+  );
 }

@@ -4,9 +4,10 @@ import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
+import { getUserDetails } from "../SharedComponents/apicalls/OrderService";
+import { getVisaForEmployee } from "../SharedComponents/apicalls/VisaDetailsService";
 
 export default function VisaDetails() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [visaDetails, setVisaDetails] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
@@ -25,7 +26,6 @@ export default function VisaDetails() {
 
   const fetchVisaDetails = async () => {
     try {
-      const token = sessionStorage.getItem("token");
       const searchParams = new URLSearchParams();
       searchParams.append("page", currentPage);
       searchParams.append("size", pageSize);
@@ -33,25 +33,12 @@ export default function VisaDetails() {
         searchParams.append("searchField", searchField);
         searchParams.append("searchString", searchQuery);
       }
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const detailsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        config
-      );
-      const detailsData = await detailsResponse.json();
+      const detailsData = await getUserDetails(employeeId);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
       });
-      const response = await fetch(
-        `${apiUrl}/employees/${employeeId}/visa-details?${searchParams.toString()}`,
-        config
-      );
-      const data = await response.json();
+      const data = await getVisaForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
       setVisaDetails(data.content);
       setTotalPages(data.totalPages);
     } catch (error) {

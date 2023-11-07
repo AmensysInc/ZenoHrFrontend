@@ -4,6 +4,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
+import { fetchCandidatesWithMarketing } from "../SharedComponents/apicalls/CandidateService";
 
 export default function MarketingList() {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -21,38 +22,11 @@ export default function MarketingList() {
   }, [currentPage, pageSize, searchQuery, searchField]);
 
   const fetchData = async () => {
-    const token = sessionStorage.getItem("token");
-    const searchParams = new URLSearchParams();
-    searchParams.append("page", currentPage);
-    searchParams.append("size", pageSize);
-    if (searchQuery) {
-      searchParams.append("searchField", searchField);
-      searchParams.append("searchString", searchQuery);
-    }
-    try {
-      const response = await fetch(
-        `${apiUrl}/candidates/inMarketing?${searchParams.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from the server");
-      }
-
-      const data = await response.json();
-      setRowData(data.content);
+    const { content, totalPages } = await fetchCandidatesWithMarketing(currentPage, pageSize, searchQuery, searchField);
+      setRowData(content);
       setIsLoading(false);
-      setTotalPages(data.totalPages);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      setTotalPages(totalPages);
     }
-  };
 
   const handleEditCandidate = (candidateID) => {
     navigate(`/marketing/editcandidate/${candidateID}`);
