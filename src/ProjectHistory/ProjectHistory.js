@@ -4,8 +4,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { getUserDetails } from "../SharedComponents/apicalls/OrderService";
-import { getProjectsForEmployee } from "../SharedComponents/apicalls/ProjectHistoryService";
+import { getUserDetails } from "../SharedComponents/services/OrderService";
+import { getProjectsForEmployee } from "../SharedComponents/services/ProjectHistoryService";
 
 export default function ProjectHistory() {
   const [projectHistory, setProjectHistory] = useState([]);

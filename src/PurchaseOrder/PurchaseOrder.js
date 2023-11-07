@@ -4,7 +4,7 @@ import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/apicalls/OrderService";
+import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/services/OrderService";
 
 export default function PurchaseOrder() {
   const [orders, setOrders] = useState([]);

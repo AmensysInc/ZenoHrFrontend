@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
 import { AiFillDelete } from "react-icons/ai";
-import { deleteCandidate, fetchCandidates } from "../SharedComponents/apicalls/CandidateService";
+import { deleteCandidate, fetchCandidates } from "../SharedComponents/services/CandidateService";
 
 export default function CandidateList() {
   const navigate = useNavigate();

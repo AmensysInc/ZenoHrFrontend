@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
-import { getEmployeeDetails, getTrackingForEmployee } from "../SharedComponents/apicalls/WithHoldService";
+import { getEmployeeDetails, getTrackingForEmployee } from "../SharedComponents/services/WithHoldService";
 
 export default function WithHoldTracking() {
   const [trackings, setTrackings] = useState([]);

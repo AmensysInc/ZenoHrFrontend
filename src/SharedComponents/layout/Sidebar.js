@@ -12,6 +12,11 @@ export default function SideBar() {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
+        <li className="sidebar-item">
+            <Link to="/companies" className="sidebar-link">
+              Company Details
+            </Link>
+          </li>
           <li className="sidebar-item">
             <Link to="/" className="sidebar-link">
               Employees

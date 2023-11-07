@@ -4,8 +4,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { getUserDetails } from "../SharedComponents/apicalls/OrderService";
-import { getVisaForEmployee } from "../SharedComponents/apicalls/VisaDetailsService";
+import { getUserDetails } from "../SharedComponents/services/OrderService";
+import { getVisaForEmployee } from "../SharedComponents/services/VisaDetailsService";
 
 export default function VisaDetails() {
   const [visaDetails, setVisaDetails] = useState([]);

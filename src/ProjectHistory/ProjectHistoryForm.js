@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { DatePicker,Modal } from "antd";
 import dayjs from "dayjs";
-import { createProject, fetchEmployeeDetails, fetchProjectDetails, updateProject } from "../SharedComponents/apicalls/ProjectHistoryService";
+import { createProject, fetchEmployeeDetails, fetchProjectDetails, updateProject } from "../SharedComponents/services/ProjectHistoryService";
 
 export default function ProjectHistoryForm({ mode }) {
   let navigate = useNavigate();

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { DatePicker, Modal } from "antd";
 import dayjs from "dayjs";
-import { createVisa, fetchEmployeeDetails, fetchVisaDetails, updateVisa } from "../SharedComponents/apicalls/VisaDetailsService";
+import { createVisa, fetchEmployeeDetails, fetchVisaDetails, updateVisa } from "../SharedComponents/services/VisaDetailsService";
 
 export default function VisaDetailsForm({ mode }) {
   let navigate = useNavigate();

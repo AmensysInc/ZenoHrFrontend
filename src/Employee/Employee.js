@@ -8,7 +8,7 @@ import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
 import "./Employee.css";
-import { deleteEmployee, fetchEmployees } from "../SharedComponents/apicalls/EmployeeServices";
+import { deleteEmployee, fetchEmployees } from "../SharedComponents/services/EmployeeServices";
 
 export default function Employee() {
   const [users, setUsers] = useState([]);

@@ -3,7 +3,7 @@ import { Modal, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Buttons from "./Buttons";
-import { createEmployee, fetchEmployeeDataById, sendLoginDetails, updateEmployee } from "../SharedComponents/apicalls/EmployeeServices";
+import { createEmployee, fetchEmployeeDataById, sendLoginDetails, updateEmployee } from "../SharedComponents/services/EmployeeServices";
 
 export default function EmployeeForm({ mode }) {
   const navigate = useNavigate();

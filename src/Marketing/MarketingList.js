@@ -4,7 +4,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
-import { fetchCandidatesWithMarketing } from "../SharedComponents/apicalls/CandidateService";
+import { fetchCandidatesWithMarketing } from "../SharedComponents/services/CandidateService";
 
 export default function MarketingList() {
   const apiUrl = process.env.REACT_APP_API_URL;

@@ -6,7 +6,7 @@ import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/js/plugins.pkgd.min.js";
 import FroalaEditor from "react-froala-wysiwyg";
 import { get } from "../SharedComponents/httpClient ";
-import { createTracking, fetchEmployeeDetails, fetchProjectNames, fetchTrackingDetails, updateTracking } from "../SharedComponents/apicalls/WithHoldService";
+import { createTracking, fetchEmployeeDetails, fetchProjectNames, fetchTrackingDetails, updateTracking } from "../SharedComponents/services/WithHoldService";
 
 export default function WithHoldTrackingForm({ mode }) {
   const apiUrl = process.env.REACT_APP_API_URL;

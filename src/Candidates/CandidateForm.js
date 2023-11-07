@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal } from "antd";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { createCandidate, fetchCandidateById, fetchRecruiters, updateCandidates } from "../SharedComponents/apicalls/CandidateService";
+import { createCandidate, fetchCandidateById, fetchRecruiters, updateCandidates } from "../SharedComponents/services/CandidateService";
 import { get } from "../SharedComponents/httpClient ";
 
 export default function CandidateForm({ mode }) {
