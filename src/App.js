@@ -34,6 +34,7 @@ import WithHoldTrackingForm from "./WithHoldTracking/WithHoldTrackingForm";
 import ProjectHistoryForm from "./ProjectHistory/ProjectHistoryForm";
 import VisaDetailsForm from "./VisaDetails/VisaDetailsForm";
 import CandidateForm from "./Candidates/CandidateForm";
+import TimeSheets from "./TimeSheets/TimeSheets";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -158,6 +159,7 @@ function App() {
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
+                    <Route path="/timeSheets" element={<TimeSheets />} />
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>
