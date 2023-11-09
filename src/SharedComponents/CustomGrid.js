@@ -3,7 +3,7 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 
-export default function CustomGrid({ data, columns = [], customColumns = [] }) {
+export default function CustomGrid({ data, columns, customColumns }) {
   const gridOptions = {
     domLayout: "autoWidth",
     defaultColDef: {
