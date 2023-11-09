@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, DatePicker } from "antd";
+import { Modal, DatePicker,Alert  } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Buttons from "./Buttons";
@@ -9,6 +9,8 @@ export default function EmployeeForm({ mode }) {
   const navigate = useNavigate();
   let { employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -71,9 +73,10 @@ export default function EmployeeForm({ mode }) {
     e.preventDefault();
     const success = await sendLoginDetails(emailID);
     if (success) {
-      console.log("Password reset email sent successfully.");
+      setSendDetailsSuccess(true);
+    }else {
+      setError("An error occurred");
     }
-    navigate("/");
   };
   
 
@@ -106,13 +109,24 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
+      {error && ( 
+        <Alert message={error} type="error" closable onClose={() => setError(null)} />
+      )}
+      {sendDetailsSuccess && (
+          <Alert
+            message="Login Details emailed successfully"
+            type="success"
+            showIcon
+            closable
+          />
+        )}
         {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
               <input
                 type="text"
@@ -123,7 +137,7 @@ export default function EmployeeForm({ mode }) {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="lastName">Last Name</label>
               <input
                 type="text"
@@ -134,7 +148,8 @@ export default function EmployeeForm({ mode }) {
               />
             </div>
           </div>
-          <div className="form-group">
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="emailID">Email</label>
             <input
               type="email"
@@ -147,7 +162,7 @@ export default function EmployeeForm({ mode }) {
             />
           </div>
           {mode === "add" ? (
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="dob">Date of Birth</label>
               <DatePicker
                 className="form-control"
@@ -159,7 +174,7 @@ export default function EmployeeForm({ mode }) {
               />
             </div>
           ) : (
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="DOB">Date Of Birth</label>
               <DatePicker
                 type="text"
@@ -172,7 +187,9 @@ export default function EmployeeForm({ mode }) {
               />
             </div>
           )}
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="clgOfGrad">College of Graduation</label>
             <input
               type="text"
@@ -184,7 +201,7 @@ export default function EmployeeForm({ mode }) {
               required
             />
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="phoneNo">Phone No</label>
             <input
               type="number"
@@ -196,7 +213,9 @@ export default function EmployeeForm({ mode }) {
               required
             />
           </div>
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="onBench">Working Stauts</label>
             <select
               id="onBench"
@@ -212,7 +231,7 @@ export default function EmployeeForm({ mode }) {
               <option value="OnSick">OnSick</option>
             </select>
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="securityGroup">Authorization</label>
             <select
               id="securityGroup"
@@ -228,6 +247,7 @@ export default function EmployeeForm({ mode }) {
               <option value="SALES">Sales</option>
               <option value="RECRUITER">Recruiter</option>
             </select>
+          </div>
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>

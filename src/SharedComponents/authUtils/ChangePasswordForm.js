@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { logoutUser } from "./authUtils";
+import { post } from "../httpClient ";
 
 const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -23,15 +23,8 @@ const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
       queryParams.append("userId", userId);
       queryParams.append("password", password);
 
-      const url = `${apiUrl}/auth/updatePassword?${queryParams.toString()}`;
-      const token = sessionStorage.getItem("token");
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const url = `/auth/updatePassword?${queryParams.toString()}`;
+      const response = await post(url);
 
       if (response.status === 201) {
         handleLogout();
