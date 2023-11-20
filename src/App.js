@@ -22,7 +22,6 @@ import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
 import ProspectDocument from "./ProspetEmployee/ProspectDocument";
 import CandidateList from "./Candidates/CandidateList";
-import MarketingList from "./Marketing/MarketingList";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
 import useSessionStorage from "./SharedComponents/useSessionStorage";
 import Employee from "./Employee/Employee";
@@ -153,7 +152,7 @@ function App() {
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
@@ -193,7 +192,7 @@ function App() {
                 ) : role === "RECRUITER" ? (
                   <>
                     <Route path="/" element={<RecruiterDashboard />} />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
@@ -218,7 +217,7 @@ function App() {
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
