@@ -47,6 +47,7 @@ export default function CandidateList() {
     { field: "recruiterName", label: "Recruiter Name" },
     { field: "phoneNo", label: "Phone Number" },
     { field: "emailAddress", label: "Email" },
+    { field: "company", label: "Company" },
     { field: "originalVisaStatus", label: "Visa Status" },
     { field: "marketingVisaStatus", label: "Marketing Visa"},
     { field: "comments", label: "Comments" },
@@ -107,6 +108,7 @@ export default function CandidateList() {
               <Select.Option value="firstName">First Name</Select.Option>
               <Select.Option value="lastName">Last Name</Select.Option>
               <Select.Option value="emailAddress">Email Id</Select.Option>
+              <Select.Option value="company">Company</Select.Option>
               <Select.Option value="phoneNo">Phone No</Select.Option>
               <Select.Option value="recruiterName">
                 Recruiter Name

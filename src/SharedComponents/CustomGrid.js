@@ -2,9 +2,6 @@ import React, { useCallback, useRef } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { Grid } from "antd";
-import { FiEdit2 } from "react-icons/fi";
-import { AiFillDelete } from "react-icons/ai";
 
 export default function CustomGrid({ data, columns, customColumns }) {
   const gridOptions = {
