@@ -4,11 +4,11 @@ import { FiEdit2 } from "react-icons/fi";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { useNavigate, Link } from "react-router-dom";
 import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button } from "antd";
+import { Select, Input, Button, Checkbox, InputNumber} from "antd";
 import { AiFillDelete } from "react-icons/ai";
-import { deleteCandidate, fetchCandidates } from "../SharedComponents/services/CandidateService";
+import { deleteCandidate, fetchCandidates, fetchCandidatesWithoutPagination, fetchCandidatesWithMarketing, fetchCandidatesWithMarketingAndWithouPagination} from "../SharedComponents/services/CandidateService";
 
-export default function CandidateList() {
+export default function CandidateList({ inMarketing }) {
   const navigate = useNavigate();
   const [rowData, setRowData] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -18,16 +18,39 @@ export default function CandidateList() {
   const [searchField, setSearchField] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState(true);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+  }, [currentPage, pageSize, searchQuery, searchField, pagination, inMarketing]);
 
   const fetchData = async () => {
-    const { content, totalPages } = await fetchCandidates(currentPage, pageSize, searchQuery, searchField);
-      setRowData(content);
-      setIsLoading(false);
-      setTotalPages(totalPages);
+      let result;
+
+      if(inMarketing){
+        if (pagination) {
+          result = await fetchCandidatesWithMarketing(currentPage, pageSize, searchQuery, searchField);
+
+          setRowData(result.content);
+          setIsLoading(false);
+          setTotalPages(result.totalPages);
+        } else {
+          result = await fetchCandidatesWithMarketingAndWithouPagination(searchQuery, searchField);
+          setRowData(result);
+        }
+      }
+      else{
+        if (pagination) {
+          result = await fetchCandidates(currentPage, pageSize, searchQuery, searchField);
+
+          setRowData(result.content);
+          setIsLoading(false);
+          setTotalPages(result.totalPages);
+        } else {
+          result = await fetchCandidatesWithoutPagination(searchQuery, searchField);
+          setRowData(result);
+        }
+      }
     }
 
   const handleSearch = () => {
@@ -38,6 +61,10 @@ export default function CandidateList() {
     setSearchQuery("");
     setSearchField("");
     fetchData();
+  };
+
+  const handlePageSizeChange = (value) => {
+    setPageSize(value);
   };
 
   const gridColumns = [
@@ -67,12 +94,13 @@ export default function CandidateList() {
             title="Edit Candidate"
             style={{ cursor: "pointer", marginRight: "10px" }}
           />
+          {!inMarketing?
           <AiFillDelete
             onClick={() => handleDeleteCandidate(params.data.candidateID)}
             size={20}
             title="Delete"
             style={{ cursor: "pointer" }}
-          />
+          />:null}
         </>
       ),
     },
@@ -91,7 +119,7 @@ export default function CandidateList() {
   return (
     <div className="container">
       <div className="py-4">
-        <h2>Candidates List</h2>
+        {inMarketing? <h2>InMarketing List</h2> : <h2>Candidates List</h2>}
         <div className="d-flex justify-content-end">
           <Link className="add-user-link" to="/addcandidate">
             <BsFillPersonPlusFill size={25} title="Add Candidate" />
@@ -140,11 +168,25 @@ export default function CandidateList() {
           />
         )}
       </div>
+      <div className="pagination-checkbox">
+        <Checkbox
+          checked={pagination}
+          onChange={(e) => setPagination(e.target.checked)}
+        >
+          Enable Pagination
+        </Checkbox>
+        {pagination?(
+        <><span style={{ marginLeft: 16 }}>Page Size:</span><InputNumber
+            min={1}
+            value={pageSize}
+            onChange={handlePageSizeChange} /></>):null}
+      </div>
+      {pagination?(
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
-      />
+      />):null}
     </div>
   );
 }
