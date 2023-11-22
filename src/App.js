@@ -33,6 +33,7 @@ import WithHoldTrackingForm from "./WithHoldTracking/WithHoldTrackingForm";
 import ProjectHistoryForm from "./ProjectHistory/ProjectHistoryForm";
 import VisaDetailsForm from "./VisaDetails/VisaDetailsForm";
 import CandidateForm from "./Candidates/CandidateForm";
+import TimeSheets from "./TimeSheets/TimeSheets";
 import Companies from "./Companies/Companies";
 
 function App() {
@@ -158,6 +159,7 @@ function App() {
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
+                    <Route path="/timeSheets" element={<TimeSheets />} />
                     <Route path="/companies" element={<Companies />} />
                   </>
                 ) : role === "EMPLOYEE" ? (

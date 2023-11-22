@@ -38,6 +38,11 @@ export default function SideBar() {
             </Link>
           </li>
         </ul>
+        <li className="sidebar-item">
+          <Link to="/timeSheets" className="sidebar-link">
+            TimeSheets
+          </Link>
+        </li>
       </div>
     );
   } else if (role === "SALES") {
