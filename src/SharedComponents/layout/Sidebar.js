@@ -8,11 +8,11 @@ export default function SideBar() {
     ? roleFromSessionStorage.replace(/"/g, "")
     : "";
 
-  if (role !== "RECRUITER" && role !== "SALES") {
+  if (role === "ADMIN") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
-        <li className="sidebar-item">
+          <li className="sidebar-item">
             <Link to="/companies" className="sidebar-link">
               Company Details
             </Link>
@@ -37,12 +37,12 @@ export default function SideBar() {
               Marketing List
             </Link>
           </li>
+          <li className="sidebar-item">
+            <Link to="/timeSheets" className="sidebar-link">
+              TimeSheets
+            </Link>
+          </li>
         </ul>
-        <li className="sidebar-item">
-          <Link to="/timeSheets" className="sidebar-link">
-            TimeSheets
-          </Link>
-        </li>
       </div>
     );
   } else if (role === "SALES") {
@@ -62,7 +62,7 @@ export default function SideBar() {
         </ul>
       </div>
     );
-  } else {
+  } else if(role === "RECRUITER") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">

@@ -3,6 +3,7 @@ import { Select } from "antd";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetService";
 import { get, post } from "../SharedComponents/httpClient ";
 import _ from 'lodash';
 
@@ -18,6 +19,7 @@ export default function TimeSheets() {
   const [timeSheetsOriginal, setTimeSheetsOriginal] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [status, setStatus] = useState(["APPROVED","REJECTED","PENDING"]);
 
   useEffect(() => {
     get("/employees")
@@ -34,6 +36,13 @@ export default function TimeSheets() {
         console.error("Error fetching employees:", error);
       });
   }, [apiUrl]);
+
+  useEffect(() => {
+    getTimeSheetStatus().then( data =>{
+      setStatus(data);
+      console.log(data);
+    })
+  }, []);
 
   useEffect(() => {
     if (selectedEmployee) {
@@ -64,7 +73,7 @@ export default function TimeSheets() {
         projectId: selectedProject.projectId,
       };
 
-      post("/timesheets/getAllTimeSheets", requestBody)
+      post("/timeSheets/getAllTimeSheets", requestBody)
         .then((response) => {
           const data = response.data;
           console.log(data);
@@ -80,7 +89,7 @@ export default function TimeSheets() {
             // Fill in missing dates with regular, OT hours, and day
             const filledData = datesInMonth.map((date) => {
               const dataItem = dataMap.get(date.getTime());
-              return dataItem ? { ...dataItem, __dirty: false } : { date, regularHours: 0, overTimeHours: 0, day: getAbbreviatedDay(date), __dirty: false };
+              return dataItem ? { ...dataItem, __dirty: false } : { date, regularHours: 0, overTimeHours: 0, day: getAbbreviatedDay(date), __dirty: false, status: null };
             });
 
             setTimeSheets(filledData);
@@ -103,7 +112,6 @@ export default function TimeSheets() {
       prevTimeSheets.map((record) => {
         if (record.date === data.date) {
           const updatedRecord = { ...record, [field]: newValue, __dirty: true };
-          console.log(updatedRecord); // Check the updated record
           return updatedRecord;
         }
         return record;
@@ -123,11 +131,12 @@ export default function TimeSheets() {
         sheetId: record.sheetId,
         regularHours: record.regularHours,
         overTimeHours: record.overTimeHours,
-        date: record.date.toISOString(), // Adjust date formatting if needed
+        date: record.date.toISOString(),
+        status: record.status
       }));
   
     // Submit the transformed data
-    post('/timesheets/createTimeSheet', transformedData)
+    post('/timeSheets/createTimeSheet', transformedData)
       .then((response) => {
         console.log(response);
       })
@@ -196,23 +205,21 @@ export default function TimeSheets() {
 
   const [gridOptions, setGridOptions] = useState({
     columnDefs: [
-      { headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
-      { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-      {
-        headerName: "Regular Hours",
-        field: "regularHours",
-        width: 150,
-        editable: true,
-      },
-      {
-        headerName: "Overtime Hours",
-        field: "overTimeHours",
-        width: 150,
-        editable: true,
-      },
+      {headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
+      {headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
+      {headerName: "Regular Hours", field: "regularHours", width: 150, editable: true },
+      {headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: true },
+      {headerName: "Status", field: "status", width: 120, editable: false },
+      {headerName: "Actions", field: "actions", width: 150,
+        cellRendererFramework: (params) => (
+          <div>
+            <button onClick={() => handleApprove(params.data)}>Approve</button>
+            <button onClick={() => handleReject(params.data)}>Reject</button>
+          </div>
+        ),
+      }
     ],
     defaultColDef: {
-      editable: true,
       resizable: true,
     },
     onCellValueChanged: onCellValueChanged,
@@ -275,7 +282,7 @@ export default function TimeSheets() {
         </div>
   
         <div className="input-item">
-          <label>Select Year:</label>
+          <label>Year</label>
           <Select
             style={{ width: "150px" }}
             value={selectedYear}
