@@ -3,18 +3,19 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 
-export default function CustomGrid({ data, columns, customColumns }) {
-  const gridOptions = {
-    domLayout: "autoWidth",
-    defaultColDef: {
-      headerClass: "custom-header",
-    },
-  };
+export default function CustomGrid({ data, columns, customColumns, gridOptions }) {
+  // const gridOptions = {
+  //   domLayout: "autoWidth",
+  //   defaultColDef: {
+  //     headerClass: "custom-header",
+  //   },
+  // };
 
   const gridColumns = [
     ...columns.map((column) => ({
       headerName: column.label,
       field: column.field,
+      editable: (column.editable) ? column.editable : false,
       resizable: true,
     })),
     ...customColumns.map((customColumn) => ({

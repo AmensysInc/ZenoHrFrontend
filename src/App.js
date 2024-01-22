@@ -64,7 +64,7 @@ function App() {
               {isLoggedIn &&
                 (role === "ADMIN" ||
                   role === "RECRUITER" ||
-                  role === "SALES") &&
+                  role === "SALES" || role === "EMPLOYEE") &&
                 !window.location.pathname.includes("change-password") && (
                   <Sidebar />
                 )}
@@ -177,6 +177,7 @@ function App() {
                     <Route path="/" element={<EmployeeDetails />} />
                     <Route path="/trackings" element={<Tracking />} />
                     <Route path="/withholdSheet" element={<WithHoldSheet />} />
+                    <Route path="/timeSheets" element={<TimeSheets />} />
                   </>
                 ) : role === "PROSPECT" ? (
                   <>

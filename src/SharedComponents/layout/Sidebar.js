@@ -75,4 +75,17 @@ export default function SideBar() {
       </div>
     );
   }
+  else if(role === "EMPLOYEE") {
+    return (
+      <div className="sidebar">
+        <ul className="sidebar-list">
+          <li className="sidebar-item">
+            <Link to="/timeSheets" className="sidebar-link">
+              TimeSheets
+            </Link>
+          </li>
+        </ul>
+      </div>
+    );
+  }
 }

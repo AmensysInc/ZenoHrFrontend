@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Select } from "antd";
-import { AgGridReact } from "ag-grid-react";
+import { FaCheck } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
+import CustomGrid from "../SharedComponents/CustomGrid";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetService";
@@ -21,20 +23,31 @@ export default function TimeSheets() {
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState(["APPROVED","REJECTED","PENDING"]);
 
-  useEffect(() => {
-    get("/employees")
-      .then((response) => {
-        const data = response.data;
+  const roleFromSessionStorage = sessionStorage.getItem("role");
+  const employeeIdFromSessionStorage = sessionStorage.getItem("id");
+  const role = roleFromSessionStorage
+    ? roleFromSessionStorage.replace(/"/g, "")
+    : "";
 
-        if (data && data.content && Array.isArray(data.content)) {
-          setEmployees(data.content);
-        } else {
-          console.error("API response does not contain an array:", data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching employees:", error);
-      });
+  useEffect(() => {
+    if(role === "ADMIN"){
+      get("/employees")
+        .then((response) => {
+          const data = response.data;
+
+          if (data && data.content && Array.isArray(data.content)) {
+            setEmployees(data.content);
+          } else {
+            console.error("API response does not contain an array:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching employees:", error);
+        });
+    }
+    else{
+      setSelectedEmployee(employeeIdFromSessionStorage);
+    }
   }, [apiUrl]);
 
   useEffect(() => {
@@ -149,6 +162,12 @@ export default function TimeSheets() {
       prevTimeSheets.map((record) => ({ ...record, __dirty: false }))
     );
   };
+
+  const handleCancel = () => {
+    // Reset the dirty state of the records without submitting changes
+    setTimeSheets(timeSheetsOriginal);
+    console.log(timeSheets);
+  };
   
   const monthOptions = [
     "January",
@@ -204,36 +223,109 @@ export default function TimeSheets() {
   };
 
   const [gridOptions, setGridOptions] = useState({
-    columnDefs: [
-      {headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
-      {headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-      {headerName: "Regular Hours", field: "regularHours", width: 150, editable: true },
-      {headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: true },
-      {headerName: "Status", field: "status", width: 120, editable: false },
-      {headerName: "Actions", field: "actions", width: 150,
-        cellRendererFramework: (params) => (
-          <div>
-            <button onClick={() => handleApprove(params.data)}>Approve</button>
-            <button onClick={() => handleReject(params.data)}>Reject</button>
-          </div>
-        ),
-      }
-    ],
     defaultColDef: {
       resizable: true,
     },
     onCellValueChanged: onCellValueChanged,
   });
 
-  const handleCancel = () => {
-    // Reset the dirty state of the records without submitting changes
-    setTimeSheets(timeSheetsOriginal);
-    console.log(timeSheets);
-  };
+  const columnDefs = [
+    {headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
+    {headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
+    {headerName: "Regular Hours", field: "regularHours", width: 150, editable: true },
+    {headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: true },
+    {headerName: "Status", field: "status", width: 120, editable: false }
+  ]
+
+  const customColumns = [
+    {
+      label: "",
+      field: "actions",
+      render: (params) => (
+        <>
+          <FaCheck
+            size={20}
+            title="Approve"
+            onClick={() => handleApprove(params.data)}
+            style={{ color: 'green', cursor: "pointer", marginRight: "10px" }}
+          />
+          <FaTimes
+            size={20}
+            title="Reject"
+            onClick={() => handleReject(params.data)}
+            style={{ color: 'red', cursor: "pointer" }}
+          />
+        </>
+      ),
+    },
+  ];
+
+  const handleApprove = (timeSheet) =>{
+    console.log("TiemSheet : ", timeSheet);
+    let timeSheetData = [{
+      month: selectedMonth,
+      year: selectedYear,
+      employeeId: selectedEmployee,
+      projectId: selectedProject.projectId,
+      sheetId: timeSheet.sheetId,
+      regularHours: timeSheet.regularHours,
+      overTimeHours: timeSheet.overTimeHours,
+      date: timeSheet.date.toISOString(),
+      status: "APPROVED"
+    }]
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      t.date === timeSheet.date ? { ...t, status: "APPROVED" } : t
+    );
+
+    // Update the state with the modified data
+    setTimeSheets(updatedTimeSheets);
+
+    console.log(timeSheet.sheetId);
+    post('/timeSheets/createTimeSheet', timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error('Error fetching time sheets:', error);
+      });
+  }
+
+  const handleReject = (timeSheet) =>{
+    console.log("TiemSheet : ", timeSheet);
+    let timeSheetData = [{
+      month: selectedMonth,
+      year: selectedYear,
+      employeeId: selectedEmployee,
+      projectId: selectedProject.projectId,
+      sheetId: timeSheet.sheetId,
+      regularHours: timeSheet.regularHours,
+      overTimeHours: timeSheet.overTimeHours,
+      date: timeSheet.date.toISOString(),
+      status: "REJECTED"
+    }]
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      t.date === timeSheet.date ? { ...t, status: "REJECTED" } : t
+    );
+
+    // Update the state with the modified data
+    setTimeSheets(updatedTimeSheets);
+
+    console.log(timeSheet.sheetId);
+    post('/timeSheets/createTimeSheet', timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error('Error fetching time sheets:', error);
+      });
+  }
 
   return (
-    <div className="timesheets-container" style={{ marginLeft: "200px", maxWidth: "800px", width: "100%" }}>
+    <div className="timesheets-container" style={{ marginLeft: "200px", width: "50%" }}>
       <div className="input-group">
+      {role === "ADMIN" && (
         <div className="input-item">
           <label>Employee</label>
           <Select
@@ -249,7 +341,7 @@ export default function TimeSheets() {
                 </Option>
               ))}
           </Select>
-        </div>
+        </div>)}
         <div className="input-item">
           <label>Project</label>
           <Select
@@ -298,7 +390,12 @@ export default function TimeSheets() {
       </div>
   
       <div className="ag-theme-alpine" style={{ height: "400px", width: "100%" }}>
-        <AgGridReact gridOptions={gridOptions} rowData={timeSheets}></AgGridReact>
+        <CustomGrid
+            gridOptions = {gridOptions}
+            data={timeSheets}
+            columns={columnDefs}
+            customColumns={role === "ADMIN" ? customColumns : []}
+          />
       </div>
       <button
         onClick={handleSubmit}
