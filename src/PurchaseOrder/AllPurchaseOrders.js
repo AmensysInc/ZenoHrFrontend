@@ -1,73 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { BiSolidAddToQueue } from "react-icons/bi";
-import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
-import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/services/OrderService";
 
-export default function PurchaseOrder() {
+export default function PurchaseOrders() {
+  const apiUrl = process.env.REACT_APP_API_URL;
   const [orders, setOrders] = useState([]);
-  const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
-  const navigate = useNavigate();
-  let { employeeId } = useParams();
-  
+
   useEffect(() => {
     loadOrders();
   }, [currentPage, pageSize, searchQuery, searchField]);
 
   const loadOrders = async () => {
     try {
-      const ordersData = await getOrdersForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
-      const detailsData = await getUserDetails(employeeId);
-
-      setOrders(ordersData.content);
+      const token = sessionStorage.getItem("token");
+      const searchParams = new URLSearchParams();
+      searchParams.append("page", currentPage);
+      searchParams.append("size", pageSize);
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
+      var myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      var requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow",
+      };
+      const ordersResponse = await fetch(`${apiUrl}/orders?${searchParams.toString()}`, requestOptions);
+      const ordersData = await ordersResponse.json();
+      const ordersArray = ordersData.content;
+      setOrders(ordersArray);
       setTotalPages(ordersData.totalPages);
-      setUserDetail({
-        first: detailsData.firstName,
-        last: detailsData.lastName,
-      });
     } catch (error) {
       console.error("Error loading orders:", error);
     }
-  }
-
-  const handleAddOrder = (employeeId) => {
-    navigate(`/orders/${employeeId}/addorder`);
-  };
-  const handleEditOrder = (employeeId, orderId) => {
-    navigate(`/orders/${employeeId}/${orderId}/editorder`);
   };
   const handleSearch = () => {
     loadOrders();
   };
+
   const handleClearSearch = () => {
     setSearchQuery("");
     setSearchField("");
     loadOrders();
   };
-  
+
   return (
     <div className="container">
       <div className="py-4">
-        <h4 className="text-center">
-          {userDetail.first} {userDetail.last}
-        </h4>
-        <div className="d-flex justify-content-end">
-          <button
-            className="btn btn-primary"
-            onClick={() => handleAddOrder(employeeId)}
-          >
-            <BiSolidAddToQueue size={15} />
-            Orders
-          </button>
-        </div>
-        <div className="search-container">
+      <div className="search-container">
           <div className="search-bar">
             <Select
               value={searchField}
@@ -96,6 +83,8 @@ export default function PurchaseOrder() {
           <thead>
             <tr>
               <th scope="col">S.No</th>
+              <th scope="col">First Name</th>
+              <th scope="col">Last Name</th>
               <th scope="col">Date Of Joining</th>
               <th scope="col">Project End Date</th>
               <th scope="col">Bill Rate</th>
@@ -111,17 +100,14 @@ export default function PurchaseOrder() {
                 return (
                 <tr key={userIndex}>
                   <th scope="row">{userIndex + 1}</th>
+                  <td>{employeeOrder.employeeFirstName}</td>
+                  <td>{employeeOrder.employeeLastName}</td>
                   <td>{employeeOrder.dateOfJoining}</td>
                   <td>{employeeOrder.projectEndDate}</td>
                   <td>{employeeOrder.billRate}</td>
                   <td>{employeeOrder.endClientName}</td>
                   <td>{employeeOrder.vendorPhoneNo}</td>
                   <td>{employeeOrder.vendorEmailId}</td>
-                  <td>
-                    <div className="icon-container">
-                      <FiEdit2 onClick={() => handleEditOrder(employeeId,employeeOrder.orderId)} size={20}/>
-                    </div>
-                  </td>
                 </tr>
               );
             })

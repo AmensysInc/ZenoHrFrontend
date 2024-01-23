@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import CustomGrid from "../pages/CustomGrid";
+import CustomGrid from "../SharedComponents/CustomGrid";
 import { FiEdit2 } from "react-icons/fi";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { useNavigate, Link } from "react-router-dom";
-import Pagination from "../pages/Pagination";
-import { Select, Input, Button } from "antd";
+import Pagination from "../SharedComponents/Pagination";
+import { Select, Input, Button, Checkbox, InputNumber} from "antd";
 import { AiFillDelete } from "react-icons/ai";
+import { deleteCandidate, fetchCandidates, fetchCandidatesWithoutPagination, fetchCandidatesWithMarketing, fetchCandidatesWithMarketingAndWithouPagination} from "../SharedComponents/services/CandidateService";
 
-export default function CandidateList() {
-  const apiUrl = process.env.REACT_APP_API_URL;
+export default function CandidateList({ inMarketing }) {
   const navigate = useNavigate();
   const [rowData, setRowData] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -18,43 +18,40 @@ export default function CandidateList() {
   const [searchField, setSearchField] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState(true);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+  }, [currentPage, pageSize, searchQuery, searchField, pagination, inMarketing]);
 
   const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    const searchParams = new URLSearchParams();
-    searchParams.append("page", currentPage);
-    searchParams.append("size", pageSize);
-    if (searchQuery) {
-      searchParams.append("searchField", searchField);
-      searchParams.append("searchString", searchQuery);
-    }
-    try {
-      const response = await fetch(
-        `${apiUrl}/candidates?${searchParams.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      let result;
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch data from the server");
+      if(inMarketing){
+        if (pagination) {
+          result = await fetchCandidatesWithMarketing(currentPage, pageSize, searchQuery, searchField);
+
+          setRowData(result.content);
+          setIsLoading(false);
+          setTotalPages(result.totalPages);
+        } else {
+          result = await fetchCandidatesWithMarketingAndWithouPagination(searchQuery, searchField);
+          setRowData(result);
+        }
       }
-      const responseData = await response.json();
-      setRowData(responseData.content);
-      setIsLoading(false);
-      setTotalPages(responseData.totalPages);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      else{
+        if (pagination) {
+          result = await fetchCandidates(currentPage, pageSize, searchQuery, searchField);
+
+          setRowData(result.content);
+          setIsLoading(false);
+          setTotalPages(result.totalPages);
+        } else {
+          result = await fetchCandidatesWithoutPagination(searchQuery, searchField);
+          setRowData(result);
+        }
+      }
     }
-  };
 
   const handleSearch = () => {
     fetchData();
@@ -66,6 +63,10 @@ export default function CandidateList() {
     fetchData();
   };
 
+  const handlePageSizeChange = (value) => {
+    setPageSize(value);
+  };
+
   const gridColumns = [
     { field: "firstName", label: "First Name", resizable: true},
     { field: "lastName", label: "Last Name" },
@@ -73,6 +74,7 @@ export default function CandidateList() {
     { field: "recruiterName", label: "Recruiter Name" },
     { field: "phoneNo", label: "Phone Number" },
     { field: "emailAddress", label: "Email" },
+    { field: "company", label: "Company" },
     { field: "originalVisaStatus", label: "Visa Status" },
     { field: "marketingVisaStatus", label: "Marketing Visa"},
     { field: "comments", label: "Comments" },
@@ -92,12 +94,13 @@ export default function CandidateList() {
             title="Edit Candidate"
             style={{ cursor: "pointer", marginRight: "10px" }}
           />
+          {!inMarketing?
           <AiFillDelete
             onClick={() => handleDeleteCandidate(params.data.candidateID)}
             size={20}
             title="Delete"
             style={{ cursor: "pointer" }}
-          />
+          />:null}
         </>
       ),
     },
@@ -107,27 +110,17 @@ export default function CandidateList() {
     navigate(`/editcandidate/${candidateID}`);
   };
   const handleDeleteCandidate = async (candidateID) => {
-    try {
-      const token = localStorage.getItem("token");
-      const requestOptions = {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await fetch(`${apiUrl}/candidates/${candidateID}`, requestOptions);
+    const success = await deleteCandidate(candidateID);
+    if (success) {
       fetchData();
-    } catch (error) {
-      console.error("Error deleting employee:", error);
     }
   };
 
   return (
     <div className="container">
       <div className="py-4">
-        <h2>Candidates List</h2>
-        <div className="add-orders d-flex justify-content-end">
+        {inMarketing? <h2>InMarketing List</h2> : <h2>Candidates List</h2>}
+        <div className="d-flex justify-content-end">
           <Link className="add-user-link" to="/addcandidate">
             <BsFillPersonPlusFill size={25} title="Add Candidate" />
           </Link>
@@ -143,6 +136,7 @@ export default function CandidateList() {
               <Select.Option value="firstName">First Name</Select.Option>
               <Select.Option value="lastName">Last Name</Select.Option>
               <Select.Option value="emailAddress">Email Id</Select.Option>
+              <Select.Option value="company">Company</Select.Option>
               <Select.Option value="phoneNo">Phone No</Select.Option>
               <Select.Option value="recruiterName">
                 Recruiter Name
@@ -174,11 +168,25 @@ export default function CandidateList() {
           />
         )}
       </div>
+      <div className="pagination-checkbox">
+        <Checkbox
+          checked={pagination}
+          onChange={(e) => setPagination(e.target.checked)}
+        >
+          Enable Pagination
+        </Checkbox>
+        {pagination?(
+        <><span style={{ marginLeft: 16 }}>Page Size:</span><InputNumber
+            min={1}
+            value={pageSize}
+            onChange={handlePageSizeChange} /></>):null}
+      </div>
+      {pagination?(
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
-      />
+      />):null}
     </div>
   );
 }

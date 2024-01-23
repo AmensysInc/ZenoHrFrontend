@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../pages/Home.css";
+import "./WithHoldSheet.css";
 import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/js/plugins.pkgd.min.js";
 import FroalaEditorView from "react-froala-wysiwyg";
@@ -8,8 +8,8 @@ import FroalaEditorView from "react-froala-wysiwyg";
 const Tracking = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
-  const employeeId = localStorage.getItem("id");
-  const token = localStorage.getItem("token");
+  const employeeId = sessionStorage.getItem("id");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetchTrackings();
@@ -59,12 +59,10 @@ const Tracking = () => {
         ) : (
         <table className="table border shadow">
           <tbody>
-            {trackings.map((tracking, index) => (
-              <tr key={index}>
-                <td>{index + 1}</td>
+            {trackings.map((tracking) => (
+              <tr>
                 <div>
                   <label htmlFor="editorHtml"></label>
-
                   <FroalaEditorView
                     contenteditable="false"
                     model={tracking.excelData}

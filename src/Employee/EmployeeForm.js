@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Modal, DatePicker } from "antd";
+import { Modal, DatePicker, Alert } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import Buttons from "./Buttons";
+import {
+  createEmployee,
+  fetchEmployeeDataById,
+  sendLoginDetails,
+  updateEmployee,
+} from "../SharedComponents/services/EmployeeServices";
+import { fetchCompanies } from "../SharedComponents/services/CompaniesServies";
 
 export default function EmployeeForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { employeeId } = useParams();
+  const [companies, setCompanies] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -21,6 +31,7 @@ export default function EmployeeForm({ mode }) {
     email: "",
     securityGroup: "",
     password: "",
+    company: "",
   });
 
   const {
@@ -34,55 +45,38 @@ export default function EmployeeForm({ mode }) {
     email,
     securityGroup,
     password,
+    company,
   } = employee;
 
   useEffect(() => {
+    const fetchData = async () => {
+      const companyData = await fetchCompanies();
+      setCompanies(companyData);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     if (mode === "edit" && employeeId) {
-      const fetchEmployeeData = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const requestOptions = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
-
-          const response = await fetch(
-            `${apiUrl}/employees/${employeeId}`,
-            requestOptions
-          );
-
-          if (response.status === 200) {
-            const employeeData = await response.json();
-            setEmployee(employeeData);
-          }
-        } catch (error) {
-          console.error("Error fetching employee data:", error);
+      const fetchData = async () => {
+        const employeeData = await fetchEmployeeDataById(employeeId);
+        if (employeeData) {
+          setEmployee(employeeData);
         }
       };
-      fetchEmployeeData();
+      fetchData();
     }
   }, [mode, employeeId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
-
     try {
-      const requestOptions = {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(employee),
-      };
+      const success =
+        mode === "edit"
+          ? await updateEmployee(employeeId, employee)
+          : await createEmployee(employee);
 
-      const response = await fetch(
-        `${apiUrl}/employees${mode === "edit" ? `/${employeeId}` : ""}`,
-        requestOptions
-      );
-
-      if (response.status === 200 || response.status === 201) {
+      if (success) {
         showModal();
       }
     } catch (error) {
@@ -92,26 +86,15 @@ export default function EmployeeForm({ mode }) {
       );
     }
   };
-  
+
   const handleSendDetails = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`${apiUrl}/auth/resetPassword`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailID }),
-      });
-      if (response.ok) {
-        console.log("Password reset email sent successfully.");
-      } else {
-        console.error("Password reset request failed.");
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
+    const success = await sendLoginDetails(emailID);
+    if (success) {
+      setSendDetailsSuccess(true);
+    } else {
+      setError("An error occurred");
     }
-    navigate("/");
   };
 
   const showModal = () => {
@@ -131,8 +114,11 @@ export default function EmployeeForm({ mode }) {
   const onInputChange = (e) => {
     setEmployee({ ...employee, [e.target.name]: e.target.value });
   };
+
   const onInputChangeDate = (date, name) => {
-    setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    if (date) {
+      setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+    }
   };
 
   const isEditMode = mode === "edit";
@@ -140,12 +126,29 @@ export default function EmployeeForm({ mode }) {
   return (
     <div>
       <div className="form-container">
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            closable
+            onClose={() => setError(null)}
+          />
+        )}
+        {sendDetailsSuccess && (
+          <Alert
+            message="Login Details emailed successfully"
+            type="success"
+            showIcon
+            closable
+          />
+        )}
+        {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
               <input
                 type="text"
@@ -156,7 +159,7 @@ export default function EmployeeForm({ mode }) {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="lastName">Last Name</label>
               <input
                 type="text"
@@ -167,110 +170,138 @@ export default function EmployeeForm({ mode }) {
               />
             </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="emailID">Email</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Email Address"
-              name="emailID"
-              value={emailID}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-          {mode === "add" ? (
-            <div className="form-group">
-              <label htmlFor="dob">Date of Birth</label>
-              <DatePicker
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label htmlFor="emailID">Email</label>
+              <input
+                type="email"
                 className="form-control"
-                value={dob}
-                onChange={(date) =>
-                  onInputChange({ target: { name: "dob", value: date } })
-                }
+                placeholder="Email Address"
+                name="emailID"
+                value={emailID}
+                onChange={(e) => onInputChange(e)}
                 required
               />
             </div>
-          ) : (
-            <div className="form-group">
-              <label htmlFor="DOB">Date Of Birth</label>
-              <DatePicker
+            {mode === "add" ? (
+              <div className="form-group col-md-6">
+                <label htmlFor="dob">Date of Birth</label>
+                <DatePicker
+                  className="form-control"
+                  value={dob}
+                  onChange={(date) =>
+                    onInputChange({ target: { name: "dob", value: date } })
+                  }
+                  required
+                />
+              </div>
+            ) : (
+              <div className="form-group col-md-6">
+                <label htmlFor="DOB">Date Of Birth</label>
+                <DatePicker
+                  type="text"
+                  className="form-control"
+                  placeholder="Date of Birth"
+                  name="dob"
+                  value={dayjs(dob)}
+                  onChange={(date) => onInputChangeDate(date, "dob")}
+                  required
+                />
+              </div>
+            )}
+          </div>
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label htmlFor="clgOfGrad">College of Graduation</label>
+              <input
                 type="text"
                 className="form-control"
-                placeholder="Date of Birth"
-                name="dob"
-                value={dayjs(dob)}
-                onChange={(date) => onInputChangeDate(date, "dob")}
+                placeholder="College of Graduation"
+                name="clgOfGrad"
+                value={clgOfGrad}
+                onChange={(e) => onInputChange(e)}
                 required
               />
             </div>
-          )}
-          <div className="form-group">
-            <label htmlFor="clgOfGrad">College of Graduation</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="clgOfGrad"
-              name="clgOfGrad"
-              value={clgOfGrad}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
+            <div className="form-group col-md-6">
+              <label htmlFor="phoneNo">Phone No</label>
+              <input
+                type="number"
+                className="form-control"
+                placeholder="Phone no"
+                name="phoneNo"
+                value={phoneNo}
+                onChange={(e) => onInputChange(e)}
+                required
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="phoneNo">Phone No</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Phone no"
-              name="phoneNo"
-              value={phoneNo}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label htmlFor="onBench">Working Stauts</label>
+              <select
+                id="onBench"
+                name="onBench"
+                value={onBench}
+                onChange={(e) => onInputChange(e)}
+                required
+              >
+                <option value="">-- Select --</option>
+                <option value="Working">onBench</option>
+                <option value="OnProject">OnProject</option>
+                <option value="OnVacation">OnVacation</option>
+                <option value="OnSick">OnSick</option>
+              </select>
+            </div>
+            <div className="form-group col-md-6">
+              <label htmlFor="securityGroup">Authorization</label>
+              <select
+                id="securityGroup"
+                name="securityGroup"
+                value={securityGroup}
+                onChange={(e) => onInputChange(e)}
+                required
+              >
+                <option value="">-- Select --</option>
+                <option value="ADMIN">Admin</option>
+                <option value="EMPLOYEE">Employee</option>
+                <option value="PROSPECT">Prospect</option>
+                <option value="SALES">Sales</option>
+                <option value="RECRUITER">Recruiter</option>
+              </select>
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="onBench">Working Stauts</label>
-            <select
-              id="onBench"
-              name="onBench"
-              value={onBench}
-              onChange={(e) => onInputChange(e)}
-              required
-            >
-              <option value="">-- Select --</option>
-              <option value="Working">onBench</option>
-              <option value="OnProject">OnProject</option>
-              <option value="OnVacation">OnVacation</option>
-              <option value="OnSick">OnSick</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="securityGroup">Authorization</label>
-            <select
-              id="securityGroup"
-              name="securityGroup"
-              value={securityGroup}
-              onChange={(e) => onInputChange(e)}
-              required
-            >
-              <option value="">-- Select --</option>
-              <option value="ADMIN">Admin</option>
-              <option value="EMPLOYEE">Employee</option>
-              <option value="PROSPECT">Prospect</option>
-              <option value="SALES">Sales</option>
-              <option value="RECRUITER">Recruiter</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="password"
-              value={password}
-              onChange={(e) => onInputChange(e)}
-            />
+          <div className="form-row">
+            <div className="form-group col-md-6">
+              <label htmlFor="company">Company</label>
+              <select
+                className="form-control"
+                name="company"
+                value={company}
+                onChange={(e) => onInputChange(e)}
+              >
+                <option value="">-- Select --</option>
+                {Array.isArray(companies) &&
+                  companies.map((companyData) => (
+                    <option
+                      key={companyData.employeeID}
+                      value={companyData.companyName}
+                    >
+                      {companyData.companyName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="form-group col-md-6">
+              <label htmlFor="password">Password</label>
+              <input
+                type={"text"}
+                className="form-control"
+                name="password"
+                value={password}
+                onChange={(e) => onInputChange(e)}
+              />
+            </div>
           </div>
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}

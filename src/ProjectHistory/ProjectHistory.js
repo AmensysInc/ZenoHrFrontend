@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
-import Pagination from "../pages/Pagination";
+import Pagination from "../SharedComponents/Pagination";
 import { Select, Input , Button } from "antd";
+import { getUserDetails } from "../SharedComponents/services/OrderService";
+import { getProjectsForEmployee } from "../SharedComponents/services/ProjectHistoryService";
 
 export default function ProjectHistory() {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const [projectHistory, setProjectHistory] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
@@ -23,7 +24,6 @@ export default function ProjectHistory() {
 
   const fetchProjectHistory = async () => {
     try {
-      const token = localStorage.getItem("token");
       const searchParams = new URLSearchParams();
       searchParams.append("page", currentPage);
       searchParams.append("size", pageSize);
@@ -31,29 +31,14 @@ export default function ProjectHistory() {
         searchParams.append("searchField", searchField);
         searchParams.append("searchString", searchQuery);
       }
-      var myHeaders = new Headers();
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      var requestOptions = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow",
-      };
-      const projectHistoryResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}/projects?${searchParams.toString()}`,
-        requestOptions
-      );
-      const detailsResponse = await fetch(
-        `${apiUrl}/employees/${employeeId}`,
-        requestOptions
-      );
-      const projectHistoryData = await projectHistoryResponse.json();
-      const detailsData = await detailsResponse.json();
+      const detailsData = await getUserDetails(employeeId);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
       });
-      setProjectHistory(projectHistoryData.content);
-      setTotalPages(projectHistoryData.totalPages);
+      const projectData = await getProjectsForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
+      setProjectHistory(projectData.content);
+      setTotalPages(projectData.totalPages);
     } catch (error) {
       console.error("Error loading projects:", error);
     }
@@ -82,7 +67,7 @@ export default function ProjectHistory() {
         <h4 className="text-center">
           {userDetail.first} {userDetail.last}
         </h4>
-        <div className="add-orders d-flex justify-content-start">
+        <div className="d-flex justify-content-end">
           <button
             className="btn btn-primary"
             onClick={() => handleAddProject(employeeId)}
