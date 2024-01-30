@@ -37,12 +37,27 @@ export default function SideBar() {
               Marketing List
             </Link>
           </li>
-        </ul>
-        <li className="sidebar-item">
+          <li className="sidebar-item">
           <Link to="/timeSheets" className="sidebar-link">
             TimeSheets
           </Link>
         </li>
+        <li className="sidebar-item">
+            <Link to="/email" className="sidebar-link">
+              Send Email
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/contacts" className="sidebar-link">
+              Contacts
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/bulkemail" className="sidebar-link">
+              Bulk Email
+            </Link>
+          </li>
+        </ul>
       </div>
     );
   } else if (role === "SALES") {
@@ -69,6 +84,21 @@ export default function SideBar() {
           <li className="sidebar-item">
             <Link to="/marketing" className="sidebar-link">
               Marketing List
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/contacts" className="sidebar-link">
+              Contacts
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/email" className="sidebar-link">
+              Send Email
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/bulkemail" className="sidebar-link">
+              Bulk Email
             </Link>
           </li>
         </ul>
