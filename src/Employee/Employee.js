@@ -29,7 +29,6 @@ export default function Employee() {
     setTotalPages(totalPages);
   };
   
-  
   const handleDeleteEmployee = async (employeeId) => {
     const success = await deleteEmployee(employeeId);
     if (success) {
@@ -84,6 +83,7 @@ export default function Employee() {
               <Select.Option value="firstName">First Name</Select.Option>
               <Select.Option value="lastName">Last Name</Select.Option>
               <Select.Option value="emailID">Email Id</Select.Option>
+              <Select.Option value="company">Company</Select.Option>
               <Select.Option value="phoneNo">Phone No</Select.Option>
               <Select.Option value="onBench">Working Status</Select.Option>
             </Select>
@@ -104,6 +104,7 @@ export default function Employee() {
               <th scope="col">FirstName</th>
               <th scope="col">LastName</th>
               <th scope="col">EmailID</th>
+              <th scope="col">Company</th>
               <th scope="col">Phone No</th>
               <th scope="col">Working Status</th>
             </tr>
@@ -118,6 +119,7 @@ export default function Employee() {
                     <td>{employee.firstName}</td>
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
+                    <td>{employee.company}</td>
                     <td>{employee.phoneNo}</td>
                     <td>{employee.onBench}</td>
                     <td>

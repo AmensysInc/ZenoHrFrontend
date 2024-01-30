@@ -22,7 +22,6 @@ import ProspetEmployee from "./ProspetEmployee/ProspetEmployee";
 import AddProspectEmployee from "./ProspetEmployee/AddProspectEmployee";
 import ProspectDocument from "./ProspetEmployee/ProspectDocument";
 import CandidateList from "./Candidates/CandidateList";
-import MarketingList from "./Marketing/MarketingList";
 import RecruiterDashboard from "./Recruiter/RecruiterDashboard";
 import useSessionStorage from "./SharedComponents/useSessionStorage";
 import Employee from "./Employee/Employee";
@@ -68,7 +67,7 @@ function App() {
               {isLoggedIn &&
                 (role === "ADMIN" ||
                   role === "RECRUITER" ||
-                  role === "SALES") &&
+                  role === "SALES" || role === "EMPLOYEE") &&
                 !window.location.pathname.includes("change-password") && (
                   <Sidebar />
                 )}
@@ -158,7 +157,7 @@ function App() {
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
@@ -186,6 +185,7 @@ function App() {
                     <Route path="/" element={<EmployeeDetails />} />
                     <Route path="/trackings" element={<Tracking />} />
                     <Route path="/withholdSheet" element={<WithHoldSheet />} />
+                    <Route path="/timeSheets" element={<TimeSheets />} />
                   </>
                 ) : role === "PROSPECT" ? (
                   <>
@@ -210,7 +210,7 @@ function App() {
                     <Route path="/addcontact" element={<ContactForm mode= "add" />} />
                     <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
                     <Route path="/" element={<RecruiterDashboard />} />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
@@ -235,7 +235,7 @@ function App() {
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<MarketingList />} />
+                    <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}

@@ -22,6 +22,24 @@ export async function fetchCandidates(currentPage, pageSize, searchQuery, search
   return { content: [], totalPages: 0 };
 }
 
+export async function fetchCandidatesWithoutPagination(searchQuery, searchField) {
+  try {
+    const searchParams = new URLSearchParams();
+    if (searchQuery) {
+      searchParams.append("searchField", searchField);
+      searchParams.append("searchString", searchQuery);
+    }
+    const response = await get(`/candidates?${searchParams.toString()}`);
+    if (response.status === 200) {
+      const data = response.data;
+      return data; 
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+  return { content: [], totalPages: 0 };
+}
+
 export async function fetchCandidatesWithMarketing(currentPage, pageSize, searchQuery, searchField) {
     try {
       const searchParams = new URLSearchParams();
@@ -36,6 +54,24 @@ export async function fetchCandidatesWithMarketing(currentPage, pageSize, search
         const data = response.data;
         const { content, totalPages } = data;
         return { content, totalPages }; 
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+    return { content: [], totalPages: 0 };
+  }
+
+  export async function fetchCandidatesWithMarketingAndWithouPagination(searchQuery, searchField) {
+    try {
+      const searchParams = new URLSearchParams();
+      if (searchQuery) {
+        searchParams.append("searchField", searchField);
+        searchParams.append("searchString", searchQuery);
+      }
+      const response = await get(`/candidates/inMarketing?${searchParams.toString()}`);
+      if (response.status === 200) {
+        const data = response.data;
+        return data; 
       }
     } catch (error) {
       console.error("Error fetching data:", error);

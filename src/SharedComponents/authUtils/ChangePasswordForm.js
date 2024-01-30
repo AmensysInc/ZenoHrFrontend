@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { logoutUser } from "./authUtils";
-import { post } from "../httpClient ";
+import { logoutUser, updatePassword } from "./authUtils";
 
 const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
   const [password, setPassword] = useState("");
@@ -17,22 +16,14 @@ const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
       setErrorMessage("Passwords do not match.");
       return;
     }
+
     try {
       const userId = sessionStorage.getItem("id");
-      const queryParams = new URLSearchParams();
-      queryParams.append("userId", userId);
-      queryParams.append("password", password);
+      await updatePassword(userId, password);
 
-      const url = `/auth/updatePassword?${queryParams.toString()}`;
-      const response = await post(url);
-
-      if (response.status === 201) {
-        handleLogout();
-      } else {
-        setErrorMessage("Failed to update password.");
-      }
+      handleLogout();
     } catch (error) {
-      console.error("Error updating password:", error);
+      setErrorMessage(error.message);
     }
   };
 

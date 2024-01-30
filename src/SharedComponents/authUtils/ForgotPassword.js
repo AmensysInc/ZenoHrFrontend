@@ -33,7 +33,7 @@ export default function ForgotPassword() {
       )}
       {sendDetailsSuccess && (
           <Alert
-            message="Login Details emailed successfully"
+            message="Temporary password Details emailed successfully"
             type="success"
             closable
             onClose={onClose}

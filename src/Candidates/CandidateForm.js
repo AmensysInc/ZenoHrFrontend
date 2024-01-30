@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Modal } from "antd";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { createCandidate, fetchCandidateById, fetchRecruiters, updateCandidates } from "../SharedComponents/services/CandidateService";
-import { get } from "../SharedComponents/httpClient ";
+import { fetchCompanies } from "../SharedComponents/services/CompaniesServies";
+
 
 export default function CandidateForm({ mode }) {
-  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   let { candidateID } = useParams();
   const [recruiters, setRecruiters] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     emailAddress: "",
     recruiterName: "",
+    company: "",
     skills: "",
     phoneNo: "",
     university: "",
@@ -27,12 +28,14 @@ export default function CandidateForm({ mode }) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { firstName, lastName, emailAddress, recruiterName, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
+  const { firstName, lastName, emailAddress, recruiterName, company, skills, phoneNo, university, originalVisaStatus, marketingVisaStatus, comments, candidateStatus, reference} = user;
 
   useEffect(() => {
     const fetchData = async () => {
       const recruiterData = await fetchRecruiters();
       setRecruiters(recruiterData);
+      const companyData = await fetchCompanies();
+      setCompanies(companyData);
     };
     fetchData();
   }, []);
@@ -95,7 +98,7 @@ export default function CandidateForm({ mode }) {
         </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
               <input
                 type="text"
@@ -106,7 +109,7 @@ export default function CandidateForm({ mode }) {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="lastName">Last Name</label>
               <input
                 type="text"
@@ -118,7 +121,8 @@ export default function CandidateForm({ mode }) {
               />
             </div>
           </div>
-          <div className="form-group">
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="emailAddress">Email</label>
             <input
               type="email"
@@ -130,14 +134,13 @@ export default function CandidateForm({ mode }) {
               required
             />
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="recruiterName">Recruiter Name</label>
             <select
               className="form-control"
               name="recruiterName"
               value={recruiterName}
               onChange={(e) => onInputChange(e)}
-              
             >
               <option value="">-- Select --</option>
               {Array.isArray(recruiters) &&
@@ -151,7 +154,29 @@ export default function CandidateForm({ mode }) {
                 ))}
             </select>
           </div>
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
+              <label htmlFor="company">Company</label>
+              <select
+                className="form-control"
+                name="company"
+                value={company}
+                onChange={(e) => onInputChange(e)}
+              >
+                <option value="">-- Select --</option>
+                {Array.isArray(companies) &&
+                  companies.map((companyData) => (
+                    <option
+                      key={companyData.employeeID}
+                      value={companyData.companyName}
+                    >
+                      {companyData.companyName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          <div className="form-group col-md-6">
             <label htmlFor="skills">Skills</label>
             <input
               type="text"
@@ -163,7 +188,9 @@ export default function CandidateForm({ mode }) {
               required
             />
           </div>
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="phone">Phone No</label>
             <input
               type="number"
@@ -175,7 +202,7 @@ export default function CandidateForm({ mode }) {
               required
             />
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="clgOfGrad">University</label>
             <input
               type="text"
@@ -186,7 +213,9 @@ export default function CandidateForm({ mode }) {
               onChange={(e) => onInputChange(e)}
             />
           </div>
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="originalVisaStatus">Visa Status</label>
             <input
               type={"text"}
@@ -197,7 +226,7 @@ export default function CandidateForm({ mode }) {
               onChange={(e) => onInputChange(e)}
             />
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="marketingVisaStatus">Marketing Visa</label>
             <input
               type={"text"}
@@ -207,7 +236,9 @@ export default function CandidateForm({ mode }) {
               onChange={(e) => onInputChange(e)}
             />
           </div>
-          <div className="form-group">
+          </div>
+          <div className="form-row">
+          <div className="form-group col-md-6">
             <label htmlFor="comments">Comments</label>
             <input
               type={"text"}
@@ -217,7 +248,7 @@ export default function CandidateForm({ mode }) {
               onChange={(e) => onInputChange(e)}
             />
           </div>
-          <div className="form-group">
+          <div className="form-group col-md-6">
             <label htmlFor="candidateStatus">Candidate Status</label>
             <select
               id="candidateStatus"
@@ -237,6 +268,7 @@ export default function CandidateForm({ mode }) {
                 Resigned from company
               </option>
             </select>
+          </div>
           </div>
           <div className="form-group">
             <label htmlFor="reference">Reference</label>
