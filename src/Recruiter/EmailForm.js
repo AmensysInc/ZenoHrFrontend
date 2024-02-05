@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect,useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import InputLabel from "@mui/material/InputLabel";
@@ -11,12 +11,11 @@ import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "froala-editor/js/froala_editor.pkgd.min.js";
-import "froala-editor/css/froala_style.min.css";
-import "froala-editor/css/froala_editor.pkgd.min.css";
-import "font-awesome/css/font-awesome.css";
-import FroalaEditor from "react-froala-wysiwyg";
 import { Modal } from "antd";
+import FroalaEditor from "react-froala-wysiwyg";
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import "froala-editor/js/plugins.pkgd.min.js";
+import htmlToFormattedText from "html-to-formatted-text";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -29,7 +28,7 @@ const MenuProps = {
   },
 };
 
-export default function  EmailForm() {
+export default function EmailForm() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [fromEmail, setFromEmail] = useState("");
@@ -38,39 +37,36 @@ export default function  EmailForm() {
   const [bcc, setBcc] = useState([]);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [plainText, setPlainText] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
   const [email, setEmail] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [selectAllCc, setSelectAllCc] = useState(false);
   const [selectAllBcc, setSelectAllBcc] = useState(false);
-  const [tableData, setTableData] = useState([]); 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [attachment, setAttachment] = useState(null);
 
   useEffect(() => {
     const fetchEmails = async () => {
       try {
         const token = sessionStorage.getItem("token");
         const recruiterId = sessionStorage.getItem("id");
-        const response = await axios.get(
-          `${apiUrl}/bulkmails/${recruiterId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.get(`${apiUrl}/bulkmails/${recruiterId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setEmail(response.data.map((emailObject) => emailObject.email));
       } catch (error) {
         console.error("Error fetching emails:", error);
       }
     };
-  
+
     fetchEmails();
   }, []);
-  
 
   const handleSelectAll = () => {
-    console.log('select all to');
+    console.log("select all to");
     if (selectAll) {
       setTo([]);
     } else {
@@ -80,7 +76,7 @@ export default function  EmailForm() {
   };
 
   const handleSelectAllCc = () => {
-    console.log('select all cc');
+    console.log("select all cc");
     if (selectAllCc) {
       setCc([]);
     } else {
@@ -128,36 +124,28 @@ export default function  EmailForm() {
     setBcc(typeof value === "string" ? value.split(",") : value);
   };
 
-  const handleManualEntry = (event, recipientType) => {
-    const {
-      target: { value },
-    } = event;
-    if (recipientType === 'to') {
-      setTo(value.split(','));
-    } else if (recipientType === 'cc') {
-      setCc(value.split(','));
-    } else if (recipientType === 'bcc') {
-      setBcc(value.split(','));
-    }
-  };
-
   const handleSubjectChange = (event) => {
     setSubject(event.target.value);
   };
-  
-  const handleEditorChange = (html) => {
-    setBody(html);
+
+  const handleEditorChange = (newContent) => {
+    setBody(newContent);
+    setIsDirty(true);
   };
 
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData("text");
+  const htmlToText = useCallback((html) => {
+    return htmlToFormattedText(html);
+  }, []);
 
-    if (pasteData) {
-      const rows = pasteData.split("\n");
-      const parsedData = rows.map((row) => row.split("\t"));
-      setTableData(parsedData);
+  useEffect(() => {
+    if (isDirty) {
+      setPlainText(htmlToText(body));
+      setIsDirty(false);
     }
+  }, [body, isDirty, htmlToText]);
+
+  const handleAttachmentChange = (e) => {
+    setAttachment(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -165,48 +153,67 @@ export default function  EmailForm() {
     const token = sessionStorage.getItem("token");
     const allEmails = [...to, ...cc, ...bcc];
 
-  const uniqueEmails = [...new Set(allEmails)]; 
+    const uniqueEmails = [...new Set(allEmails)];
 
-  const uniqueTo = [];
-  const uniqueCc = [];
-  const uniqueBcc = [];
+    const uniqueTo = [];
+    const uniqueCc = [];
+    const uniqueBcc = [];
 
-  uniqueEmails.forEach(email => {
-    if (to.includes(email)) {
-      uniqueTo.push(email);
-    } else if (cc.includes(email)) {
-      uniqueCc.push(email); 
-    } else {
-      uniqueBcc.push(email);
+    uniqueEmails.forEach((email) => {
+      if (to.includes(email)) {
+        uniqueTo.push(email);
+      } else if (cc.includes(email)) {
+        uniqueCc.push(email);
+      } else {
+        uniqueBcc.push(email);
+      }
+    });
+
+    setTo(uniqueTo);
+    setCc(uniqueCc);
+    setBcc(uniqueBcc);
+
+    // const emailRequest = {
+    //   fromEmail: fromEmail,
+    //   toList: uniqueTo,
+    //   ccList: uniqueCc,
+    //   bccList: uniqueBcc,
+    //   subject: subject,
+    //   body: plainText,
+    // };
+    const emailRequest = new FormData();
+    emailRequest.append("fromEmail", fromEmail);
+    emailRequest.append("subject", subject);
+    emailRequest.append("body", plainText);
+    if (attachment) {
+      emailRequest.append("attachment", attachment);
     }
-  });
 
-  setTo(uniqueTo);
-  setCc(uniqueCc);
-  setBcc(uniqueBcc);
+    uniqueTo.forEach((email) => {
+      emailRequest.append("toList", email);
+    });
 
-  const emailRequest = {
-    fromEmail: fromEmail,
-    toList: uniqueTo, 
-    ccList: uniqueCc,
-    bccList: uniqueBcc,
-    subject: subject,
-    body: body
-  };
-    
+    uniqueCc.forEach((email) => {
+      emailRequest.append("ccList", email);
+    });
+
+    uniqueBcc.forEach((email) => {
+      emailRequest.append("bccList", email);
+    });
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/email/send`,
-        emailRequest,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.status === 200 || response.status === 201 || response.status === 202) {
-        showModal(); 
+      const response = await axios.post(`${apiUrl}/email/send`, emailRequest, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (
+        response.status === 200 ||
+        response.status === 201 ||
+        response.status === 202
+      ) {
+        showModal();
       }
     } catch (error) {
       console.error("Error sending email:", error);
@@ -225,32 +232,29 @@ export default function  EmailForm() {
 
   const handleOk = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/email");
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/email");
   };
 
   return (
     <div className="container mt-4">
       <div className="row">
         <div className="col-md-8 offset-md-2">
-        <div className="form-group">
-        {/* <FormControl sx={{ m: 1, width: 500 }}>
-          <TextField
-            id="fromEmail"
-            label="From"
-            variant="outlined"
-            value={fromEmail}
-            onChange={handleChangeFrom} 
-          />
-        </FormControl> */}
-        <FormControl sx={{ m: 1, width: 500 }}>
-        <TextField id="fromEmail" label="From" variant="standard" value={fromEmail} onChange={handleChangeFrom} />
-        </FormControl>
-      </div>
+          <div className="form-group">
+            <FormControl sx={{ m: 1, width: 500 }}>
+              <TextField
+                id="fromEmail"
+                label="From"
+                variant="standard"
+                value={fromEmail}
+                onChange={handleChangeFrom}
+              />
+            </FormControl>
+          </div>
           <FormControl sx={{ m: 1, width: 500 }}>
             <InputLabel id="demo-multiple-checkbox-label">To</InputLabel>
             <Select
@@ -289,7 +293,10 @@ export default function  EmailForm() {
                 MenuProps={MenuProps}
               >
                 <MenuItem key="SelectAllCc" value="SelectAllCc">
-                  <Checkbox checked={selectAllCc} onChange={handleSelectAllCc} />
+                  <Checkbox
+                    checked={selectAllCc}
+                    onChange={handleSelectAllCc}
+                  />
                   <ListItemText primary="Select All" />
                 </MenuItem>
                 {email.map((emails) => (
@@ -315,7 +322,10 @@ export default function  EmailForm() {
                 MenuProps={MenuProps}
               >
                 <MenuItem key="SelectAllBcc" value="SelectAllBcc">
-                  <Checkbox checked={selectAllBcc} onChange={handleSelectAllBcc} />
+                  <Checkbox
+                    checked={selectAllBcc}
+                    onChange={handleSelectAllBcc}
+                  />
                   <ListItemText primary="Select All" />
                 </MenuItem>
                 {email.map((emails) => (
@@ -339,23 +349,32 @@ export default function  EmailForm() {
             </FormControl>
           </div>
           <div className="form-group">
-          <FormControl sx={{ m: 1, width: 500 }} className="froala-editor-container">
-            <FroalaEditor
+            {/* <FroalaEditor
               model={body}
               onModelChange={handleEditorChange}
               onPaste={handlePaste}
-              config={{
-                height: 400,
-              }}
+            /> */}
+            <FroalaEditor
+              model={body}
+              onModelChange={handleEditorChange}
             />
-            </FormControl>
+          </div>
+          <div className="form-group">
+            <label htmlFor="attachment">Attachment:</label>
+            <input
+              type="file"
+              id="attachment"
+              name="attachment"
+              accept=".pdf, .jpg, .jpeg"
+              onChange={handleAttachmentChange}
+            />
           </div>
           <Button variant="outlined" onClick={handleSubmit}>
             Submit
           </Button>
           <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-          <p>Mail sent successfully</p>
-        </Modal>
+            <p>Mail sent successfully</p>
+          </Modal>
         </div>
       </div>
     </div>
