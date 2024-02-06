@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -44,7 +44,7 @@ export default function EmailForm() {
   const [selectAllCc, setSelectAllCc] = useState(false);
   const [selectAllBcc, setSelectAllBcc] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [attachment, setAttachment] = useState(null);
+  const [attachment, setAttachment] = useState([]);
 
   useEffect(() => {
     const fetchEmails = async () => {
@@ -145,7 +145,10 @@ export default function EmailForm() {
   }, [body, isDirty, htmlToText]);
 
   const handleAttachmentChange = (e) => {
-    setAttachment(e.target.files[0]);
+    const files = e.target.files;
+    const attachments = Array.from(files);
+
+    setAttachment(attachments);
   };
 
   const handleSubmit = async (e) => {
@@ -173,21 +176,16 @@ export default function EmailForm() {
     setCc(uniqueCc);
     setBcc(uniqueBcc);
 
-    // const emailRequest = {
-    //   fromEmail: fromEmail,
-    //   toList: uniqueTo,
-    //   ccList: uniqueCc,
-    //   bccList: uniqueBcc,
-    //   subject: subject,
-    //   body: plainText,
-    // };
     const emailRequest = new FormData();
     emailRequest.append("fromEmail", fromEmail);
     emailRequest.append("subject", subject);
     emailRequest.append("body", plainText);
     if (attachment) {
-      emailRequest.append("attachment", attachment);
+      attachment.forEach((file, index) => {
+        emailRequest.append(`attachment`, file);
+    });
     }
+    console.log(attachment);
 
     uniqueTo.forEach((email) => {
       emailRequest.append("toList", email);
@@ -237,7 +235,7 @@ export default function EmailForm() {
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/email");
+    navigate("/contacts");
   };
 
   return (
@@ -354,10 +352,7 @@ export default function EmailForm() {
               onModelChange={handleEditorChange}
               onPaste={handlePaste}
             /> */}
-            <FroalaEditor
-              model={body}
-              onModelChange={handleEditorChange}
-            />
+            <FroalaEditor model={body} onModelChange={handleEditorChange} />
           </div>
           <div className="form-group">
             <label htmlFor="attachment">Attachment:</label>
@@ -367,6 +362,7 @@ export default function EmailForm() {
               name="attachment"
               accept=".pdf, .jpg, .jpeg"
               onChange={handleAttachmentChange}
+              multiple
             />
           </div>
           <Button variant="outlined" onClick={handleSubmit}>
