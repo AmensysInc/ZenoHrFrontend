@@ -34,7 +34,10 @@ import ProjectHistoryForm from "./ProjectHistory/ProjectHistoryForm";
 import VisaDetailsForm from "./VisaDetails/VisaDetailsForm";
 import CandidateForm from "./Candidates/CandidateForm";
 import TimeSheets from "./TimeSheets/TimeSheets";
-import Companies from "./Companies/Companies";
+import EmailForm from "./Recruiter/EmailForm";
+import Contacts from "./Contacts/Contacts";
+import ContactForm from "./Contacts/ContactForm";
+import BulkMailForm from "./Recruiter/BulkMailForm";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -160,7 +163,12 @@ function App() {
                       element={<CandidateForm mode="edit" />}
                     />
                     <Route path="/timeSheets" element={<TimeSheets />} />
-                    <Route path="/companies" element={<Companies />} />
+                    <Route path="/email" element={<EmailForm />} />
+                    <Route path="/addcontact" element={<ContactForm mode= "add" />} />
+                    <Route path="/bulkemail" element={<BulkMailForm />} />
+                    <Route path="/contacts" element={<Contacts />} />
+                    <Route path="/addcontact" element={<ContactForm mode= "add" />} />
+                    <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>
@@ -196,6 +204,11 @@ function App() {
                   </>
                 ) : role === "RECRUITER" ? (
                   <>
+                    <Route path="/email" element={<EmailForm />} />
+                    <Route path="/bulkemail" element={<BulkMailForm />} />
+                    <Route path="/contacts" element={<Contacts />} />
+                    <Route path="/addcontact" element={<ContactForm mode= "add" />} />
+                    <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
                     <Route path="/" element={<RecruiterDashboard />} />
                     <Route path="/marketing" element={<CandidateList inMarketing = {true} />} />
                     <Route

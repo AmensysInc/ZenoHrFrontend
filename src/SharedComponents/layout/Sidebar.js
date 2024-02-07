@@ -38,8 +38,23 @@ export default function SideBar() {
             </Link>
           </li>
           <li className="sidebar-item">
-            <Link to="/timeSheets" className="sidebar-link">
-              TimeSheets
+          <Link to="/timeSheets" className="sidebar-link">
+            TimeSheets
+          </Link>
+        </li>
+        <li className="sidebar-item">
+            <Link to="/email" className="sidebar-link">
+              Send Email
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/contacts" className="sidebar-link">
+              Contacts
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/bulkemail" className="sidebar-link">
+              Bulk Email
             </Link>
           </li>
         </ul>
@@ -69,6 +84,21 @@ export default function SideBar() {
           <li className="sidebar-item">
             <Link to="/marketing" className="sidebar-link">
               Marketing List
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/contacts" className="sidebar-link">
+              Contacts
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/email" className="sidebar-link">
+              Send Email
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/bulkemail" className="sidebar-link">
+              Bulk Email
             </Link>
           </li>
         </ul>
