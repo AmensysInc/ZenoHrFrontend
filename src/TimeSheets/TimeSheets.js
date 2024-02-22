@@ -235,8 +235,12 @@ export default function TimeSheets() {
   const columnDefs = [
     { headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
     { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-    { headerName: "Regular Hours", field: "regularHours", width: 150, editable: true },
-    { headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: true },
+    { headerName: "Regular Hours", field: "regularHours", width: 150, editable: (params) => {
+      return params.data.status !== 'APPROVED' || role === "ADMIN";
+    }},
+    { headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: (params) => {
+      return params.data.status !== 'APPROVED' || role === "ADMIN";
+    }},
     { headerName: "Status", field: "status", width: 120, editable: false }
   ]
 
