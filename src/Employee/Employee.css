@@ -8,7 +8,7 @@
   }
   
   .form-group {
-    margin-bottom: 10px;
+    margin-bottom: 1%;
   }
   
   .form-row {
@@ -63,7 +63,6 @@
   }
 
 .add-user-link {
-  position: fixed;
   bottom: 80vh; 
   right: 2vw;
   background-color: #7d6565;
@@ -77,7 +76,6 @@
   display: inline-block; 
 }
 .add-pro-link {
-  position: fixed;
   bottom: 80vh; 
   right: 8vw;
   background-color: #7d6565;
@@ -97,6 +95,7 @@
 .container {
   padding-left: 180px;
   padding-right: 180px;
+  padding-bottom: 5%;
 }
 
 .search-container {

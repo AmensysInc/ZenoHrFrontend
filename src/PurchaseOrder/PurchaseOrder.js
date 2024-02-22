@@ -53,7 +53,7 @@ export default function PurchaseOrder() {
   };
 
   return (
-    <div className="col-md-10" style={{ overflowX: "auto" }}>
+    <>
       <h4 className="text-center">
         {userDetail.first} {userDetail.last}
       </h4>
@@ -132,6 +132,6 @@ export default function PurchaseOrder() {
         </tbody>
       </table>
       <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage} />
-    </div>
+    </>
   );
 }
