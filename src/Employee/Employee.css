@@ -1,5 +1,5 @@
 .form-container {
-    max-width: 500px;
+    max-width: 60%;
     margin: 0 auto;
     padding: 20px;
     border: 1px solid #ccc;
@@ -110,4 +110,6 @@
   margin-right: 0px; 
 }
 
-
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f0f0f0 !important; /* Your desired background color */
+}

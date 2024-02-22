@@ -117,8 +117,7 @@ export default function CandidateList({ inMarketing }) {
   };
 
   return (
-    <div className="container">
-      <div className="py-4">
+    <div className="col-md-10" style={{ overflowX: "auto" }}>
         {inMarketing? <h2>InMarketing List</h2> : <h2>Candidates List</h2>}
         <div className="d-flex justify-content-end">
           <Link className="add-user-link" to="/addcandidate">
@@ -167,7 +166,7 @@ export default function CandidateList({ inMarketing }) {
             customColumns={customColumns}
           />
         )}
-      </div>
+
       <div className="pagination-checkbox">
         <Checkbox
           checked={pagination}

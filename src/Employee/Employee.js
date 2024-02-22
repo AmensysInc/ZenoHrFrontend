@@ -6,8 +6,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../SharedComponents/Pagination";
-import { Select, Input , Button } from "antd";
-import "./Employee.css";
+import { Select, Input, Button } from "antd";
+import "../Employee/Employee.css";
 import { deleteEmployee, fetchEmployees } from "../SharedComponents/services/EmployeeServices";
 
 export default function Employee() {
@@ -22,13 +22,13 @@ export default function Employee() {
   useEffect(() => {
     fetchData();
   }, [currentPage, pageSize, searchQuery, searchField]);
-  
+
   const fetchData = async () => {
     const { content, totalPages } = await fetchEmployees(currentPage, pageSize, searchQuery, searchField);
     setUsers(content);
     setTotalPages(totalPages);
   };
-  
+
   const handleDeleteEmployee = async (employeeId) => {
     const success = await deleteEmployee(employeeId);
     if (success) {
@@ -59,9 +59,9 @@ export default function Employee() {
   };
 
   return (
-    <div className="container">
-      <div className="py-4">
-        <h4 className="text-center">Employee details</h4>
+    <div className="col-md-10" style={{ overflowX: "auto" }}>
+      <h4 className="text-center">Employee details</h4>
+      <div>
         <div className="add-orders d-flex justify-content-end">
           <Link className="add-user-link" to="/adduser">
             <BsFillPersonPlusFill size={25} title="Add Employee" />
@@ -72,32 +72,34 @@ export default function Employee() {
             <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
           </Link>
         </div>
-        <div className="search-container">
-          <div className="search-bar">
-            <Select
-              value={searchField}
-              onChange={(value) => setSearchField(value)}
-              style={{ width: 120 }}
-            >
-              <Select.Option value="">Select Field</Select.Option>
-              <Select.Option value="firstName">First Name</Select.Option>
-              <Select.Option value="lastName">Last Name</Select.Option>
-              <Select.Option value="emailID">Email Id</Select.Option>
-              <Select.Option value="company">Company</Select.Option>
-              <Select.Option value="phoneNo">Phone No</Select.Option>
-              <Select.Option value="onBench">Working Status</Select.Option>
-            </Select>
-            <Input.Search
-              placeholder="Search..."
-              onSearch={handleSearch}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              enterButton
-            />
-          </div>
-          <Button onClick={handleClearSearch}>Clear</Button>
+      </div>
+      <div className="search-container">
+        <div className="search-bar">
+          <Select
+            value={searchField}
+            onChange={(value) => setSearchField(value)}
+            style={{ width: 120 }}
+          >
+            <Select.Option value="">Select Field</Select.Option>
+            <Select.Option value="firstName">First Name</Select.Option>
+            <Select.Option value="lastName">Last Name</Select.Option>
+            <Select.Option value="emailID">Email Id</Select.Option>
+            <Select.Option value="company">Company</Select.Option>
+            <Select.Option value="phoneNo">Phone No</Select.Option>
+            <Select.Option value="onBench">Working Status</Select.Option>
+          </Select>
+          <Input.Search
+            placeholder="Search..."
+            onSearch={handleSearch}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            enterButton
+          />
         </div>
-        <table className="table border shadow">
+        <Button onClick={handleClearSearch}>Clear</Button>
+      </div>
+      <div>
+        <table className="table table-striped border shadow">
           <thead>
             <tr>
               <th scope="col">S.No</th>
@@ -163,12 +165,12 @@ export default function Employee() {
             )}
           </tbody>
         </table>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
     </div>
   );
 }

@@ -323,7 +323,7 @@ export default function TimeSheets() {
   }
 
   return (
-    <div className="timesheets-container" style={{ marginLeft: "200px", width: "50%" }}>
+    <div className="timesheets-container" style={{width: "70%" }}>
       <div className="input-group">
       {role === "ADMIN" && (
         <div className="input-item">

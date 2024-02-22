@@ -91,7 +91,7 @@ export default function CandidateForm({ mode }) {
   const isEditMode = mode === "edit";
 
   return (
-    <div>
+    <div className="col-md-10" style={{ overflow: "auto" }}>
       <div className="form-container">
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Candidate

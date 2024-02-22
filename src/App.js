@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import "../src/App.css"
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./SharedComponents/layout/Navbar";
 import {
@@ -61,7 +62,6 @@ function App() {
           setRole={setRole}
         />
         {isLoggedIn && shouldRenderBreadcrumb() && <Breadcrumbs/>}
-        <div className="container-fluid">
           <div className="row">
             <div className="col-md-2 bg-light">
               {isLoggedIn &&
@@ -72,7 +72,6 @@ function App() {
                   <Sidebar />
                 )}
             </div>
-            <div className="col-md-10"></div>
             <Routes>
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -259,7 +258,6 @@ function App() {
               )}
             </Routes>
           </div>
-        </div>
       </Router>
     </div>
   );
