@@ -109,7 +109,7 @@ export default function PurchaseOrderForm({ mode }) {
         </h2>
         <form onSubmit={(e) => onSubmit(e)}>
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
               <input
                 type="text"
@@ -120,7 +120,7 @@ export default function PurchaseOrderForm({ mode }) {
                 disabled
               />
             </div>
-            <div className="form-group">
+            <div className="form-group col-md-6">
               <label htmlFor="lastName">Last Name</label>
               <input
                 type="text"
@@ -156,7 +156,7 @@ export default function PurchaseOrderForm({ mode }) {
             </div>
           </div>
           <div className="form-row">
-            <div>
+            <div className="form-group col-md-6">
               <label>Bill Rate:</label>
               <input
                 type="number"
@@ -165,7 +165,7 @@ export default function PurchaseOrderForm({ mode }) {
                 onChange={(e) => onInputChange(e)}
               />
             </div>
-            <div>
+            <div className="form-group col-md-6">
               <label>Client Name:</label>
               <input
                 type="text"
@@ -176,7 +176,7 @@ export default function PurchaseOrderForm({ mode }) {
             </div>
           </div>
           <div className="form-row">
-            <div>
+            <div className="form-group col-md-6">
               <label>Vendor PhoneNo:</label>
               <input
                 type="number"
@@ -185,7 +185,7 @@ export default function PurchaseOrderForm({ mode }) {
                 onChange={(e) => onInputChange(e)}
               />
             </div>
-            <div>
+            <div className="form-group col-md-6">
               <label>Vendor Email:</label>
               <input
                 type="email"
