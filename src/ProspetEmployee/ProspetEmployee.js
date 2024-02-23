@@ -9,7 +9,7 @@ import Grid from "@mui/material/Grid";
 export default function ProspectEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const employeeId = localStorage.getItem("id");
+  const employeeId = sessionStorage.getItem("id");
   const [tabValue, setTabValue] = useState(0);
 
   const [employee, setEmployee] = useState({
@@ -73,7 +73,7 @@ export default function ProspectEmployee() {
 
   const fetchEmployee = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -93,7 +93,7 @@ export default function ProspectEmployee() {
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const requestOptions = {
         method: "PUT",
         headers: {

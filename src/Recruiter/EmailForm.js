@@ -230,7 +230,7 @@ export default function EmailForm() {
 
   const handleOk = () => {
     setIsModalOpen(false);
-    navigate("/email");
+    navigate("/contacts");
   };
 
   const handleCancel = () => {
