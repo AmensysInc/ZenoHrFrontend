@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Select } from "antd";
-import { FaCheck } from "react-icons/fa";
-import { FaTimes } from "react-icons/fa";
-import CustomGrid from "../SharedComponents/CustomGrid";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetService";
-import { get, post } from "../SharedComponents/httpClient ";
+import { Select } from "antd";
 import _ from 'lodash';
+import React, { useEffect, useState } from "react";
+import { FaCheck, FaTimes } from "react-icons/fa";
+import CustomGrid from "../SharedComponents/CustomGrid";
+import { get, post } from "../SharedComponents/httpClient ";
+import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetService";
+import "../TimeSheets/TimeSheets.css"
 
 const { Option } = Select;
 
@@ -21,7 +21,7 @@ export default function TimeSheets() {
   const [timeSheetsOriginal, setTimeSheetsOriginal] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [status, setStatus] = useState(["APPROVED","REJECTED","PENDING"]);
+  const [status, setStatus] = useState(["APPROVED", "REJECTED", "PENDING"]);
 
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const employeeIdFromSessionStorage = sessionStorage.getItem("id");
@@ -30,7 +30,7 @@ export default function TimeSheets() {
     : "";
 
   useEffect(() => {
-    if(role === "ADMIN"){
+    if (role === "ADMIN") {
       get("/employees")
         .then((response) => {
           const data = response.data;
@@ -45,13 +45,13 @@ export default function TimeSheets() {
           console.error("Error fetching employees:", error);
         });
     }
-    else{
+    else {
       setSelectedEmployee(employeeIdFromSessionStorage);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    getTimeSheetStatus().then( data =>{
+    getTimeSheetStatus().then(data => {
       setStatus(data);
       console.log(data);
     })
@@ -115,12 +115,15 @@ export default function TimeSheets() {
           console.error("Error fetching time sheets:", error);
         });
     }
+    else{
+      setTimeSheets([]);
+    }
   }, [selectedEmployee, selectedMonth, selectedYear, selectedProject]);
 
   const onCellValueChanged = (params) => {
     const { data, colDef, newValue } = params;
     const { field } = colDef;
-  
+
     setTimeSheets((prevTimeSheets) =>
       prevTimeSheets.map((record) => {
         if (record.date === data.date) {
@@ -130,7 +133,7 @@ export default function TimeSheets() {
         return record;
       })
     );
-  };  
+  };
 
   const handleSubmit = () => {
     // Filter and transform the dirty records to match API request body
@@ -147,7 +150,7 @@ export default function TimeSheets() {
         date: record.date.toISOString(),
         status: record.status
       }));
-  
+
     // Submit the transformed data
     post('/timeSheets/createTimeSheet', transformedData)
       .then((response) => {
@@ -156,7 +159,7 @@ export default function TimeSheets() {
       .catch((error) => {
         console.error('Error fetching time sheets:', error);
       });
-  
+
     // Reset the dirty state of the records
     setTimeSheets((prevTimeSheets) =>
       prevTimeSheets.map((record) => ({ ...record, __dirty: false }))
@@ -168,7 +171,7 @@ export default function TimeSheets() {
     setTimeSheets(timeSheetsOriginal);
     console.log(timeSheets);
   };
-  
+
   const monthOptions = [
     "January",
     "February",
@@ -230,11 +233,15 @@ export default function TimeSheets() {
   });
 
   const columnDefs = [
-    {headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
-    {headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-    {headerName: "Regular Hours", field: "regularHours", width: 150, editable: true },
-    {headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: true },
-    {headerName: "Status", field: "status", width: 120, editable: false }
+    { headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
+    { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
+    { headerName: "Regular Hours", field: "regularHours", width: 150, editable: (params) => {
+      return params.data.status !== 'APPROVED' || role === "ADMIN";
+    }},
+    { headerName: "Overtime Hours", field: "overTimeHours", width: 150, editable: (params) => {
+      return params.data.status !== 'APPROVED' || role === "ADMIN";
+    }},
+    { headerName: "Status", field: "status", width: 120, editable: false }
   ]
 
   const customColumns = [
@@ -260,7 +267,7 @@ export default function TimeSheets() {
     },
   ];
 
-  const handleApprove = (timeSheet) =>{
+  const handleApprove = (timeSheet) => {
     console.log("TiemSheet : ", timeSheet);
     let timeSheetData = [{
       month: selectedMonth,
@@ -291,7 +298,7 @@ export default function TimeSheets() {
       });
   }
 
-  const handleReject = (timeSheet) =>{
+  const handleReject = (timeSheet) => {
     console.log("TiemSheet : ", timeSheet);
     let timeSheetData = [{
       month: selectedMonth,
@@ -323,29 +330,29 @@ export default function TimeSheets() {
   }
 
   return (
-    <div className="timesheets-container" style={{width: "70%" }}>
+    <div className="timesheets-container">
       <div className="input-group">
-      {role === "ADMIN" && (
-        <div className="input-item">
-          <label>Employee</label>
-          <Select
-            style={{ width: "150px", marginRight: "8px" }}
-            value={selectedEmployee.employeeID}
-            onChange={(value) => setSelectedEmployee(value)}
-          >
-            <Option value="">-- Select --</Option>
-            {Array.isArray(employees) &&
-              employees.map((employee) => (
-                <Option key={employee.employeeID} value={employee.employeeID}>
-                  {employee.firstName} {employee.lastName}
-                </Option>
-              ))}
-          </Select>
-        </div>)}
+        {role === "ADMIN" && (
+          <div className="input-item">
+            <label>Employee</label>
+            <Select
+              className="select-class"
+              value={selectedEmployee ? selectedEmployee.employeeID : ""}
+              onChange={(value) => setSelectedEmployee(value)}
+            >
+              <Option value="">-- Select --</Option>
+              {Array.isArray(employees) &&
+                employees.map((employee) => (
+                  <Option key={employee.employeeID} value={employee.employeeID}>
+                    {employee.firstName} {employee.lastName}
+                  </Option>
+                ))}
+            </Select>
+          </div>)}
         <div className="input-item">
           <label>Project</label>
           <Select
-            style={{ width: "150px", marginRight: "8px" }}
+            className="select-class"
             value={selectedProject ? selectedProject.projectId : ""}
             onChange={(value) => setSelectedProject(projects.find((project) => project.projectId === value))}
           >
@@ -361,10 +368,11 @@ export default function TimeSheets() {
         <div className="input-item">
           <label>Month</label>
           <Select
-            style={{ width: "150px", marginRight: "8px" }}
+            className="select-class"
             value={selectedMonth}
             onChange={(value) => setSelectedMonth(value)}
           >
+            <Option value="">-- Select --</Option>
             {monthOptions.map((month, index) => (
               <Option key={index + 1} value={(index + 1).toString()}>
                 {month}
@@ -372,14 +380,15 @@ export default function TimeSheets() {
             ))}
           </Select>
         </div>
-  
+
         <div className="input-item">
           <label>Year</label>
           <Select
-            style={{ width: "150px" }}
+            className="select-class"
             value={selectedYear}
             onChange={(value) => setSelectedYear(value)}
           >
+            <Option value="">-- Select --</Option>
             {yearOptions.map((year) => (
               <Option key={year} value={year.toString()}>
                 {year}
@@ -388,29 +397,31 @@ export default function TimeSheets() {
           </Select>
         </div>
       </div>
-  
+
       <div className="ag-theme-alpine" style={{ height: "400px", width: "100%" }}>
         <CustomGrid
-            gridOptions = {gridOptions}
-            data={timeSheets}
-            columns={columnDefs}
-            customColumns={role === "ADMIN" ? customColumns : []}
-          />
+          gridOptions={gridOptions}
+          data={timeSheets}
+          columns={columnDefs}
+          customColumns={role === "ADMIN" ? customColumns : []}
+        />
       </div>
-      <button
-        onClick={handleSubmit}
-        disabled={timeSheets.every((row) => !row.__dirty)}
-        className={`btn ${timeSheets.every((row) => !row.__dirty) ? 'btn-outline-secondary' : 'btn-success'}`}
-      >
-        Submit
-      </button>
-      <button
+      <div className="timesheet-buttons">
+        <button
+          onClick={handleSubmit}
+          disabled={timeSheets.every((row) => !row.__dirty)}
+          className={`btn ${timeSheets.every((row) => !row.__dirty) ? 'btn-outline-secondary' : 'btn-success'}`}
+        >
+          Submit
+        </button>
+        <button
           onClick={handleCancel}
           disabled={timeSheets.every((row) => !row.__dirty)}
           className={`btn ${timeSheets.every((row) => !row.__dirty) ? 'btn-outline-secondary' : 'btn-danger'}`}
         >
           Cancel
         </button>
+      </div>
     </div>
-  );  
+  );
 }

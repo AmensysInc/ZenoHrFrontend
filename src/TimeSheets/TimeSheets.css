@@ -1,7 +1,36 @@
+.timesheets-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    align-items: center;
+}
+
 .timesheets-grid {
-    display: grid;
+    display: flex;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
+    align-items: center;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5%;
+}
+
+.input-item {
+    width: 25%;
+}
+
+.select-class {
+    width: 100%;
+    padding-right: 1%;
+}
+
+.timesheet-buttons{
+    display: flex;
+    padding-top: 0.5%;
 }
 
 .grid-header {
@@ -17,7 +46,7 @@
     justify-content: space-around;
     border: 1px solid #ddd;
     padding: 5px;
-}  
+}
 
 button[type="submit"] {
     padding: 8px 16px;
@@ -27,8 +56,8 @@ button[type="submit"] {
     color: #fff;
     font-weight: bold;
     cursor: pointer;
-  }
-  
-  button[type="submit"]:hover {
+}
+
+button[type="submit"]:hover {
     background-color: #45a049;
-  }
+}

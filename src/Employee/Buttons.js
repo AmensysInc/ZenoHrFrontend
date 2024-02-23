@@ -19,7 +19,6 @@ export default function Buttons() {
         className="add-user-link"
         onClick={() => handleProjectHistory(employeeId)}
         title="Project History"
-        style={{ marginLeft: "4000px" }}
       >
         Project History
       </button>
@@ -28,7 +27,6 @@ export default function Buttons() {
         className="add-pro-link"
         onClick={() => handleVisaDetails(employeeId)}
         title="Visa Details"
-        style={{ marginLeft: "4000px" }}
       >
         Visa Details
       </button>

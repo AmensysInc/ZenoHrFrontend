@@ -59,21 +59,9 @@ export default function Employee() {
   };
 
   return (
-    <div className="col-md-10" style={{ overflowX: "auto" }}>
+    <>
       <h4 className="text-center">Employee details</h4>
-      <div>
-        <div className="add-orders d-flex justify-content-end">
-          <Link className="add-user-link" to="/adduser">
-            <BsFillPersonPlusFill size={25} title="Add Employee" />
-          </Link>
-        </div>
-        <div className="add-orders d-flex justify-content-end">
-          <Link className="add-pro-link" to="/addprospect">
-            <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
-          </Link>
-        </div>
-      </div>
-      <div className="search-container">
+      <div className="search-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div className="search-bar">
           <Select
             value={searchField}
@@ -95,8 +83,21 @@ export default function Employee() {
             onChange={(e) => setSearchQuery(e.target.value)}
             enterButton
           />
+          <Button onClick={handleClearSearch}>Clear</Button>
         </div>
-        <Button onClick={handleClearSearch}>Clear</Button>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{paddingRight: '10%'}}>
+            <Link className="add-user-link" to="/adduser">
+              <BsFillPersonPlusFill size={25} title="Add Employee" />
+            </Link>
+          </div>
+          <div>
+          <Link className="add-pro-link" to="/addprospect">
+            <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
+          </Link>
+          </div>
+        </div>
       </div>
       <div>
         <table className="table table-striped border shadow">
@@ -171,6 +172,6 @@ export default function Employee() {
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
-    </div>
+    </>
   );
 }
