@@ -22,6 +22,11 @@ export default function TimeSheets() {
   const [employees, setEmployees] = useState([]);
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState(["APPROVED","REJECTED","PENDING"]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+const handleFileChange = (event) => {
+  setSelectedFiles(Array.from(event.target.files));
+};
 
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const employeeIdFromSessionStorage = sessionStorage.getItem("id");
@@ -156,6 +161,21 @@ export default function TimeSheets() {
       .catch((error) => {
         console.error('Error fetching time sheets:', error);
       });
+       // Prepare form data for file upload
+  const formData = new FormData();
+  formData.append('employeeID', selectedEmployee);
+  selectedFiles.forEach(file => {
+    formData.append('documents', file);
+  });
+
+  // Submit the transformed data along with files
+  post(`/timeSheets/uploadfiles/${selectedEmployee}`, formData)
+    .then((response) => {
+      console.log(response);
+    })
+    .catch((error) => {
+      console.error('Error uploading files:', error);
+    });
   
     // Reset the dirty state of the records
     setTimeSheets((prevTimeSheets) =>
@@ -397,6 +417,7 @@ export default function TimeSheets() {
             customColumns={role === "ADMIN" ? customColumns : []}
           />
       </div>
+      <input type="file" id="fileInput" multiple onChange={handleFileChange} />
       <button
         onClick={handleSubmit}
         disabled={timeSheets.every((row) => !row.__dirty)}
