@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Select } from "antd";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck,FaDownload } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 import CustomGrid from "../SharedComponents/CustomGrid";
 import "ag-grid-community/styles/ag-grid.css";
@@ -23,6 +23,13 @@ export default function TimeSheets() {
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState(["APPROVED","REJECTED","PENDING"]);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState("");
+
+  // Function to handle file selection
+  const handleFileSelect = (value) => {
+    setSelectedFile(value);
+  };
 
 const handleFileChange = (event) => {
   setSelectedFiles(Array.from(event.target.files));
@@ -54,6 +61,21 @@ const handleFileChange = (event) => {
       setSelectedEmployee(employeeIdFromSessionStorage);
     }
   }, [apiUrl]);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      // Fetch uploaded files for the selected employee
+      get(`/timeSheets/getUploadedFiles/${selectedEmployee}`)
+        .then((response) => {
+          const data = response.data;
+          // Assuming the response contains an array of file names
+          setUploadedFiles(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching uploaded files:", error);
+        });
+    }
+  }, [selectedEmployee]);
 
   useEffect(() => {
     getTimeSheetStatus().then( data =>{
@@ -342,6 +364,49 @@ const handleFileChange = (event) => {
       });
   }
 
+  const handleDownloadFile = () => {
+    if (selectedFile) {
+      const apiUrl = process.env.REACT_APP_API_URL;
+      const employeeID = selectedEmployee;
+      const token = sessionStorage.getItem("token");
+  
+      // Make API call to download file
+      fetch(`${apiUrl}/timeSheets/downloadFile/${employeeID}/${selectedFile}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          // Check if response is successful
+          if (!response.ok) {
+            throw new Error('Failed to download file');
+          }
+          // Convert response to blob
+          return response.blob();
+        })
+        .then(blob => {
+          // Create URL for the blob
+          const url = window.URL.createObjectURL(new Blob([blob]));
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', selectedFile);
+          // Simulate click on link to trigger download
+          document.body.appendChild(link);
+          link.click();
+          // Cleanup
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+          console.error('Error downloading file:', error);
+        });
+    } else {
+      console.warn("Please select a file to download.");
+    }
+  };  
+  
+
   return (
     <div className="timesheets-container" style={{ marginLeft: "200px", width: "50%" }}>
       <div className="input-group">
@@ -417,7 +482,32 @@ const handleFileChange = (event) => {
             customColumns={role === "ADMIN" ? customColumns : []}
           />
       </div>
+
       <input type="file" id="fileInput" multiple onChange={handleFileChange} />
+      
+      <div>
+      <h4>Uploaded Files</h4>
+      <ul>
+          {uploadedFiles.map((file, index) => (
+            <li key={index}>{file}</li>
+            
+          ))}
+        </ul>
+        <h4>Select Files To Download</h4>
+        <Select
+        style={{ width: "200px", marginRight: "8px" }}
+        value={selectedFile}
+        onChange={handleFileSelect}
+      >
+        <Option value="">-- Select File --</Option>
+        {uploadedFiles.map((file, index) => (
+          <Option key={index} value={file}>{file}</Option>
+        ))}
+      </Select>
+
+      {/* Button to download files */}
+      <button onClick={handleDownloadFile}>Download File</button>
+    </div>
       <button
         onClick={handleSubmit}
         disabled={timeSheets.every((row) => !row.__dirty)}
