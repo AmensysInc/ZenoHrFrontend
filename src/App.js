@@ -173,8 +173,6 @@ function App() {
                     <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/tracking" element={<EmployeeTracking />} />
-                    <Route path="/addcontact" element={<ContactForm mode="add" />} />
-                    <Route path="/editcontact/:id" element={<ContactForm mode="edit" />} />
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>
