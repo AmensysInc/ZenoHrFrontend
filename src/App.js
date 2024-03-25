@@ -39,6 +39,7 @@ import Contacts from "./Contacts/Contacts";
 import ContactForm from "./Contacts/ContactForm";
 import BulkMailForm from "./Recruiter/BulkMailForm";
 import Companies from "./Companies/Companies";
+import EmployeeTracking from "./EmployeeTracking/EmployeeTracking";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -171,6 +172,7 @@ function App() {
                     <Route path="/addcontact" element={<ContactForm mode= "add" />} />
                     <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
                     <Route path="/companies" element={<Companies />} />
+                    <Route path="/tracking" element={<EmployeeTracking />} />
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>
