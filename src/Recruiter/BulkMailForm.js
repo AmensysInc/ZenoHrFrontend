@@ -37,7 +37,7 @@ const BulkMailForm = () => {
   
 
   return (
-    <div className="container mt-2">
+    <div className="col-md-10" style={{ overflowX: "auto" }}>
       <div className="col-md-8 offset-md-2">
         <form onSubmit={handleSubmit}>
           <FormControl sx={{ m: 1, width: 500 }}>

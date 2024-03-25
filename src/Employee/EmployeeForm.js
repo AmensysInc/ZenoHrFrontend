@@ -124,7 +124,7 @@ export default function EmployeeForm({ mode }) {
   const isEditMode = mode === "edit";
 
   return (
-    <div>
+    <div style={{display: 'flex', flexDirection:'column-reverse',alignItems:'center'}}>
       <div className="form-container">
         {error && (
           <Alert
@@ -142,7 +142,6 @@ export default function EmployeeForm({ mode }) {
             closable
           />
         )}
-        {isEditMode && <Buttons />}
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Employee
         </h2>
@@ -323,6 +322,7 @@ export default function EmployeeForm({ mode }) {
           )}
         </form>
       </div>
+      <div style={{paddingBottom:'1%'}}>{isEditMode && <Buttons />}</div>
     </div>
   );
 }

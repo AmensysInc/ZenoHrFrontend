@@ -239,7 +239,7 @@ export default function EmailForm() {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="col-md-10" style={{ overflowX: "auto" }}>
       <div className="row">
         <div className="col-md-8 offset-md-2">
           <div className="form-group">
