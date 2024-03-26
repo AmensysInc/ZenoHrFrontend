@@ -9,7 +9,7 @@ import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetServic
 import { get, post } from "../SharedComponents/httpClient ";
 import _ from "lodash";
 import { TbCloudDownload } from "react-icons/tb";
-import { AiFillDelete } from "react-icons/ai";
+import { AiFillDelete } from "react-icons/ai"
 const { Option } = Select;
 
 export default function TimeSheets() {
@@ -36,6 +36,7 @@ export default function TimeSheets() {
     setSelectedFiles(Array.from(event.target.files));
   };
 
+
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const employeeIdFromSessionStorage = sessionStorage.getItem("id");
   const role = roleFromSessionStorage
@@ -57,7 +58,10 @@ export default function TimeSheets() {
         .catch((error) => {
           console.error("Error fetching employees:", error);
         });
+
     } else {
+  
+
       setSelectedEmployee(employeeIdFromSessionStorage);
     }
   }, [apiUrl]);
@@ -79,6 +83,9 @@ export default function TimeSheets() {
 
   useEffect(() => {
     getTimeSheetStatus().then((data) => {
+
+  
+
       setStatus(data);
       console.log(data);
     });
@@ -155,6 +162,9 @@ export default function TimeSheets() {
           console.error("Error fetching time sheets:", error);
         });
     }
+    else{
+      setTimeSheets([]);
+    }
   }, [selectedEmployee, selectedMonth, selectedYear, selectedProject]);
 
   const onCellValueChanged = (params) => {
@@ -196,6 +206,7 @@ export default function TimeSheets() {
       .catch((error) => {
         console.error("Error fetching time sheets:", error);
       });
+
     // Prepare form data for file upload
     const formData = new FormData();
     formData.append("employeeID", selectedEmployee);
@@ -211,6 +222,7 @@ export default function TimeSheets() {
       .catch((error) => {
         console.error("Error uploading files:", error);
       });
+
 
     // Reset the dirty state of the records
     setTimeSheets((prevTimeSheets) =>
@@ -287,6 +299,7 @@ export default function TimeSheets() {
   const columnDefs = [
     { headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
     { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
+
     {
       headerName: "Regular Hours",
       field: "regularHours",
@@ -301,6 +314,7 @@ export default function TimeSheets() {
     },
     { headerName: "Status", field: "status", width: 120, editable: false },
   ];
+
 
   const customColumns = [
     {
@@ -434,17 +448,22 @@ export default function TimeSheets() {
   };
 
   return (
+
     <div
       className="timesheets-container"
       style={{ marginLeft: "200px", width: "50%" }}
     >
+
+
       <div className="input-group">
         {role === "ADMIN" && (
           <div className="input-item">
             <label>Employee</label>
             <Select
+
               style={{ width: "150px", marginRight: "8px" }}
               value={selectedEmployee.employeeID}
+
               onChange={(value) => setSelectedEmployee(value)}
             >
               <Option value="">-- Select --</Option>
@@ -455,12 +474,14 @@ export default function TimeSheets() {
                   </Option>
                 ))}
             </Select>
+
           </div>
         )}
+
         <div className="input-item">
           <label>Project</label>
           <Select
-            style={{ width: "150px", marginRight: "8px" }}
+            className="select-class"
             value={selectedProject ? selectedProject.projectId : ""}
             onChange={(value) =>
               setSelectedProject(
@@ -480,10 +501,11 @@ export default function TimeSheets() {
         <div className="input-item">
           <label>Month</label>
           <Select
-            style={{ width: "150px", marginRight: "8px" }}
+            className="select-class"
             value={selectedMonth}
             onChange={(value) => setSelectedMonth(value)}
           >
+            <Option value="">-- Select --</Option>
             {monthOptions.map((month, index) => (
               <Option key={index + 1} value={(index + 1).toString()}>
                 {month}
@@ -495,10 +517,11 @@ export default function TimeSheets() {
         <div className="input-item">
           <label>Year</label>
           <Select
-            style={{ width: "150px" }}
+            className="select-class"
             value={selectedYear}
             onChange={(value) => setSelectedYear(value)}
           >
+            <Option value="">-- Select --</Option>
             {yearOptions.map((year) => (
               <Option key={year} value={year.toString()}>
                 {year}
@@ -508,16 +531,20 @@ export default function TimeSheets() {
         </div>
       </div>
 
+
       <div
         className="ag-theme-alpine"
         style={{ height: "400px", width: "100%" }}
       >
+
+      
         <CustomGrid
           gridOptions={gridOptions}
           data={timeSheets}
           columns={columnDefs}
           customColumns={role === "ADMIN" ? customColumns : []}
         />
+
       </div>
 
       <input type="file" id="fileInput" multiple onChange={handleFileChange} />
@@ -565,6 +592,7 @@ export default function TimeSheets() {
       >
         Cancel
       </button>
+
     </div>
   );
 }

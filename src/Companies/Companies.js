@@ -66,8 +66,7 @@ export default function Companies() {
   };
 
   return (
-    <div className="container">
-    <div className="py-4">
+    <>
       <h2>Companies List</h2>
       <div className="search-container">
         <div className="search-bar">
@@ -91,22 +90,21 @@ export default function Companies() {
         <Button onClick={handleClearSearch}>Clear</Button>
       </div>
       {isLoading ? (
-          <p>Loading...</p>
-        ) : rowData.length === 0 ? (
-          <p>No companies to display.</p>
-        ) : (
-          <CustomGrid
-            data={rowData}
-            columns={gridColumns}
-            customColumns={customColumns}
-          />
-        )}
-    </div>
-    <Pagination
-      currentPage={currentPage}
-      totalPages={totalPages}
-      setCurrentPage={setCurrentPage}
-    />
-  </div>
+        <p>Loading...</p>
+      ) : rowData.length === 0 ? (
+        <p>No companies to display.</p>
+      ) : (
+        <CustomGrid
+          data={rowData}
+          columns={gridColumns}
+          customColumns={customColumns}
+        />
+      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
+    </>
   );
 }
