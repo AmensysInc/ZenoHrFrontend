@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { get, post } from "../SharedComponents/httpClient ";
 import Pagination from "../SharedComponents/Pagination";
-import { Link } from "react-router-dom";
 
 const AllTimeSheets = () => {
   const [employees, setEmployees] = useState([]);
@@ -12,8 +11,9 @@ const AllTimeSheets = () => {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
   const [timeSheets, setTimeSheets] = useState([]);
-  const [editingCell, setEditingCell] = useState(null);
-  const [editedValue, setEditedValue] = useState("");
+  const [editingRow, setEditingRow] = useState(null);
+  const [editedRegularHours, setEditedRegularHours] = useState({});
+  const [editedprojectId, setEditedprojectId] = useState(null);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -74,26 +74,6 @@ const AllTimeSheets = () => {
     return timeSheet ? timeSheet.regularHours : 0;
   };
 
-  const renderProjects = (projects) => {
-    if (projects && projects.length > 0) {
-      if (projects.length === 1) {
-        return `${projects[0].subVendorOne}/${projects[0].subVendorTwo}`;
-      } else {
-        return (
-          <select>
-            {projects.map((project) => (
-              <option key={project.projectId}>
-                {project.subVendorOne}/{project.subVendorTwo}
-              </option>
-            ))}
-          </select>
-        );
-      }
-    } else {
-      return <span>No projects</span>;
-    }
-  };
-
   const daysInMonth = (month, year) => {
     return new Date(year, month, 0).getDate();
   };
@@ -120,53 +100,81 @@ const AllTimeSheets = () => {
     setSelectedYear(parseInt(e.target.value));
   };
 
-  const handleDoubleClick = (empId, projectId, date) => {
-    const timeSheet = timeSheets.find(
-      (sheet) =>
-        sheet.empId === empId &&
-        sheet.projectId === projectId &&
-        new Date(sheet.date).getDate() === date
-    );
-    console.log("Editing timesheet:", timeSheet);
-  };
-
-  const toggleEditMode = (empId, projectId, date) => {
-    setEditingCell({ empId, projectId, date });
-    const timeSheet = timeSheets.find(
-      (sheet) =>
-        sheet.empId === empId &&
-        sheet.projectId === projectId &&
-        new Date(sheet.date).getDate() === date
-    );
-    console.log("Toggling edit mode:", timeSheet);
-    setEditedValue(timeSheet ? timeSheet.regularHours.toString() : "");
-  };
-
-  const handleEditChange = (e) => {
-    setEditedValue(e.target.value);
-  };
-
-  const saveEditedValue = async () => {
-    try {
-      const updatedTimeSheet = {
-        empId: editingCell.empId,
-        projectId: editingCell.projectId,
-        date: new Date(selectedYear, selectedMonth, editingCell.date).toISOString(),
-        regularHours: parseFloat(editedValue),
-        sheetId: getTimeSheetId(editingCell.empId, editingCell.projectId, editingCell.date)
-      };
-  
-      await updateTimesheet([updatedTimeSheet]);
-      setTimeSheets((prevTimeSheets) =>
-        prevTimeSheets.map((sheet) =>
-          sheet.empId === updatedTimeSheet.empId &&
-          sheet.projectId === updatedTimeSheet.projectId &&
-          new Date(sheet.date).getDate() === updatedTimeSheet.date
-            ? { ...sheet, regularHours: updatedTimeSheet.regularHours }
-            : sheet
-        )
+  const toggleEditMode = (empId, projectId) => {
+    setEditingRow(empId);
+    setEditedprojectId(projectId);
+    setEditedRegularHours({});
+    const editedRegularHoursObj = {};
+    renderDates().forEach((date) => {
+      const regularHours = findRegularHours(
+        empId,
+        projectId,
+        new Date(date).getDate()
       );
-      setEditingCell(null);
+      if (regularHours !== undefined) {
+        editedRegularHoursObj[
+          `${empId}-${projectId}-${new Date(date).getDate()}`
+        ] = regularHours;
+      }
+    });
+    setEditedRegularHours(editedRegularHoursObj);
+  };
+
+  const handleEditChange = (e, empId, projectId, date) => {
+    const value = e.target.value;
+    setEditedRegularHours({
+      ...editedRegularHours,
+      [`${empId}-${projectId}-${date}`]: value,
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      const updatedTimeSheets = [];
+      employees.forEach((employee) => {
+        employee.projects.forEach((project) => {
+          renderDates().forEach((date) => {
+            const editedValue =
+              editedRegularHours[
+                `${employee.employeeID}-${project.projectId}-${new Date(
+                  date
+                ).getDate()}`
+              ];
+            if (editedValue !== undefined) {
+              updatedTimeSheets.push({
+                empId: employee.employeeID,
+                projectId: project.projectId,
+                date: new Date(
+                  selectedYear,
+                  selectedMonth - 1,
+                  new Date(date).getDate()
+                ).toISOString(),
+                regularHours: parseFloat(editedValue),
+                sheetId: getTimeSheetId(
+                  employee.employeeID,
+                  project.projectId,
+                  new Date(date).getDate()
+                ),
+              });
+            }
+          });
+        });
+      });
+      await updateTimesheet(updatedTimeSheets);
+      // Update the timeSheets state with the edited data
+      setTimeSheets((prevTimeSheets) => {
+        return prevTimeSheets.map((sheet) => {
+          const editedSheet = updatedTimeSheets.find(
+            (updatedSheet) => updatedSheet.sheetId === sheet.sheetId
+          );
+          console.log(editedSheet)
+          if (editedSheet) {
+            return { ...sheet, regularHours: editedSheet.regularHours };
+          }
+          return sheet;
+        });
+      });
+      setEditingRow(null);
     } catch (error) {
       console.error("Error saving edited value:", error);
     }
@@ -180,12 +188,6 @@ const AllTimeSheets = () => {
         new Date(sheet.date).getDate() === date
     );
     return timeSheet ? timeSheet.sheetId : null;
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      saveEditedValue();
-    }
   };
 
   const updateTimesheet = async (updatedTimeSheets) => {
@@ -246,6 +248,7 @@ const AllTimeSheets = () => {
               {renderDates().map((date, index) => (
                 <th key={index}>{date}</th>
               ))}
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -271,20 +274,29 @@ const AllTimeSheets = () => {
                           onDoubleClick={() =>
                             toggleEditMode(
                               employee.employeeID,
-                              project.projectId,
-                              new Date(date).getDate()
+                              project.projectId
                             )
                           }
                         >
-                          {editingCell &&
-                          editingCell.empId === employee.employeeID &&
-                          editingCell.projectId === project.projectId &&
-                          editingCell.date === new Date(date).getDate() ? (
+                          {editingRow === employee.employeeID &&
+                          editedprojectId === project.projectId ? (
                             <input
                               type="text"
-                              value={editedValue}
-                              onChange={handleEditChange}
-                              onKeyDown={handleKeyDown}
+                              value={
+                                editedRegularHours[
+                                  `${employee.employeeID}-${
+                                    project.projectId
+                                  }-${new Date(date).getDate()}`
+                                ]
+                              }
+                              onChange={(e) =>
+                                handleEditChange(
+                                  e,
+                                  employee.employeeID,
+                                  project.projectId,
+                                  new Date(date).getDate()
+                                )
+                              }
                             />
                           ) : (
                             findRegularHours(
@@ -296,18 +308,14 @@ const AllTimeSheets = () => {
                         </td>
                       ))}
                       <td>
-                      <Link
-                          to="/timeSheets"
-                          state={{
-                            employeeId: employee.employeeID,
-                            projectId: project.projectId,
-                            date: selectedYear + '-' + selectedMonth + '-' + new Date().getDate(), // Pass the date or modify as needed
-                          }}
-                          target="_blank" // Open link in new tab
-                          rel="noopener noreferrer" // Recommended security practice
-                        >
-                          Edit
-                        </Link>
+                        {editingRow === employee.employeeID &&
+                          editedprojectId === project.projectId && (
+                            <button
+                              onClick={() => handleSave(employee.employeeID)}
+                            >
+                              Save
+                            </button>
+                          )}
                       </td>
                     </tr>
                   ))
@@ -317,32 +325,11 @@ const AllTimeSheets = () => {
                     <td>{employee.lastName}</td>
                     <td>No projects</td>
                     {renderDates().map((date, index) => (
-                      <td
-                        key={index}
-                        onDoubleClick={() =>
-                          toggleEditMode(
-                            employee.employeeID,
-                            null,
-                            new Date(date).getDate()
-                          )
-                        }
-                      >
-                        {editingCell &&
-                        editingCell.empId === employee.employeeID &&
-                        editingCell.projectId === null &&
-                        editingCell.date === new Date(date).getDate() ? (
-                          <input
-                            type="text"
-                            value={editedValue}
-                            onChange={handleEditChange}
-                            onKeyDown={handleKeyDown}
-                          />
-                        ) : (
-                          findRegularHours(
-                            employee.employeeID,
-                            null,
-                            new Date(date).getDate()
-                          )
+                      <td key={index}>
+                        {findRegularHours(
+                          employee.employeeID,
+                          null,
+                          new Date(date).getDate()
                         )}
                       </td>
                     ))}
@@ -361,4 +348,5 @@ const AllTimeSheets = () => {
     </div>
   );
 };
+
 export default AllTimeSheets;
