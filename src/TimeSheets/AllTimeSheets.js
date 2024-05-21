@@ -50,7 +50,6 @@ const AllTimeSheets = () => {
         month: selectedMonth,
         year: selectedYear,
       });
-      const sheetIds = response.data.map((timeSheet) => timeSheet.sheetId);
       setTimeSheets(response.data);
       console.log("Response from server:", response);
     } catch (error) {
@@ -83,11 +82,8 @@ const AllTimeSheets = () => {
     const numDays = daysInMonth(selectedMonth, selectedYear);
     const dates = [];
     for (let i = 1; i <= numDays; i++) {
-      dates.push(
-        `${selectedYear}-${selectedMonth.toString().padStart(2, "0")}-${i
-          .toString()
-          .padStart(2, "0")}`
-      );
+      const date = new Date(selectedYear, selectedMonth - 1, i);
+      dates.push(date.toLocaleDateString("en-US"));
     }
     return dates;
   };
@@ -141,55 +137,45 @@ const AllTimeSheets = () => {
                 ).getDate()}`
               ];
             if (editedValue !== undefined) {
-              updatedTimeSheets.push({
-                empId: employee.employeeID,
-                projectId: project.projectId,
-                date: new Date(
-                  selectedYear,
-                  selectedMonth - 1,
-                  new Date(date).getDate()
-                ).toISOString(),
-                regularHours: parseFloat(editedValue),
-                sheetId: getTimeSheetId(
-                  employee.employeeID,
-                  project.projectId,
-                  new Date(date).getDate()
-                ),
-              });
+              const originalValue = findRegularHours(
+                employee.employeeID,
+                project.projectId,
+                new Date(date).getDate()
+              );
+              if (parseFloat(editedValue) !== originalValue) {
+                updatedTimeSheets.push({
+                  empId: employee.employeeID,
+                  projectId: project.projectId,
+                  date: new Date(
+                    selectedYear,
+                    selectedMonth - 1,
+                    new Date(date).getDate()
+                  ).toISOString(),
+                  regularHours: parseFloat(editedValue),
+                  sheetId: getTimeSheetId(
+                    employee.employeeID,
+                    project.projectId,
+                    new Date(date).getDate()
+                  ),
+                });
+              }
             }
           });
         });
       });
-      await updateTimesheet(updatedTimeSheets);
-      // Update the timeSheets state with the edited data
-      setTimeSheets((prevTimeSheets) => {
-        return prevTimeSheets.map((sheet) => {
-          const editedSheet = updatedTimeSheets.find(
-            (updatedSheet) => updatedSheet.sheetId === sheet.sheetId
-          );
-          console.log(editedSheet)
-          if (editedSheet) {
-            return { ...sheet, regularHours: editedSheet.regularHours };
-          }
-          return sheet;
-        });
-      });
+      if (updatedTimeSheets.length > 0) {
+        await updateTimesheet(updatedTimeSheets);
+      }
+  
+      // Call fetchTimeSheets to update time sheets data
+      await fetchTimeSheets();
+  
       setEditingRow(null);
     } catch (error) {
       console.error("Error saving edited value:", error);
     }
   };
-
-  const getTimeSheetId = (empId, projectId, date) => {
-    const timeSheet = timeSheets.find(
-      (sheet) =>
-        sheet.empId === empId &&
-        sheet.projectId === projectId &&
-        new Date(sheet.date).getDate() === date
-    );
-    return timeSheet ? timeSheet.sheetId : null;
-  };
-
+  
   const updateTimesheet = async (updatedTimeSheets) => {
     try {
       const requestBody = updatedTimeSheets.map((updatedTimeSheet) => ({
@@ -207,6 +193,16 @@ const AllTimeSheets = () => {
     } catch (error) {
       console.error("Error updating timesheets:", error);
     }
+  };
+
+  const getTimeSheetId = (empId, projectId, date) => {
+    const timeSheet = timeSheets.find(
+      (sheet) =>
+        sheet.empId === empId &&
+        sheet.projectId === projectId &&
+        new Date(sheet.date).getDate() === date
+    );
+    return timeSheet ? timeSheet.sheetId : null;
   };
 
   if (loading) {
@@ -298,12 +294,14 @@ const AllTimeSheets = () => {
                                 )
                               }
                             />
-                          ) : (
+                          ) : timeSheets.length > 0 ? (
                             findRegularHours(
                               employee.employeeID,
                               project.projectId,
                               new Date(date).getDate()
                             )
+                          ) : (
+                            <span>0</span>
                           )}
                         </td>
                       ))}
@@ -326,10 +324,14 @@ const AllTimeSheets = () => {
                     <td>No projects</td>
                     {renderDates().map((date, index) => (
                       <td key={index}>
-                        {findRegularHours(
-                          employee.employeeID,
-                          null,
-                          new Date(date).getDate()
+                        {timeSheets.length > 0 ? (
+                          findRegularHours(
+                            employee.employeeID,
+                            null,
+                            new Date(date).getDate()
+                          )
+                        ) : (
+                          <span>0</span>
                         )}
                       </td>
                     ))}
@@ -337,14 +339,14 @@ const AllTimeSheets = () => {
                 )}
               </React.Fragment>
             ))}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
           </tbody>
         </table>
       )}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
     </div>
   );
 };
