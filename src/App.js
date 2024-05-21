@@ -40,6 +40,7 @@ import Contacts from "./Contacts/Contacts";
 import ContactForm from "./Contacts/ContactForm";
 import BulkMailForm from "./Recruiter/BulkMailForm";
 import Companies from "./Companies/Companies";
+import AllTimeSheets from "./TimeSheets/AllTimeSheets";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -164,6 +165,7 @@ function App() {
                       element={<CandidateForm mode="edit" />}
                     />
                     <Route path="/timeSheets" element={<TimeSheets />} />
+                    <Route path="/alltimeSheets" element={<AllTimeSheets />} />
                     <Route path="/email" element={<EmailForm />} />
                     <Route path="/addcontact" element={<ContactForm mode="add" />} />
                     <Route path="/bulkemail" element={<BulkMailForm />} />

@@ -43,6 +43,11 @@ export default function SideBar() {
           </Link>
         </li>
         <li className="sidebar-item">
+          <Link to="/alltimeSheets" className="sidebar-link">
+            All-TimeSheets
+          </Link>
+        </li>
+        <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email
             </Link>
