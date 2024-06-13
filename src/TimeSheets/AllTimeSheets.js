@@ -30,7 +30,14 @@ const AllTimeSheets = () => {
             const projectResponse = await get(
               `/employees/${employee.employeeID}/projects`
             );
-            return { ...employee, projects: projectResponse.data.content };
+            const projectsWithEndDate = projectResponse.data.content.map(
+              (project) => {
+                // Assuming the project end date is in a format that can be parsed by the Date constructor
+                const projectEndDate = new Date(project.projectEndDate);
+                return { ...project, projectEndDate };
+              }
+            );
+            return { ...employee, projects: projectsWithEndDate };
           })
         );
         setEmployees(employeesWithProjects);
@@ -83,7 +90,10 @@ const AllTimeSheets = () => {
     const dates = [];
     for (let i = 1; i <= numDays; i++) {
       const date = new Date(selectedYear, selectedMonth - 1, i);
-      dates.push(date.toLocaleDateString("en-US"));
+      dates.push({
+        date: date.toLocaleDateString("en-US"),
+        isWeekend: date.getDay() === 0 || date.getDay() === 6,
+      });
     }
     return dates;
   };
@@ -101,16 +111,12 @@ const AllTimeSheets = () => {
     setEditedprojectId(projectId);
     setEditedRegularHours({});
     const editedRegularHoursObj = {};
-    renderDates().forEach((date) => {
-      const regularHours = findRegularHours(
-        empId,
-        projectId,
-        new Date(date).getDate()
-      );
+    renderDates().forEach((dateObj) => {
+      const date = new Date(dateObj.date);
+      const regularHours = findRegularHours(empId, projectId, date.getDate());
       if (regularHours !== undefined) {
-        editedRegularHoursObj[
-          `${empId}-${projectId}-${new Date(date).getDate()}`
-        ] = regularHours;
+        editedRegularHoursObj[`${empId}-${projectId}-${date.getDate()}`] =
+          regularHours;
       }
     });
     setEditedRegularHours(editedRegularHoursObj);
@@ -129,33 +135,28 @@ const AllTimeSheets = () => {
       const updatedTimeSheets = [];
       employees.forEach((employee) => {
         employee.projects.forEach((project) => {
-          renderDates().forEach((date) => {
+          renderDates().forEach((dateObj) => {
+            const date = new Date(dateObj.date);
             const editedValue =
               editedRegularHours[
-                `${employee.employeeID}-${project.projectId}-${new Date(
-                  date
-                ).getDate()}`
+                `${employee.employeeID}-${project.projectId}-${date.getDate()}`
               ];
             if (editedValue !== undefined) {
               const originalValue = findRegularHours(
                 employee.employeeID,
                 project.projectId,
-                new Date(date).getDate()
+                date.getDate()
               );
               if (parseFloat(editedValue) !== originalValue) {
                 updatedTimeSheets.push({
                   empId: employee.employeeID,
                   projectId: project.projectId,
-                  date: new Date(
-                    selectedYear,
-                    selectedMonth - 1,
-                    new Date(date).getDate()
-                  ).toISOString(),
+                  date: date.toISOString(),
                   regularHours: parseFloat(editedValue),
                   sheetId: getTimeSheetId(
                     employee.employeeID,
                     project.projectId,
-                    new Date(date).getDate()
+                    date.getDate()
                   ),
                 });
               }
@@ -166,16 +167,16 @@ const AllTimeSheets = () => {
       if (updatedTimeSheets.length > 0) {
         await updateTimesheet(updatedTimeSheets);
       }
-  
+
       // Call fetchTimeSheets to update time sheets data
       await fetchTimeSheets();
-  
+
       setEditingRow(null);
     } catch (error) {
       console.error("Error saving edited value:", error);
     }
   };
-  
+
   const updateTimesheet = async (updatedTimeSheets) => {
     try {
       const requestBody = updatedTimeSheets.map((updatedTimeSheet) => ({
@@ -209,6 +210,10 @@ const AllTimeSheets = () => {
     return <div>Loading...</div>;
   }
 
+  const isDateExpired = (date) => {
+    return new Date(date) < new Date();
+  };
+
   return (
     <div className="container">
       <h2>Employee Grid</h2>
@@ -241,8 +246,13 @@ const AllTimeSheets = () => {
               <th>FirstName</th>
               <th>LastName</th>
               <th>Projects</th>
-              {renderDates().map((date, index) => (
-                <th key={index}>{date}</th>
+              {renderDates().map((dateObj, index) => (
+                <th
+                  key={index}
+                  style={{ color: dateObj.isWeekend ? "red" : "black" }}
+                >
+                  {dateObj.date}
+                </th>
               ))}
               <th>Action</th>
             </tr>
@@ -263,8 +273,17 @@ const AllTimeSheets = () => {
                           </td>
                         </>
                       ) : null}
-                      <td>{`${project.subVendorOne}/${project.subVendorTwo}`}</td>
-                      {renderDates().map((date, index) => (
+                      <td
+                        style={{
+                          color:
+                            project.projectEndDate < new Date()
+                              ? "red"
+                              : "black",
+                        }}
+                      >
+                        {`${project.subVendorOne}/${project.subVendorTwo}`}
+                      </td>
+                      {renderDates().map((dateObj, index) => (
                         <td
                           key={index}
                           onDoubleClick={() =>
@@ -273,6 +292,7 @@ const AllTimeSheets = () => {
                               project.projectId
                             )
                           }
+                          style={{ color: dateObj.isWeekend ? "red" : "black" }}
                         >
                           {editingRow === employee.employeeID &&
                           editedprojectId === project.projectId ? (
@@ -282,7 +302,7 @@ const AllTimeSheets = () => {
                                 editedRegularHours[
                                   `${employee.employeeID}-${
                                     project.projectId
-                                  }-${new Date(date).getDate()}`
+                                  }-${new Date(dateObj.date).getDate()}`
                                 ]
                               }
                               onChange={(e) =>
@@ -290,7 +310,7 @@ const AllTimeSheets = () => {
                                   e,
                                   employee.employeeID,
                                   project.projectId,
-                                  new Date(date).getDate()
+                                  new Date(dateObj.date).getDate()
                                 )
                               }
                             />
@@ -298,7 +318,7 @@ const AllTimeSheets = () => {
                             findRegularHours(
                               employee.employeeID,
                               project.projectId,
-                              new Date(date).getDate()
+                              new Date(dateObj.date).getDate()
                             )
                           ) : (
                             <span>0</span>
@@ -322,13 +342,16 @@ const AllTimeSheets = () => {
                     <td>{employee.firstName}</td>
                     <td>{employee.lastName}</td>
                     <td>No projects</td>
-                    {renderDates().map((date, index) => (
-                      <td key={index}>
+                    {renderDates().map((dateObj, index) => (
+                      <td
+                        key={index}
+                        style={{ color: dateObj.isWeekend ? "red" : "black" }}
+                      >
                         {timeSheets.length > 0 ? (
                           findRegularHours(
                             employee.employeeID,
                             null,
-                            new Date(date).getDate()
+                            new Date(dateObj.date).getDate()
                           )
                         ) : (
                           <span>0</span>

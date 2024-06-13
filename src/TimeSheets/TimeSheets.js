@@ -83,9 +83,6 @@ export default function TimeSheets() {
 
   useEffect(() => {
     getTimeSheetStatus().then((data) => {
-
-  
-
       setStatus(data);
       console.log(data);
     });
@@ -285,7 +282,6 @@ export default function TimeSheets() {
     ) {
       datesArray.push(new Date(date));
     }
-
     return datesArray;
   };
 
@@ -313,8 +309,29 @@ export default function TimeSheets() {
       editable: true,
     },
     { headerName: "Status", field: "status", width: 120, editable: false },
+    {}
+    
   ];
 
+const generateColumnDefs = () => {
+  const dateColumns = timeSheets.map((timeSheet) => {
+    // Generate a unique field name for each date column
+    const fieldName = `date_${timeSheet.date.getTime()}`;
+
+    return {
+      headerName: timeSheet.date.toLocaleDateString(), // Assuming you want to display date in a specific format
+      field: fieldName,
+      width: 150,
+      editable: true,
+    };
+  });
+
+  return [
+    { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
+    ...dateColumns,
+    { headerName: "Status", field: "status", width: 120, editable: false },
+  ];
+};
 
   const customColumns = [
     {
@@ -359,7 +376,6 @@ export default function TimeSheets() {
       t.date === timeSheet.date ? { ...t, status: "APPROVED" } : t
     );
 
-    // Update the state with the modified data
     setTimeSheets(updatedTimeSheets);
 
     console.log(timeSheet.sheetId);
@@ -448,13 +464,10 @@ export default function TimeSheets() {
   };
 
   return (
-
     <div
       className="timesheets-container"
       style={{ marginLeft: "200px", width: "50%" }}
     >
-
-
       <div className="input-group">
         {role === "ADMIN" && (
           <div className="input-item">
@@ -474,7 +487,7 @@ export default function TimeSheets() {
                   </Option>
                 ))}
             </Select>
-
+  
           </div>
         )}
 
@@ -530,25 +543,18 @@ export default function TimeSheets() {
           </Select>
         </div>
       </div>
-
-
       <div
         className="ag-theme-alpine"
         style={{ height: "400px", width: "100%" }}
       >
-
-      
         <CustomGrid
           gridOptions={gridOptions}
           data={timeSheets}
           columns={columnDefs}
           customColumns={role === "ADMIN" ? customColumns : []}
         />
-
       </div>
-
       <input type="file" id="fileInput" multiple onChange={handleFileChange} />
-
       <div>
         <h4>Uploaded Files</h4>
         <ul>
@@ -592,7 +598,6 @@ export default function TimeSheets() {
       >
         Cancel
       </button>
-
     </div>
   );
 }

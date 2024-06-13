@@ -54,7 +54,7 @@ export default function Login({ onLogin }) {
         </button>
       </form>
       <p>
-        <Link to="/forgot-password">Forgot Password?</Link>
+        <Link to="/forgot-password">Forgot password?</Link>
       </p>
     </div>
   );

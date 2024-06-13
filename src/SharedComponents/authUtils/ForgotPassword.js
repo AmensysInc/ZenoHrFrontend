@@ -17,13 +17,23 @@ export default function ForgotPassword() {
         setSendDetailsSuccess(true);
       }
     } catch (error) {
-      setError("An error occurred");
+      setError("Email does not exist", error);
       console.error("An error occurred:", error);
     }
   };
 
   const onClose = () => {
     navigate("/login");
+  };
+
+  const paragraphStyle = {
+    fontSize: '16px',
+    display: 'block',
+    marginBlockStart: '1em',
+    marginBlockEnd: '1em',
+    marginInlineStart: '0px',
+    marginInlineEnd: '0px',
+    unicodeBidi: 'isolate'
   };
 
   return (
@@ -39,7 +49,10 @@ export default function ForgotPassword() {
             onClose={onClose}
           />
         )}
-      <h2>Forgot Password</h2>
+      <h3>Forgot Password ?</h3>
+      <p style={paragraphStyle}>
+      Don't worry. Resetting your password is easy, just tell us the email address you registered with Quick HRMS.
+    </p>
       <form onSubmit={handleForgotPassword}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
