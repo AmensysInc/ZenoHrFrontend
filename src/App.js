@@ -41,6 +41,7 @@ import ContactForm from "./Contacts/ContactForm";
 import BulkMailForm from "./Recruiter/BulkMailForm";
 import Companies from "./Companies/Companies";
 import AllTimeSheets from "./TimeSheets/AllTimeSheets";
+import WeeklyTimesheet from "./TimeSheets/WeeklyTimesheet";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -166,6 +167,7 @@ function App() {
                     />
                     <Route path="/timeSheets" element={<TimeSheets />} />
                     <Route path="/alltimeSheets" element={<AllTimeSheets />} />
+                    <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
                     <Route path="/email" element={<EmailForm />} />
                     <Route path="/addcontact" element={<ContactForm mode="add" />} />
                     <Route path="/bulkemail" element={<BulkMailForm />} />

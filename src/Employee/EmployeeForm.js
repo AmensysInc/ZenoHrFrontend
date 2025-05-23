@@ -50,7 +50,7 @@ export default function EmployeeForm({ mode }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const companyData = await fetchCompanies();
+      const companyData = await fetchCompanies(0,10);
       setCompanies(companyData);
     };
     fetchData();
@@ -90,6 +90,7 @@ export default function EmployeeForm({ mode }) {
   const handleSendDetails = async (e) => {
     e.preventDefault();
     const success = await sendLoginDetails(emailID);
+    console.log(emailID)
     if (success) {
       setSendDetailsSuccess(true);
     } else {
@@ -283,7 +284,7 @@ export default function EmployeeForm({ mode }) {
                 {Array.isArray(companies) &&
                   companies.map((companyData) => (
                     <option
-                      key={companyData.employeeID}
+                      key={companyData.companyId}
                       value={companyData.companyName}
                     >
                       {companyData.companyName}

@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Select } from "antd";
-import { FaCheck, FaDownload } from "react-icons/fa";
-import { FaTimes } from "react-icons/fa";
+import { FaCheck, FaTimes } from "react-icons/fa";
 import CustomGrid from "../SharedComponents/CustomGrid";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -9,7 +8,8 @@ import { getTimeSheetStatus } from "../SharedComponents/services/TimeSheetServic
 import { get, post } from "../SharedComponents/httpClient ";
 import _ from "lodash";
 import { TbCloudDownload } from "react-icons/tb";
-import { AiFillDelete } from "react-icons/ai"
+import { AiFillDelete } from "react-icons/ai";
+
 const { Option } = Select;
 
 export default function TimeSheets() {
@@ -25,17 +25,7 @@ export default function TimeSheets() {
   const [status, setStatus] = useState(["APPROVED", "REJECTED", "PENDING"]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [selectedFile, setSelectedFile] = useState("");
-
-  // Function to handle file selection
-  const handleFileSelect = (value) => {
-    setSelectedFile(value);
-  };
-
-  const handleFileChange = (event) => {
-    setSelectedFiles(Array.from(event.target.files));
-  };
-
+  const [isFileInputEnabled, setIsFileInputEnabled] = useState(false);
 
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const employeeIdFromSessionStorage = sessionStorage.getItem("id");
@@ -44,11 +34,14 @@ export default function TimeSheets() {
     : "";
 
   useEffect(() => {
+    setIsFileInputEnabled(!!(selectedProject && selectedMonth && selectedYear));
+  }, [selectedProject, selectedMonth, selectedYear]);
+
+  useEffect(() => {
     if (role === "ADMIN") {
       get("/employees")
         .then((response) => {
           const data = response.data;
-
           if (data && data.content && Array.isArray(data.content)) {
             setEmployees(data.content);
           } else {
@@ -58,33 +51,14 @@ export default function TimeSheets() {
         .catch((error) => {
           console.error("Error fetching employees:", error);
         });
-
     } else {
-  
-
       setSelectedEmployee(employeeIdFromSessionStorage);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    if (selectedEmployee) {
-      // Fetch uploaded files for the selected employee
-      get(`/timeSheets/getUploadedFiles/${selectedEmployee}`)
-        .then((response) => {
-          const data = response.data;
-          // Assuming the response contains an array of file names
-          setUploadedFiles(data);
-        })
-        .catch((error) => {
-          console.error("Error fetching uploaded files:", error);
-        });
-    }
-  }, [selectedEmployee]);
-
-  useEffect(() => {
     getTimeSheetStatus().then((data) => {
       setStatus(data);
-      console.log(data);
     });
   }, []);
 
@@ -93,7 +67,6 @@ export default function TimeSheets() {
       get(`employees/${selectedEmployee}/projects`)
         .then((response) => {
           const data = response.data;
-          console.log("Projects content:", data.content);
           if (data && data.content && Array.isArray(data.content)) {
             setProjects(data.content);
           } else {
@@ -107,9 +80,43 @@ export default function TimeSheets() {
   }, [selectedEmployee, apiUrl]);
 
   useEffect(() => {
+    if (selectedEmployee && selectedProject && selectedYear && selectedMonth) {
+      const monthName = monthOptions[parseInt(selectedMonth, 10) - 1];
+      get(
+        `/timeSheets/getUploadedFiles/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${monthName}`
+      )
+        .then((response) => {
+          const data = response.data;
+          const formattedFiles = data.map((file) => ({
+            ...file,
+            formattedDate: formatUploadedDate(file.uploadedAt),
+          }));
+          setUploadedFiles(formattedFiles);
+        })
+        .catch((error) => {
+          console.error("Error fetching uploaded files:", error);
+        });
+    }
+  }, [selectedEmployee, selectedProject, selectedYear, selectedMonth]);
+
+  const formatUploadedDate = (dateArray) => {
+    if (!dateArray || dateArray.length < 6) return "";
+    const [year, month, day, hour, minute, second] = dateArray;
+    const date = new Date(year, month - 1, day, hour, minute, second);
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
+
+  useEffect(() => {
     if (selectedEmployee && selectedMonth && selectedYear && selectedProject) {
       const datesInMonth = getDatesInMonth(selectedMonth, selectedYear);
-
       const requestBody = {
         month: parseInt(selectedMonth, 10),
         year: selectedYear,
@@ -120,9 +127,7 @@ export default function TimeSheets() {
       post("/timeSheets/getAllTimeSheets", requestBody)
         .then((response) => {
           const data = response.data;
-          console.log(data);
           if (data && Array.isArray(data)) {
-            // Convert timestamp to Date and create a map for efficient lookup
             const dataMap = new Map(
               data.map((item) => [
                 item.date,
@@ -134,7 +139,6 @@ export default function TimeSheets() {
               ])
             );
 
-            // Fill in missing dates with regular, OT hours, and day
             const filledData = datesInMonth.map((date) => {
               const dataItem = dataMap.get(date.getTime());
               return dataItem
@@ -158,8 +162,7 @@ export default function TimeSheets() {
         .catch((error) => {
           console.error("Error fetching time sheets:", error);
         });
-    }
-    else{
+    } else {
       setTimeSheets([]);
     }
   }, [selectedEmployee, selectedMonth, selectedYear, selectedProject]);
@@ -178,9 +181,59 @@ export default function TimeSheets() {
       })
     );
   };
+  const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
+  const handleFileChange = (event) => {
+    const newFiles = Array.from(event.target.files);
+
+    setSelectedFiles((prevFiles) => {
+      // Calculate current total size
+      const currentTotalSize = prevFiles.reduce(
+        (sum, file) => sum + file.size,
+        0
+      );
+
+      // Filter new files
+      const filteredNewFiles = [];
+      let newTotalSize = currentTotalSize;
+
+      for (const file of newFiles) {
+        if (newTotalSize + file.size > MAX_TOTAL_SIZE) {
+          alert(
+            `Cannot add ${file.name} - total size would exceed ${
+              MAX_TOTAL_SIZE / 1024 / 1024
+            }MB`
+          );
+          continue;
+        }
+
+        const isDuplicate = prevFiles.some(
+          (f) =>
+            f.name === file.name &&
+            f.size === file.size &&
+            f.lastModified === file.lastModified
+        );
+
+        if (!isDuplicate) {
+          filteredNewFiles.push(file);
+          newTotalSize += file.size;
+        }
+      }
+
+      return [...prevFiles, ...filteredNewFiles];
+    });
+
+    event.target.value = "";
+  };
+
+  const handleRemoveSelectedFile = (index) => {
+    setSelectedFiles((prevFiles) => {
+      const newFiles = [...prevFiles];
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
+  };
 
   const handleSubmit = () => {
-    // Filter and transform the dirty records to match API request body
     const transformedData = timeSheets
       .filter((record) => record.__dirty)
       .map((record) => ({
@@ -195,7 +248,6 @@ export default function TimeSheets() {
         status: record.status,
       }));
 
-    // Submit the transformed data
     post("/timeSheets/createTimeSheet", transformedData)
       .then((response) => {
         console.log(response);
@@ -204,33 +256,180 @@ export default function TimeSheets() {
         console.error("Error fetching time sheets:", error);
       });
 
-    // Prepare form data for file upload
-    const formData = new FormData();
-    formData.append("employeeID", selectedEmployee);
-    selectedFiles.forEach((file) => {
-      formData.append("documents", file);
-    });
-
-    // Submit the transformed data along with files
-    post(`/timeSheets/uploadfiles/${selectedEmployee}`, formData)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.error("Error uploading files:", error);
+    if (selectedFiles.length > 0) {
+      const formData = new FormData();
+      formData.append("employeeID", selectedEmployee);
+      selectedFiles.forEach((file) => {
+        formData.append("documents", file);
       });
 
+      const monthName = monthOptions[parseInt(selectedMonth, 10) - 1];
 
-    // Reset the dirty state of the records
+      post(
+        `/timeSheets/uploadfiles/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${monthName}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      )
+        .then((response) => {
+          console.log(response);
+          setSelectedFiles([]);
+          get(
+            `/timeSheets/getUploadedFiles/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${monthName}`
+          ).then((response) => {
+            const data = response.data;
+            const formattedFiles = data.map((file) => ({
+              ...file,
+              formattedDate: formatUploadedDate(file.uploadedAt),
+            }));
+            setUploadedFiles(formattedFiles);
+          });
+        })
+        .catch((error) => {
+          console.error("Error uploading files:", error);
+        });
+    }
+
     setTimeSheets((prevTimeSheets) =>
       prevTimeSheets.map((record) => ({ ...record, __dirty: false }))
     );
   };
 
   const handleCancel = () => {
-    // Reset the dirty state of the records without submitting changes
     setTimeSheets(timeSheetsOriginal);
-    console.log(timeSheets);
+    setSelectedFiles([]);
+  };
+
+  const handleDelete = (fileName) => {
+    if (!fileName || !selectedEmployee) return;
+
+    const token = sessionStorage.getItem("token");
+    fetch(
+      `${apiUrl}/timeSheets/deleteUploadedFile/${selectedEmployee}/${fileName}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then((response) => {
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        return response.text();
+      })
+      .then(() => {
+        setUploadedFiles((prevFiles) =>
+          prevFiles.filter((file) => file.fileName !== fileName)
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting file:", error);
+      });
+  };
+
+  const handleApprove = (timeSheet) => {
+    let timeSheetData = [
+      {
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: selectedEmployee,
+        projectId: selectedProject.projectId,
+        sheetId: timeSheet.sheetId,
+        regularHours: timeSheet.regularHours,
+        overTimeHours: timeSheet.overTimeHours,
+        date: timeSheet.date.toISOString(),
+        status: "APPROVED",
+      },
+    ];
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      t.date === timeSheet.date ? { ...t, status: "APPROVED" } : t
+    );
+
+    setTimeSheets(updatedTimeSheets);
+
+    post("/timeSheets/createTimeSheet", timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error("Error fetching time sheets:", error);
+      });
+  };
+
+  const handleReject = (timeSheet) => {
+    let timeSheetData = [
+      {
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: selectedEmployee,
+        projectId: selectedProject.projectId,
+        sheetId: timeSheet.sheetId,
+        regularHours: timeSheet.regularHours,
+        overTimeHours: timeSheet.overTimeHours,
+        date: timeSheet.date.toISOString(),
+        status: "REJECTED",
+      },
+    ];
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      t.date === timeSheet.date ? { ...t, status: "REJECTED" } : t
+    );
+
+    setTimeSheets(updatedTimeSheets);
+
+    post("/timeSheets/createTimeSheet", timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error("Error fetching time sheets:", error);
+      });
+  };
+
+  const handleDownloadFile = (fileName) => {
+    if (
+      !fileName ||
+      !selectedEmployee ||
+      !selectedProject ||
+      !selectedYear ||
+      !selectedMonth
+    )
+      return;
+
+    const token = sessionStorage.getItem("token");
+    const monthName = monthOptions[parseInt(selectedMonth, 10) - 1];
+
+    fetch(
+      `${apiUrl}/timeSheets/downloadFile/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${monthName}/${fileName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to download file");
+        return response.blob();
+      })
+      .then((blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        console.error("Error downloading file:", error);
+        alert("Error downloading file. Please try again.");
+      });
   };
 
   const monthOptions = [
@@ -248,13 +447,7 @@ export default function TimeSheets() {
     "December",
   ];
 
-  const startYear = 2020;
-  const endYear = 2099;
-  const yearOptions = [];
-
-  for (let year = startYear; year <= endYear; year++) {
-    yearOptions.push(year);
-  }
+  const yearOptions = Array.from({ length: 80 }, (_, i) => 2020 + i);
 
   const getDayStyle = (params) => {
     if (params.value instanceof Date) {
@@ -273,7 +466,6 @@ export default function TimeSheets() {
   const getDatesInMonth = (month, year) => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
-
     const datesArray = [];
     for (
       let date = startDate;
@@ -285,17 +477,14 @@ export default function TimeSheets() {
     return datesArray;
   };
 
-  const [gridOptions, setGridOptions] = useState({
-    defaultColDef: {
-      resizable: true,
-    },
+  const [gridOptions] = useState({
+    defaultColDef: { resizable: true },
     onCellValueChanged: onCellValueChanged,
   });
 
   const columnDefs = [
     { headerName: "Date", field: "date", width: 150, cellStyle: getDayStyle },
     { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-
     {
       headerName: "Regular Hours",
       field: "regularHours",
@@ -309,29 +498,7 @@ export default function TimeSheets() {
       editable: true,
     },
     { headerName: "Status", field: "status", width: 120, editable: false },
-    {}
-    
   ];
-
-const generateColumnDefs = () => {
-  const dateColumns = timeSheets.map((timeSheet) => {
-    // Generate a unique field name for each date column
-    const fieldName = `date_${timeSheet.date.getTime()}`;
-
-    return {
-      headerName: timeSheet.date.toLocaleDateString(), // Assuming you want to display date in a specific format
-      field: fieldName,
-      width: 150,
-      editable: true,
-    };
-  });
-
-  return [
-    { headerName: "Day", field: "day", width: 80, cellStyle: getDayStyle },
-    ...dateColumns,
-    { headerName: "Status", field: "status", width: 120, editable: false },
-  ];
-};
 
   const customColumns = [
     {
@@ -356,113 +523,6 @@ const generateColumnDefs = () => {
     },
   ];
 
-  const handleApprove = (timeSheet) => {
-    console.log("TiemSheet : ", timeSheet);
-    let timeSheetData = [
-      {
-        month: selectedMonth,
-        year: selectedYear,
-        employeeId: selectedEmployee,
-        projectId: selectedProject.projectId,
-        sheetId: timeSheet.sheetId,
-        regularHours: timeSheet.regularHours,
-        overTimeHours: timeSheet.overTimeHours,
-        date: timeSheet.date.toISOString(),
-        status: "APPROVED",
-      },
-    ];
-
-    const updatedTimeSheets = timeSheets.map((t) =>
-      t.date === timeSheet.date ? { ...t, status: "APPROVED" } : t
-    );
-
-    setTimeSheets(updatedTimeSheets);
-
-    console.log(timeSheet.sheetId);
-    post("/timeSheets/createTimeSheet", timeSheetData)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.error("Error fetching time sheets:", error);
-      });
-  };
-
-  const handleReject = (timeSheet) => {
-    console.log("TiemSheet : ", timeSheet);
-    let timeSheetData = [
-      {
-        month: selectedMonth,
-        year: selectedYear,
-        employeeId: selectedEmployee,
-        projectId: selectedProject.projectId,
-        sheetId: timeSheet.sheetId,
-        regularHours: timeSheet.regularHours,
-        overTimeHours: timeSheet.overTimeHours,
-        date: timeSheet.date.toISOString(),
-        status: "REJECTED",
-      },
-    ];
-
-    const updatedTimeSheets = timeSheets.map((t) =>
-      t.date === timeSheet.date ? { ...t, status: "REJECTED" } : t
-    );
-
-    // Update the state with the modified data
-    setTimeSheets(updatedTimeSheets);
-
-    console.log(timeSheet.sheetId);
-    post("/timeSheets/createTimeSheet", timeSheetData)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.error("Error fetching time sheets:", error);
-      });
-  };
-
-  const handleDownloadFile = (fileName) => {
-    if (fileName) {
-      const apiUrl = process.env.REACT_APP_API_URL;
-      const employeeID = selectedEmployee;
-      const token = sessionStorage.getItem("token");
-
-      // Make API call to download file
-      fetch(`${apiUrl}/timeSheets/downloadFile/${employeeID}/${fileName}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => {
-          // Check if response is successful
-          if (!response.ok) {
-            throw new Error("Failed to download file");
-          }
-          // Convert response to blob
-          return response.blob();
-        })
-        .then((blob) => {
-          // Create URL for the blob
-          const url = window.URL.createObjectURL(new Blob([blob]));
-          // Create a temporary link element
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", fileName);
-          // Simulate click on link to trigger download
-          document.body.appendChild(link);
-          link.click();
-          // Cleanup
-          link.parentNode.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        })
-        .catch((error) => {
-          console.error("Error downloading file:", error);
-        });
-    } else {
-      console.warn("Please select a file to download.");
-    }
-  };
-
   return (
     <div
       className="timesheets-container"
@@ -473,10 +533,8 @@ const generateColumnDefs = () => {
           <div className="input-item">
             <label>Employee</label>
             <Select
-
               style={{ width: "150px", marginRight: "8px" }}
               value={selectedEmployee.employeeID}
-
               onChange={(value) => setSelectedEmployee(value)}
             >
               <Option value="">-- Select --</Option>
@@ -487,7 +545,6 @@ const generateColumnDefs = () => {
                   </Option>
                 ))}
             </Select>
-  
           </div>
         )}
 
@@ -543,9 +600,10 @@ const generateColumnDefs = () => {
           </Select>
         </div>
       </div>
+
       <div
         className="ag-theme-alpine"
-        style={{ height: "400px", width: "100%" }}
+        style={{ height: "400px", width: "100%", marginTop: "20px" }}
       >
         <CustomGrid
           gridOptions={gridOptions}
@@ -554,50 +612,128 @@ const generateColumnDefs = () => {
           customColumns={role === "ADMIN" ? customColumns : []}
         />
       </div>
-      <input type="file" id="fileInput" multiple onChange={handleFileChange} />
+
       <div>
+        <input
+          type="file"
+          id="fileInput"
+          multiple
+          onChange={handleFileChange}
+          disabled={!isFileInputEnabled}
+          style={{ display: "none" }}
+        />
+        <label
+          htmlFor="fileInput"
+          className={`btn ${
+            !isFileInputEnabled ? "btn-outline-secondary" : "btn-primary"
+          }`}
+          style={{
+            marginRight: "10px",
+            cursor: isFileInputEnabled ? "pointer" : "not-allowed",
+          }}
+        >
+          Choose Files
+        </label>
+
+        {selectedFiles.length > 0 && (
+          <div style={{ marginTop: "10px" }}>
+            <h5>Selected Files:</h5>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {selectedFiles.map((file, index) => (
+                <li
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: "5px",
+                    padding: "5px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <span style={{ flex: 1 }}>{file.name}</span>
+                  <FaTimes
+                    size={14}
+                    onClick={() => handleRemoveSelectedFile(index)}
+                    style={{
+                      cursor: "pointer",
+                      color: "red",
+                      marginLeft: "10px",
+                    }}
+                    title="Remove file"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: "20px" }}>
         <h4>Uploaded Files</h4>
-        <ul>
+        <ul style={{ listStyle: "none", padding: 0 }}>
           {uploadedFiles.map((file, index) => (
-            <li key={index}>
-              {file}
-              <TbCloudDownload
-                size={25}
-                title="Download"
-                onClick={() => handleDownloadFile(file)}
-              />
-              <AiFillDelete
-                // onClick={() => handleDelete(file)}
-                size={20}
-                className="delete-icon"
-                title="Delete"
-              />
+            <li
+              key={index}
+              style={{
+                marginBottom: "10px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div>{file.fileName}</div>
+                <div style={{ fontSize: "0.8em", color: "#666" }}>
+                  Uploaded: {file.uploadedAt}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <TbCloudDownload
+                  size={25}
+                  title="Download"
+                  onClick={() => handleDownloadFile(file.fileName)}
+                  style={{ cursor: "pointer" }}
+                />
+                <AiFillDelete
+                  onClick={() => handleDelete(file.fileName)}
+                  size={20}
+                  className="delete-icon"
+                  title="Delete"
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
             </li>
           ))}
         </ul>
       </div>
-      <button
-        onClick={handleSubmit}
-        disabled={timeSheets.every((row) => !row.__dirty)}
-        className={`btn ${
-          timeSheets.every((row) => !row.__dirty)
-            ? "btn-outline-secondary"
-            : "btn-success"
-        }`}
-      >
-        Submit
-      </button>
-      <button
-        onClick={handleCancel}
-        disabled={timeSheets.every((row) => !row.__dirty)}
-        className={`btn ${
-          timeSheets.every((row) => !row.__dirty)
-            ? "btn-outline-secondary"
-            : "btn-danger"
-        }`}
-      >
-        Cancel
-      </button>
+
+      <div style={{ marginTop: "20px" }}>
+        <button
+          onClick={handleSubmit}
+          disabled={
+            !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
+          }
+          className={`btn ${
+            !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
+              ? "btn-outline-secondary"
+              : "btn-success"
+          }`}
+          style={{ marginRight: "10px" }}
+        >
+          Submit
+        </button>
+        <button
+          onClick={handleCancel}
+          disabled={timeSheets.every((row) => !row.__dirty)}
+          className={`btn ${
+            timeSheets.every((row) => !row.__dirty)
+              ? "btn-outline-secondary"
+              : "btn-danger"
+          }`}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

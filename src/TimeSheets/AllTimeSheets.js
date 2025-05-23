@@ -14,9 +14,32 @@ const AllTimeSheets = () => {
   const [editingRow, setEditingRow] = useState(null);
   const [editedRegularHours, setEditedRegularHours] = useState({});
   const [editedprojectId, setEditedprojectId] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [showAllProjects, setShowAllProjects] = useState(false);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await get(`/companies?page=0&size=100`);
+        if (response.data && response.data.content) {
+          setCompanies(response.data.content);
+        }
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  const handleCompanyChange = (e) => {
+    setSelectedCompanyId(e.target.value);
+  };
 
   useEffect(() => {
     const fetchEmployees = async () => {
+      setLoading(true);
       try {
         const response = await get(
           `/employees?page=${currentPage}&size=${pageSize}`
@@ -30,13 +53,20 @@ const AllTimeSheets = () => {
             const projectResponse = await get(
               `/employees/${employee.employeeID}/projects`
             );
-            const projectsWithEndDate = projectResponse.data.content.map(
-              (project) => {
-                // Assuming the project end date is in a format that can be parsed by the Date constructor
-                const projectEndDate = new Date(project.projectEndDate);
-                return { ...project, projectEndDate };
-              }
-            );
+            let filteredProjects = projectResponse.data.content;
+
+            // Show only active projects unless checkbox is checked
+            if (!showAllProjects) {
+              filteredProjects = filteredProjects.filter(
+                (project) => project.projectStatus === "Active"
+              );
+            }
+
+            const projectsWithEndDate = filteredProjects.map((project) => {
+              const projectEndDate = new Date(project.projectEndDate);
+              return { ...project, projectEndDate };
+            });
+
             return { ...employee, projects: projectsWithEndDate };
           })
         );
@@ -49,7 +79,7 @@ const AllTimeSheets = () => {
       }
     };
     fetchEmployees();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, showAllProjects]);
 
   const fetchTimeSheets = async () => {
     try {
@@ -58,7 +88,6 @@ const AllTimeSheets = () => {
         year: selectedYear,
       });
       setTimeSheets(response.data);
-      console.log("Response from server:", response);
     } catch (error) {
       console.error("Error fetching time sheets:", error);
     }
@@ -167,10 +196,7 @@ const AllTimeSheets = () => {
       if (updatedTimeSheets.length > 0) {
         await updateTimesheet(updatedTimeSheets);
       }
-
-      // Call fetchTimeSheets to update time sheets data
       await fetchTimeSheets();
-
       setEditingRow(null);
     } catch (error) {
       console.error("Error saving edited value:", error);
@@ -188,9 +214,7 @@ const AllTimeSheets = () => {
         regularHours: updatedTimeSheet.regularHours,
         date: updatedTimeSheet.date,
       }));
-      console.log(requestBody);
-      const response = await post("/timeSheets/createSheet", requestBody);
-      console.log(response.data);
+      await post("/timeSheets/createSheet", requestBody);
     } catch (error) {
       console.error("Error updating timesheets:", error);
     }
@@ -210,16 +234,12 @@ const AllTimeSheets = () => {
     return <div>Loading...</div>;
   }
 
-  const isDateExpired = (date) => {
-    return new Date(date) < new Date();
-  };
-
   return (
     <div className="container">
       <h2>Employee Grid</h2>
       <div>
         <label htmlFor="month">Month:</label>
-        <select id="month" value={selectedMonth} onChange={handleMonthChange}>
+        <select id="month" value={selectedMonth || ""} onChange={handleMonthChange}>
           <option value="">Select Month</option>
           {Array.from({ length: 12 }, (_, i) => (
             <option key={i + 1} value={i + 1}>
@@ -230,14 +250,42 @@ const AllTimeSheets = () => {
           ))}
         </select>
         <label htmlFor="year">Year:</label>
-        <select id="year" value={selectedYear} onChange={handleYearChange}>
+        <select id="year" value={selectedYear || ""} onChange={handleYearChange}>
           <option value="">Select Year</option>
-          {Array.from({ length: 9 }, (_, i) => (
-            <option key={2020 + i} value={2020 + i}>
-              {2020 + i}
+          {(() => {
+            const currentYear = new Date().getFullYear();
+            const years = [];
+            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+              years.push(
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              );
+            }
+            return years;
+          })()}
+        </select>
+        <label htmlFor="company">Company:</label>
+        <select
+          id="company"
+          value={selectedCompanyId}
+          onChange={handleCompanyChange}
+        >
+          <option value="">All Companies</option>
+          {companies.map((company) => (
+            <option key={company.companyID} value={company.companyID}>
+              {company.companyName}
             </option>
           ))}
         </select>
+        <label>
+          <input
+            type="checkbox"
+            checked={showAllProjects}
+            onChange={() => setShowAllProjects(!showAllProjects)}
+          />
+          Show All Projects
+        </label>
       </div>
       {selectedMonth !== null && selectedYear !== null && (
         <table className="table">
@@ -245,6 +293,7 @@ const AllTimeSheets = () => {
             <tr>
               <th>FirstName</th>
               <th>LastName</th>
+              <th>Company</th>
               <th>Projects</th>
               {renderDates().map((dateObj, index) => (
                 <th
@@ -258,118 +307,103 @@ const AllTimeSheets = () => {
             </tr>
           </thead>
           <tbody>
-            {employees.map((employee) => (
-              <React.Fragment key={employee.id}>
-                {employee.projects.length > 0 ? (
-                  employee.projects.map((project, index) => (
-                    <tr key={`${employee.id}-${index}`}>
-                      {index === 0 ? (
-                        <>
-                          <td rowSpan={employee.projects.length}>
-                            {employee.firstName}
-                          </td>
-                          <td rowSpan={employee.projects.length}>
-                            {employee.lastName}
-                          </td>
-                        </>
-                      ) : null}
-                      <td
-                        style={{
-                          color:
-                            project.projectEndDate < new Date()
-                              ? "red"
-                              : "black",
-                        }}
-                      >
-                        {`${project.subVendorOne}/${project.subVendorTwo}`}
-                      </td>
-                      {renderDates().map((dateObj, index) => (
-                        <td
-                          key={index}
-                          onDoubleClick={() =>
-                            toggleEditMode(
-                              employee.employeeID,
-                              project.projectId
-                            )
-                          }
-                          style={{ color: dateObj.isWeekend ? "red" : "black" }}
-                        >
-                          {editingRow === employee.employeeID &&
-                          editedprojectId === project.projectId ? (
-                            <input
-                              type="text"
-                              value={
-                                editedRegularHours[
-                                  `${employee.employeeID}-${
-                                    project.projectId
-                                  }-${new Date(dateObj.date).getDate()}`
-                                ]
-                              }
-                              onChange={(e) =>
-                                handleEditChange(
-                                  e,
-                                  employee.employeeID,
-                                  project.projectId,
-                                  new Date(dateObj.date).getDate()
-                                )
-                              }
-                            />
-                          ) : timeSheets.length > 0 ? (
-                            findRegularHours(
-                              employee.employeeID,
-                              project.projectId,
-                              new Date(dateObj.date).getDate()
-                            )
-                          ) : (
-                            <span>0</span>
-                          )}
-                        </td>
-                      ))}
-                      <td>
-                        {editingRow === employee.employeeID &&
-                          editedprojectId === project.projectId && (
-                            <button
-                              onClick={() => handleSave(employee.employeeID)}
-                            >
-                              Save
-                            </button>
-                          )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr key={employee.id}>
-                    <td>{employee.firstName}</td>
-                    <td>{employee.lastName}</td>
-                    <td>No projects</td>
-                    {renderDates().map((dateObj, index) => (
-                      <td
-                        key={index}
-                        style={{ color: dateObj.isWeekend ? "red" : "black" }}
-                      >
-                        {timeSheets.length > 0 ? (
-                          findRegularHours(
-                            employee.employeeID,
-                            null,
-                            new Date(dateObj.date).getDate()
-                          )
-                        ) : (
-                          <span>0</span>
+            {employees
+              .filter(
+                (emp) =>
+                  !selectedCompanyId ||
+                  emp.company.toLowerCase().includes(selectedCompanyId.toLowerCase())
+              )
+              .map((employee) => (
+                <React.Fragment key={employee.id}>
+                  {employee.projects.length > 0 ? (
+                    employee.projects.map((project, index) => (
+                      <tr key={`${employee.id}-${index}`}>
+                        {index === 0 && (
+                          <>
+                            <td rowSpan={employee.projects.length}>
+                              {employee.firstName}
+                            </td>
+                            <td rowSpan={employee.projects.length}>
+                              {employee.lastName}
+                            </td>
+                            <td rowSpan={employee.projects.length}>
+                              {employee.company}
+                            </td>
+                          </>
                         )}
-                      </td>
-                    ))}
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+                        <td
+                          style={{
+                            color:
+                              project.projectEndDate < new Date()
+                                ? "red"
+                                : "black",
+                          }}
+                        >
+                          {`${project.subVendorOne}/${project.subVendorTwo}`}
+                        </td>
+                        {renderDates().map((dateObj, idx) => (
+                          <td
+                            key={idx}
+                            onDoubleClick={() =>
+                              toggleEditMode(employee.employeeID, project.projectId)
+                            }
+                            style={{
+                              color: dateObj.isWeekend ? "red" : "black",
+                            }}
+                          >
+                            {editingRow === employee.employeeID &&
+                            editedprojectId === project.projectId ? (
+                              <input
+                                type="text"
+                                value={
+                                  editedRegularHours[
+                                    `${employee.employeeID}-${project.projectId}-${new Date(dateObj.date).getDate()}`
+                                  ] || ""
+                                }
+                                onChange={(e) =>
+                                  handleEditChange(
+                                    e,
+                                    employee.employeeID,
+                                    project.projectId,
+                                    new Date(dateObj.date).getDate()
+                                  )
+                                }
+                              />
+                            ) : (
+                              findRegularHours(
+                                employee.employeeID,
+                                project.projectId,
+                                new Date(dateObj.date).getDate()
+                              )
+                            )}
+                          </td>
+                        ))}
+                        <td>
+                          {editingRow === employee.employeeID &&
+                            editedprojectId === project.projectId && (
+                              <button onClick={handleSave}>Save</button>
+                            )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr key={employee.id}>
+                      <td>{employee.firstName}</td>
+                      <td>{employee.lastName}</td>
+                      <td>{employee.company}</td>
+                      <td colSpan={renderDates().length + 1}>No Projects</td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
           </tbody>
         </table>
       )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
     </div>
   );
 };
