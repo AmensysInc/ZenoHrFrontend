@@ -21,6 +21,7 @@ const EmployeeDetails = () => {
         }
       };
       const response = await axios.get(`${apiUrl}/employees/${employeeId}`,config);
+      console.log(response)
       setEmployee(response.data);
     } catch (error) {
       console.error("Error fetching employee details:", error);
@@ -50,12 +51,12 @@ const EmployeeDetails = () => {
               <td>{employee.emailID}</td>
             </tr>
             <tr>
-              <th>Date Of Birth</th>
-              <td>{employee.dob}</td>
+              <th>Company</th>
+              <td>{employee.company.companyName}</td>
             </tr>
             <tr>
-              <th>College of Graduation</th>
-              <td>{employee.clgOfGrad}</td>
+              <th>Date Of Birth</th>
+              <td>{employee.dob}</td>
             </tr>
             <tr>
               <th>Phone Number</th>
@@ -68,12 +69,12 @@ const EmployeeDetails = () => {
           </tbody>
         </table>
       </div>
-        <Link to={"/trackings"}>
-          <button disabled>View WithHoldTracking</button>
+        {/* <Link to={"/trackings"}>
+          <button>View WithHoldTracking</button>
         </Link>
         <Link to={"/withholdSheet"}>
           <button>View WithHoldSheet</button>
-        </Link>
+        </Link> */}
     </div>
   );
 };

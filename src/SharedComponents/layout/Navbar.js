@@ -1,13 +1,29 @@
-import React from "react";
 import './Navbar.css';
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
 import { logoutUser } from "../authUtils/authUtils";
-
+import { fetchCompanies } from "../../SharedComponents/services/CompaniesServies";
 
 export default function Navbar({setIsLoggedIn, setRole}) {
-
+  const [companies, setCompanies] = useState([]);
   const location = useLocation();
+  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
+
+  const fetchCompany = async () => {
+    try {
+      const { content } = await fetchCompanies(0, 10, "", "");
+      setCompanies(content);
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (defaultCompanyId) {
+      fetchCompany();
+    }
+  }, [defaultCompanyId]);
 
   const handleLogout = () => {
     logoutUser(setIsLoggedIn, setRole);
@@ -34,6 +50,18 @@ export default function Navbar({setIsLoggedIn, setRole}) {
           <Link className="navbar-brand" to="/">
             Quick HRMS
           </Link>
+          <div style={{ marginRight: "20px", fontWeight: "bold" }}>
+            {companies.map((company) =>
+              company.companyId === defaultCompanyId ? (
+                <div key={company.companyId}>
+                  Company:{" "}
+                  <span style={{ fontWeight: "bold" }}>
+                    {company.companyName}
+                  </span>
+                </div>
+              ) : null
+            )}
+          </div>
           <button
             className="navbar-toggler"
             type="button"
@@ -45,9 +73,9 @@ export default function Navbar({setIsLoggedIn, setRole}) {
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-              <>
-                <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
-              </>
+          <>
+            <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
+          </>
         </div>
       </nav>
     </div>

@@ -7,12 +7,13 @@ import { TbCloudDownload } from "react-icons/tb";
 import { AiFillDelete } from "react-icons/ai";
 import { FaTimes } from "react-icons/fa";
 
-// Configure dayjs to use Sunday as the first day of the week
 dayjs.extend(weekday);
 dayjs.extend(weekOfYear);
 
 const WeeklyTimesheet = () => {
-  const [currentWeekStart, setCurrentWeekStart] = useState(dayjs().startOf('week'));
+  const [currentWeekStart, setCurrentWeekStart] = useState(
+    dayjs().startOf("week")
+  );
   const [times, setTimes] = useState({});
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -74,7 +75,7 @@ const WeeklyTimesheet = () => {
         new Set(weekDates.map((date) => `${date.month() + 1}-${date.year()}`))
       );
       const newTimes = {};
-      
+
       for (const pair of monthYearPairs) {
         const [month, year] = pair.split("-").map(Number);
         const response = await axios.post(
@@ -92,12 +93,13 @@ const WeeklyTimesheet = () => {
             },
           }
         );
-        
         (response.data || []).forEach((entry) => {
           const entryDate = dayjs(entry.date).format("YYYY-MM-DD");
           newTimes[entryDate] = {
             sheetId: entry.sheetId,
             regularHours: entry.regularHours,
+            overTimeHours: entry.overTimeHours,
+            status: entry.status, // Add status to track approval state
           };
         });
       }
@@ -134,26 +136,36 @@ const WeeklyTimesheet = () => {
 
   const getMonthName = (monthNumber) => {
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return monthNames[monthNumber - 1];
   };
 
   const getWeekDays = () => {
-    return Array.from({ length: 7 }, (_, i) => currentWeekStart.add(i, 'day'));
+    return Array.from({ length: 7 }, (_, i) => currentWeekStart.add(i, "day"));
   };
 
   const handlePrevWeek = () => {
-    setCurrentWeekStart(prev => prev.subtract(7, 'day'));
+    setCurrentWeekStart((prev) => prev.subtract(7, "day"));
   };
 
   const handleNextWeek = () => {
-    setCurrentWeekStart(prev => prev.add(7, 'day'));
+    setCurrentWeekStart((prev) => prev.add(7, "day"));
   };
 
   const handleTimeChange = (date, value) => {
-    setTimes(prev => ({
+    setTimes((prev) => ({
       ...prev,
       [date]: {
         ...(prev[date] || {}),
@@ -162,24 +174,47 @@ const WeeklyTimesheet = () => {
     }));
   };
 
+  const handleOvertimeChange = (date, value) => {
+    setTimes((prev) => ({
+      ...prev,
+      [date]: {
+        ...(prev[date] || {}),
+        overTimeHours: value,
+      },
+    }));
+  };
+
+  // Helper function to check if a date is approved
+  const isDateApproved = (dateStr) => {
+    return times[dateStr]?.status === "APPROVED";
+  };
+
   const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
   const handleFileChange = (event) => {
     const newFiles = Array.from(event.target.files);
-    setSelectedFiles(prevFiles => {
-      const currentTotalSize = prevFiles.reduce((sum, file) => sum + file.size, 0);
+    setSelectedFiles((prevFiles) => {
+      const currentTotalSize = prevFiles.reduce(
+        (sum, file) => sum + file.size,
+        0
+      );
       const filteredNewFiles = [];
       let newTotalSize = currentTotalSize;
 
       for (const file of newFiles) {
         if (newTotalSize + file.size > MAX_TOTAL_SIZE) {
-          alert(`Cannot add ${file.name} - total size would exceed ${MAX_TOTAL_SIZE / 1024 / 1024}MB`);
+          alert(
+            `Cannot add ${file.name} - total size would exceed ${
+              MAX_TOTAL_SIZE / 1024 / 1024
+            }MB`
+          );
           continue;
         }
 
-        const isDuplicate = prevFiles.some(f => 
-          f.name === file.name && 
-          f.size === file.size && 
-          f.lastModified === file.lastModified
+        const isDuplicate = prevFiles.some(
+          (f) =>
+            f.name === file.name &&
+            f.size === file.size &&
+            f.lastModified === file.lastModified
         );
 
         if (!isDuplicate) {
@@ -200,35 +235,39 @@ const WeeklyTimesheet = () => {
 
     try {
       setLoading(true);
-      
-      // Save timesheet entries
-      const entries = Object.entries(times).map(([dateStr, data]) => {
-        const date = dayjs(dateStr);
-        return {
-          employeeId,
-          projectId: selectedProjectId,
-          date: date.valueOf(),
-          regularHours: Number(data.regularHours || 0),
-          overTimeHours: 0,
-          sheetId: data.sheetId || null,
-          month: date.month() + 1,
-          year: date.year(),
-          status: null,
-        };
-      });
-      
-      await axios.post(`${apiUrl}/timeSheets/createTimeSheet`, entries, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+
+      // Save timesheet entries (only for non-approved dates)
+      const entries = Object.entries(times)
+        .filter(([dateStr]) => !isDateApproved(dateStr)) // Only save non-approved entries
+        .map(([dateStr, data]) => {
+          const date = dayjs(dateStr);
+          return {
+            employeeId,
+            projectId: selectedProjectId,
+            date: date.valueOf(),
+            regularHours: Number(data.regularHours || 0),
+            overTimeHours: Number(data.overTimeHours || 0),
+            sheetId: data.sheetId || null,
+            month: date.month() + 1,
+            year: date.year(),
+            status: null,
+          };
+        });
+
+      if (entries.length > 0) {
+        await axios.post(`${apiUrl}/timeSheets/createTimeSheet`, entries, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      }
 
       // Upload files if any
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         formData.append("employeeID", employeeId);
-        selectedFiles.forEach(file => formData.append("documents", file));
+        selectedFiles.forEach((file) => formData.append("documents", file));
 
         const year = currentWeekStart.year();
         const monthName = getMonthName(currentWeekStart.month() + 1);
@@ -249,7 +288,13 @@ const WeeklyTimesheet = () => {
         if (fileInput) fileInput.value = "";
         fetchUploadedFiles();
       }
-      alert("Timesheet and files saved successfully!");
+
+      const approvedDatesCount = Object.keys(times).filter(dateStr => isDateApproved(dateStr)).length;
+      if (approvedDatesCount > 0) {
+        alert(`Timesheet and files saved successfully! Note: ${approvedDatesCount} approved date(s) were not modified.`);
+      } else {
+        alert("Timesheet and files saved successfully!");
+      }
     } catch (error) {
       console.error("Error saving timesheet:", error);
       alert("Failed to save timesheet. Please try again.");
@@ -275,7 +320,7 @@ const WeeklyTimesheet = () => {
       );
 
       if (!response.ok) throw new Error("Failed to download file");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -306,10 +351,11 @@ const WeeklyTimesheet = () => {
         }
       );
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      setUploadedFiles(prevFiles => 
-        prevFiles.filter(file => file.fileName !== fileName)
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      setUploadedFiles((prevFiles) =>
+        prevFiles.filter((file) => file.fileName !== fileName)
       );
       console.log(`File ${fileName} deleted successfully`);
     } catch (error) {
@@ -326,22 +372,30 @@ const WeeklyTimesheet = () => {
   };
 
   const handleThisWeek = () => {
-    setCurrentWeekStart(dayjs().startOf('week'));
+    setCurrentWeekStart(dayjs().startOf("week"));
   };
 
   const handleDateSelect = (e) => {
     const selectedDate = dayjs(e.target.value);
     if (selectedDate.isValid()) {
-      setCurrentWeekStart(selectedDate.startOf('week'));
+      setCurrentWeekStart(selectedDate.startOf("week"));
     }
   };
 
   const handleRemoveSelectedFile = (index) => {
-    setSelectedFiles(prevFiles => {
+    setSelectedFiles((prevFiles) => {
       const newFiles = [...prevFiles];
       newFiles.splice(index, 1);
       return newFiles;
     });
+  };
+
+  const getTotalOvertime = () => {
+    const weekDates = getWeekDays();
+    return weekDates.reduce((sum, date) => {
+      const dateStr = date.format("YYYY-MM-DD");
+      return sum + Number(times[dateStr]?.overTimeHours || 0);
+    }, 0);
   };
 
   const weekDays = getWeekDays();
@@ -446,23 +500,73 @@ const WeeklyTimesheet = () => {
               <tr>
                 {weekDays.map((date) => {
                   const dateStr = date.format("YYYY-MM-DD");
+                  const isApproved = isDateApproved(dateStr);
+                  const isDisabled = !selectedProjectId || isApproved;
+                  
                   return (
-                    <td key={dateStr}>
-                      <input
-                        type="number"
-                        value={times[dateStr]?.regularHours || ""}
-                        onChange={(e) => handleTimeChange(dateStr, e.target.value)}
-                        min="0"
-                        max="24"
-                        step="0.25"
-                        style={{ width: "60px", padding: "5px" }}
-                        disabled={!selectedProjectId}
-                      />
+                    <td 
+                      key={dateStr}
+                      style={{
+                        backgroundColor: isApproved ? "#e8f5e8" : "transparent",
+                        position: "relative"
+                      }}
+                    >
+                      <div>
+                        <input
+                          type="number"
+                          placeholder="Reg"
+                          value={times[dateStr]?.regularHours || ""}
+                          onChange={(e) =>
+                            handleTimeChange(dateStr, e.target.value)
+                          }
+                          min="0"
+                          max="24"
+                          step="0.25"
+                          style={{ 
+                            width: "60px", 
+                            marginBottom: "5px",
+                            backgroundColor: isApproved ? "#f0f8f0" : "white",
+                            cursor: isApproved ? "not-allowed" : "text"
+                          }}
+                          disabled={isDisabled}
+                          title={isApproved ? "This date is approved and cannot be edited" : ""}
+                        />
+                        <input
+                          type="number"
+                          placeholder="OT"
+                          value={times[dateStr]?.overTimeHours || ""}
+                          onChange={(e) =>
+                            handleOvertimeChange(dateStr, e.target.value)
+                          }
+                          min="0"
+                          max="24"
+                          step="0.25"
+                          style={{ 
+                            width: "60px",
+                            backgroundColor: isApproved ? "#f0f8f0" : "white",
+                            cursor: isApproved ? "not-allowed" : "text"
+                          }}
+                          disabled={isDisabled}
+                          title={isApproved ? "This date is approved and cannot be edited" : ""}
+                        />
+                        {isApproved && (
+                          <div style={{
+                            fontSize: "10px",
+                            color: "#28a745",
+                            fontWeight: "bold",
+                            marginTop: "2px"
+                          }}>
+                            APPROVED
+                          </div>
+                        )}
+                      </div>
                     </td>
                   );
                 })}
                 <td>
                   <strong>{getTotalHours()}</strong>
+                  <br />
+                  <small>{getTotalOvertime()} OT</small>
                 </td>
               </tr>
             </tbody>
@@ -551,7 +655,8 @@ const WeeklyTimesheet = () => {
                             marginLeft: "10px",
                           }}
                         >
-                          (Uploaded: {new Date(file.uploadedAt).toLocaleDateString()})
+                          (Uploaded:{" "}
+                          {new Date(file.uploadedAt).toLocaleDateString()})
                         </span>
                       )}
                     </span>

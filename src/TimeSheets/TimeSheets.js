@@ -26,7 +26,7 @@ export default function TimeSheets() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isFileInputEnabled, setIsFileInputEnabled] = useState(false);
-
+  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId")) || null;
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const employeeIdFromSessionStorage = sessionStorage.getItem("id");
   const role = roleFromSessionStorage
@@ -42,8 +42,13 @@ export default function TimeSheets() {
       get("/employees")
         .then((response) => {
           const data = response.data;
-          if (data && data.content && Array.isArray(data.content)) {
-            setEmployees(data.content);
+          // if (data && data.content && Array.isArray(data.content)) {
+          //   setEmployees(data.content);
+           if (data && data.content && Array.isArray(data.content)) {
+          const filteredEmployees = data.content.filter(employee => 
+            employee.company && employee.company.companyId === defaultCompanyId
+          );
+          setEmployees(filteredEmployees);
           } else {
             console.error("API response does not contain an array:", data);
           }
@@ -523,6 +528,64 @@ export default function TimeSheets() {
     },
   ];
 
+  const handleApproveAll = () => {
+  // Filter out only the timesheets that need to be approved (not already approved)
+  const timesheetsToApprove = timeSheets.filter(
+    (ts) => ts.status !== "APPROVED" && (ts.regularHours > 0 || ts.overTimeHours > 0)
+  );
+  const handleApproveAll = () => {
+  const timesheetsToApprove = timeSheets.filter(
+    (ts) => ts.status !== "APPROVED" && (ts.regularHours > 0 || ts.overTimeHours > 0)
+  );
+
+  if (timesheetsToApprove.length === 0) {
+    alert("No timesheets to approve or all are already approved!");
+    return;
+  }
+
+  if (!window.confirm(`Are you sure you want to approve ${timesheetsToApprove.length} timesheets?`)) {
+    return;
+  }
+};
+
+  if (timesheetsToApprove.length === 0) {
+    alert("No timesheets to approve or all are already approved!");
+    return;
+  }
+
+  const timeSheetData = timesheetsToApprove.map((timeSheet) => ({
+    month: selectedMonth,
+    year: selectedYear,
+    employeeId: selectedEmployee,
+    projectId: selectedProject.projectId,
+    sheetId: timeSheet.sheetId,
+    regularHours: timeSheet.regularHours,
+    overTimeHours: timeSheet.overTimeHours,
+    date: timeSheet.date.toISOString(),
+    status: "APPROVED",
+  }));
+
+  // Update local state
+  const updatedTimeSheets = timeSheets.map((t) => {
+    if (timesheetsToApprove.some((ts) => ts.date === t.date)) {
+      return { ...t, status: "APPROVED", __dirty: true };
+    }
+    return t;
+  });
+
+  setTimeSheets(updatedTimeSheets);
+
+  // Send to API
+  post("/timeSheets/createTimeSheet", timeSheetData)
+    .then((response) => {
+      console.log("All timesheets approved:", response);
+    })
+    .catch((error) => {
+      console.error("Error approving all timesheets:", error);
+    });
+};
+
+
   return (
     <div
       className="timesheets-container"
@@ -706,34 +769,47 @@ export default function TimeSheets() {
           ))}
         </ul>
       </div>
+      
 
       <div style={{ marginTop: "20px" }}>
-        <button
-          onClick={handleSubmit}
-          disabled={
-            !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
-          }
-          className={`btn ${
-            !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
-              ? "btn-outline-secondary"
-              : "btn-success"
-          }`}
-          style={{ marginRight: "10px" }}
-        >
-          Submit
-        </button>
-        <button
-          onClick={handleCancel}
-          disabled={timeSheets.every((row) => !row.__dirty)}
-          className={`btn ${
-            timeSheets.every((row) => !row.__dirty)
-              ? "btn-outline-secondary"
-              : "btn-danger"
-          }`}
-        >
-          Cancel
-        </button>
-      </div>
+  {role === "ADMIN" && (
+    <button
+      onClick={handleApproveAll}
+      disabled={timeSheets.length === 0}
+      className={`btn ${
+        timeSheets.length === 0 ? "btn-outline-secondary" : "btn-primary"
+      }`}
+      style={{ marginRight: "10px" }}
+    >
+      Approve All
+    </button>
+  )}
+  <button
+    onClick={handleSubmit}
+    disabled={
+      !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
+    }
+    className={`btn ${
+      !(timeSheets.some((row) => row.__dirty) || selectedFiles.length > 0)
+        ? "btn-outline-secondary"
+        : "btn-success"
+    }`}
+    style={{ marginRight: "10px" }}
+  >
+    Submit
+  </button>
+  <button
+    onClick={handleCancel}
+    disabled={timeSheets.every((row) => !row.__dirty)}
+    className={`btn ${
+      timeSheets.every((row) => !row.__dirty)
+        ? "btn-outline-secondary"
+        : "btn-danger"
+    }`}
+  >
+    Cancel
+  </button>
+</div>
     </div>
   );
 }

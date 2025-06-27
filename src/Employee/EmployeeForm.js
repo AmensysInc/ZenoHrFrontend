@@ -51,7 +51,8 @@ export default function EmployeeForm({ mode }) {
   useEffect(() => {
     const fetchData = async () => {
       const companyData = await fetchCompanies(0,10);
-      setCompanies(companyData);
+      console.log("Fetched Companies:", companyData);
+      setCompanies(companyData.content);
     };
     fetchData();
   }, []);
@@ -61,8 +62,12 @@ export default function EmployeeForm({ mode }) {
       const fetchData = async () => {
         const employeeData = await fetchEmployeeDataById(employeeId);
         if (employeeData) {
-          setEmployee(employeeData);
-        }
+  setEmployee({
+    ...employeeData,
+    company: employeeData.company?.companyId || "",
+  });
+}
+
       };
       fetchData();
     }
@@ -254,7 +259,7 @@ export default function EmployeeForm({ mode }) {
               </select>
             </div>
             <div className="form-group col-md-6">
-              <label htmlFor="securityGroup">Authorization</label>
+              <label htmlFor="securityGroup">Role</label>
               <select
                 id="securityGroup"
                 name="securityGroup"
@@ -285,7 +290,7 @@ export default function EmployeeForm({ mode }) {
                   companies.map((companyData) => (
                     <option
                       key={companyData.companyId}
-                      value={companyData.companyName}
+                      value={companyData.companyId}
                     >
                       {companyData.companyName}
                     </option>

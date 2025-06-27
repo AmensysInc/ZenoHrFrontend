@@ -1,0 +1,19 @@
+.company-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+.company-table th,
+.company-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+}
+
+.company-table thead tr {
+  background-color: #f3f3f3;
+}
+
+.highlight-row {
+  background-color: yellow;
+}
