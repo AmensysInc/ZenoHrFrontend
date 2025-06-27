@@ -1,0 +1,65 @@
+
+.user-role-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.employee-info {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.user-role-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-role-table th,
+.user-role-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.user-role-table th {
+  background-color: #f0f0f0;
+}
+.edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+.header-with-add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.add-button {
+  font-size: 1.5rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: #45a049;
+}
+
+
+
+
+
+

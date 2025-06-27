@@ -1,6 +1,31 @@
 import { get, post, put, remove } from "../httpClient ";
 
 
+export async function fetchEmployees(currentPage, pageSize, searchQuery, searchField, companyId) {
+  try {
+    const searchParams = new URLSearchParams();
+    searchParams.append("page", currentPage);
+    searchParams.append("size", pageSize);  
+    if (searchQuery) {
+      searchParams.append("searchField", searchField);
+      searchParams.append("searchString", searchQuery);
+    }
+    // Add companyId filter if it exists
+    // if (companyId) {
+    //   searchParams.append("companyId", companyId);
+    // }
+    const response = await get(`/employees?${searchParams.toString()}`);
+    if (response.status === 200) {
+      const data = response.data;
+      const { content, totalPages } = data;
+      return { content, totalPages }; 
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+  return { content: [], totalPages: 0 };
+}
+/*
 export async function fetchEmployees(currentPage, pageSize, searchQuery, searchField) {
   try {
     const searchParams = new URLSearchParams();
@@ -21,6 +46,7 @@ export async function fetchEmployees(currentPage, pageSize, searchQuery, searchF
   }
   return { content: [], totalPages: 0 };
 }
+*/
 
 
 export async function deleteEmployee(employeeId) {
@@ -39,46 +65,51 @@ export async function deleteEmployee(employeeId) {
 }
 
 export async function createEmployee(employee) {
-    try {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(employee),
-      };
-  
-      const response = await post(`/employees`, employee, requestOptions);
-  
-      if (response.status === 200 || response.status === 201) {
-        return true;
-      }
-    } catch (error) {
-      console.error("Error adding employee:", error);
-    }
+  try {
+    const employeeDTO = {
+      employeeID: employee.employeeID || null,
+      firstName: employee.firstName,
+      middleName: employee.middleName || null,
+      lastName: employee.lastName,
+      emailID: employee.emailID,
+      clgOfGrad: employee.clgOfGrad,
+      phoneNo: employee.phoneNo,
+      dob: employee.dob,
+      onBench: employee.onBench,
+      securityGroup: employee.securityGroup,
+      companyId: Number(employee.company),
+      password: employee.password,
+    };
+
+    const response = await post(`/employees`, employeeDTO, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    return response.status === 200 || response.status === 201;
+  } catch (error) {
+    console.error("Error adding employee:", error);
     return false;
   }
-  
-  export async function updateEmployee(employeeId, employee) {
-    try {
-      const requestOptions = {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(employee),
-      };
-  
-      const response = await put(`/employees/${employeeId}`, employee, requestOptions);
-  
-      if (response.status === 200) {
-        return true;
-      }
-    } catch (error) {
-      console.error("Error updating employee:", error);
-    }
+}
+
+export async function updateEmployee(employeeId, employee) {
+  try {
+    const employeeDTO = {
+      ...employee,
+      companyId: Number(employee.company),
+    };
+
+    const response = await put(`/employees/${employeeId}`, employeeDTO, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error updating employee:", error);
     return false;
   }
+}
+
   
   export async function sendLoginDetails(emailID) {
     try {

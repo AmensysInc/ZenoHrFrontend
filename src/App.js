@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "../src/App.css"
+import "../src/App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./SharedComponents/layout/Navbar";
 import {
@@ -41,6 +41,12 @@ import ContactForm from "./Contacts/ContactForm";
 import BulkMailForm from "./Recruiter/BulkMailForm";
 import Companies from "./Companies/Companies";
 import AllTimeSheets from "./TimeSheets/AllTimeSheets";
+import WeeklyTimesheet from "./TimeSheets/WeeklyTimesheet";
+import SelectCompany from "./Companies/SelectCompany";
+import UserRole from "./Companies/UserRole";
+import AddUserRole from "./Companies/AddUserRole";
+import EditUserRole from "./Companies/EditUserRole";
+import CompanyContact from "./Companies/CompanyContact";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -53,7 +59,7 @@ function App() {
     }
   };
 
-  useEffect(() => { }, [isLoggedIn, role]);
+  useEffect(() => {}, [isLoggedIn, role]);
 
   return (
     <div className="app">
@@ -64,25 +70,37 @@ function App() {
           setRole={setRole}
         />
         <div className="row">
-          <div className="col-md-2 bg-light" style={{ display: 'flex' }}>
+          <div className="col-md-2 bg-light" style={{ display: "flex" }}>
             {isLoggedIn &&
               (role === "ADMIN" ||
+                role === "SADMIN" ||
                 role === "RECRUITER" ||
-                role === "SALES" || role === "EMPLOYEE") &&
+                role === "SALES" ||
+                role === "EMPLOYEE") &&
               !window.location.pathname.includes("change-password") && (
                 <Sidebar />
               )}
           </div>
-          <div className="col-md-10 bg-light" style={{ overflowX: "auto",display: 'flex', flexDirection: 'column' }}>
+          <div
+            className="col-md-10 bg-light"
+            style={{
+              overflowX: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             {isLoggedIn && shouldRenderBreadcrumb() && <Breadcrumbs />}
             <Routes>
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               {isLoggedIn ? (
-                role === "ADMIN" ? (
+                role === "ADMIN" || role === "SADMIN" ? (
                   <>
                     <Route path="/" element={<Employee />} />
-                    <Route path="/adduser" element={<EmployeeForm mode="add" />} />
+                    <Route
+                      path="/adduser"
+                      element={<EmployeeForm mode="add" />}
+                    />
                     <Route
                       path="/editemployee/:employeeId"
                       element={<EmployeeForm mode="edit" />}
@@ -154,26 +172,61 @@ function App() {
                       element={<AddProspectEmployee />}
                     />
                     <Route path="/candidates" element={<CandidateList />} />
-                    <Route path="/addcandidate" element={<CandidateForm mode="add" />} />
+                    <Route
+                      path="/addcandidate"
+                      element={<CandidateForm mode="add" />}
+                    />
                     <Route
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<CandidateList inMarketing={true} />} />
+                    <Route
+                      path="/marketing"
+                      element={<CandidateList inMarketing={true} />}
+                    />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
                     <Route path="/timeSheets" element={<TimeSheets />} />
                     <Route path="/alltimeSheets" element={<AllTimeSheets />} />
+                    <Route
+                      path="/weeklytimeSheets"
+                      element={<WeeklyTimesheet />}
+                    />
                     <Route path="/email" element={<EmailForm />} />
-                    <Route path="/addcontact" element={<ContactForm mode="add" />} />
+                    <Route
+                      path="/addcontact"
+                      element={<ContactForm mode="add" />}
+                    />
                     <Route path="/bulkemail" element={<BulkMailForm />} />
                     <Route path="/contacts" element={<Contacts />} />
-                    <Route path="/addcontact" element={<ContactForm mode= "add" />} />
-                    <Route path="/editcontact/:id" element={<ContactForm mode= "edit" />} />
+                    <Route
+                      path="/addcontact"
+                      element={<ContactForm mode="add" />}
+                    />
+                    <Route
+                      path="/editcontact/:id"
+                      element={<ContactForm mode="edit" />}
+                    />
                     <Route path="/companies" element={<Companies />} />
-
+                    <Route
+                      path="/selectcompanies"
+                      element={<SelectCompany />}
+                    />
+                    {role === "SADMIN" && (
+                      <>
+                        <Route path="/companyrole" element={<UserRole />} />
+                        <Route
+                          path="/addcompanyrole"
+                          element={<AddUserRole />}
+                        />
+                        <Route
+                          path="/editcompanyrole/:id"
+                          element={<EditUserRole />}
+                        />
+                      </>
+                    )}
                   </>
                 ) : role === "EMPLOYEE" ? (
                   <>
@@ -191,6 +244,11 @@ function App() {
                     <Route path="/trackings" element={<Tracking />} />
                     <Route path="/withholdSheet" element={<WithHoldSheet />} />
                     <Route path="/timeSheets" element={<TimeSheets />} />
+                    <Route
+                      path="/weeklytimeSheets"
+                      element={<WeeklyTimesheet />}
+                    />
+                    <Route path="/contactus" element={<CompanyContact/>}/>
                   </>
                 ) : role === "PROSPECT" ? (
                   <>
@@ -212,10 +270,19 @@ function App() {
                     <Route path="/email" element={<EmailForm />} />
                     <Route path="/bulkemail" element={<BulkMailForm />} />
                     <Route path="/contacts" element={<Contacts />} />
-                    <Route path="/addcontact" element={<ContactForm mode="add" />} />
-                    <Route path="/editcontact/:id" element={<ContactForm mode="edit" />} />
+                    <Route
+                      path="/addcontact"
+                      element={<ContactForm mode="add" />}
+                    />
+                    <Route
+                      path="/editcontact/:id"
+                      element={<ContactForm mode="edit" />}
+                    />
                     <Route path="/" element={<RecruiterDashboard />} />
-                    <Route path="/marketing" element={<CandidateList inMarketing={true} />} />
+                    <Route
+                      path="/marketing"
+                      element={<CandidateList inMarketing={true} />}
+                    />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
@@ -234,13 +301,19 @@ function App() {
                 ) : role === "SALES" ? (
                   <>
                     <Route path="/candidates" element={<CandidateList />} />
-                    <Route path="/addcandidate" element={<CandidateForm mode="add" />} />
+                    <Route
+                      path="/addcandidate"
+                      element={<CandidateForm mode="add" />}
+                    />
                     <Route path="/" element={<RecruiterDashboard />} />
                     <Route
                       path="/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}
                     />
-                    <Route path="/marketing" element={<CandidateList inMarketing={true} />} />
+                    <Route
+                      path="/marketing"
+                      element={<CandidateList inMarketing={true} />}
+                    />
                     <Route
                       path="/marketing/editcandidate/:candidateID"
                       element={<CandidateForm mode="edit" />}

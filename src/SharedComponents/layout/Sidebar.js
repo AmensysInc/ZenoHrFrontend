@@ -8,7 +8,7 @@ export default function SideBar() {
     ? roleFromSessionStorage.replace(/"/g, "")
     : "";
 
-  if (role === "ADMIN") {
+  if (role === "ADMIN" || role === "SADMIN") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
@@ -38,16 +38,16 @@ export default function SideBar() {
             </Link>
           </li>
           <li className="sidebar-item">
-          <Link to="/timeSheets" className="sidebar-link">
-            TimeSheets
-          </Link>
-        </li>
-        <li className="sidebar-item">
-          <Link to="/alltimeSheets" className="sidebar-link">
-            All-TimeSheets
-          </Link>
-        </li>
-        <li className="sidebar-item">
+            <Link to="/timeSheets" className="sidebar-link">
+              TimeSheets
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/alltimeSheets" className="sidebar-link">
+              All-TimeSheets
+            </Link>
+          </li>
+          <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email
             </Link>
@@ -62,6 +62,13 @@ export default function SideBar() {
               Bulk Email
             </Link>
           </li>
+          {role === "SADMIN" && (
+            <li className="sidebar-item">
+              <Link to="/companyrole" className="sidebar-link">
+                User Role
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
     );
@@ -82,7 +89,7 @@ export default function SideBar() {
         </ul>
       </div>
     );
-  } else if(role === "RECRUITER") {
+  } else if (role === "RECRUITER") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
@@ -109,14 +116,33 @@ export default function SideBar() {
         </ul>
       </div>
     );
-  }
-  else if(role === "EMPLOYEE") {
+  } else if (role === "EMPLOYEE") {
     return (
       <div className="sidebar">
         <ul className="sidebar-list">
           <li className="sidebar-item">
             <Link to="/timeSheets" className="sidebar-link">
-              TimeSheets
+              Monthly Time Sheets
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/weeklytimeSheets" className="sidebar-link">
+              Weekly Time Sheets
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/trackings" className="sidebar-link">
+              WithHold Tracking
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/withholdSheet" className="sidebar-link">
+              WithHold Sheet
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/contactus" className="sidebar-link">
+              Contact us
             </Link>
           </li>
         </ul>

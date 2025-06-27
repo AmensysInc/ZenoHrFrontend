@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { BiDollar } from "react-icons/bi";
 import { HiShoppingCart } from "react-icons/hi";
@@ -8,7 +8,10 @@ import { BsFillPersonPlusFill } from "react-icons/bs";
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button } from "antd";
 import "../Employee/Employee.css";
-import { deleteEmployee, fetchEmployees } from "../SharedComponents/services/EmployeeServices";
+import {
+  deleteEmployee,
+  fetchEmployees,
+} from "../SharedComponents/services/EmployeeServices";
 
 export default function Employee() {
   const [users, setUsers] = useState([]);
@@ -18,16 +21,48 @@ export default function Employee() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
   const navigate = useNavigate();
+  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
 
   useEffect(() => {
     fetchData();
   }, [currentPage, pageSize, searchQuery, searchField]);
 
+const fetchData = async () => {
+  const { content, totalPages } = await fetchEmployees(
+    currentPage,
+    pageSize,
+    searchQuery,
+    searchField
+  );
+
+  const loggedInUserId = sessionStorage.getItem("id");
+
+  if (loggedInUserId === "admin_id") {
+    // Admin sees all employees
+    setUsers(content);
+  } else {
+    // Normal user: filter employees based on default company
+    const filteredContent = content.filter(employee =>
+      employee.company && employee.company.companyId === defaultCompanyId
+    );
+    setUsers(filteredContent);
+  }
+
+  setTotalPages(totalPages);
+};
+
+/*
   const fetchData = async () => {
-    const { content, totalPages } = await fetchEmployees(currentPage, pageSize, searchQuery, searchField);
+    const { content, totalPages } = await fetchEmployees(
+      currentPage,
+      pageSize,
+      searchQuery,
+      searchField
+    );
     setUsers(content);
     setTotalPages(totalPages);
   };
+*/
 
   const handleDeleteEmployee = async (employeeId) => {
     const success = await deleteEmployee(employeeId);
@@ -61,7 +96,12 @@ export default function Employee() {
   return (
     <>
       <h4 className="text-center">Employee details</h4>
-      <div className="search-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+      {/* Search bar and company display */}
+      <div
+        className="search-container"
+        style={{ display: "flex", justifyContent: "space-between" }}
+      >
         <div className="search-bar">
           <Select
             value={searchField}
@@ -86,19 +126,21 @@ export default function Employee() {
           <Button onClick={handleClearSearch}>Clear</Button>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div style={{paddingRight: '10%'}}>
-            <Link className="add-user-link" to="/adduser">
-              <BsFillPersonPlusFill size={25} title="Add Employee" />
-            </Link>
-          </div>
-          <div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Link
+            className="add-user-link"
+            to="/adduser"
+            style={{ marginRight: "10px" }}
+          >
+            <BsFillPersonPlusFill size={25} title="Add Employee" />
+          </Link>
           <Link className="add-pro-link" to="/addprospect">
             <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
           </Link>
-          </div>
         </div>
       </div>
+
+      {/* Employee table */}
       <div>
         <table className="table table-striped border shadow">
           <thead>
@@ -110,6 +152,7 @@ export default function Employee() {
               <th scope="col">Company</th>
               <th scope="col">Phone No</th>
               <th scope="col">Working Status</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -122,7 +165,7 @@ export default function Employee() {
                     <td>{employee.firstName}</td>
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
-                    <td>{employee.company}</td>
+                    <td>{employee.company ? employee.company.companyName : 'N/A'}</td>
                     <td>{employee.phoneNo}</td>
                     <td>{employee.onBench}</td>
                     <td>
@@ -161,12 +204,14 @@ export default function Employee() {
               })
             ) : (
               <tr>
-                <td colSpan="11">No users found</td>
+                <td colSpan="8">No users found</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
