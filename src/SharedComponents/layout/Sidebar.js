@@ -14,7 +14,7 @@ export default function SideBar() {
         <ul className="sidebar-list">
           <li className="sidebar-item">
             <Link to="/companies" className="sidebar-link">
-              Company Details
+              Companies
             </Link>
           </li>
           <li className="sidebar-item">
@@ -22,7 +22,7 @@ export default function SideBar() {
               Employees
             </Link>
           </li>
-          <li className="sidebar-item">
+          {/* <li className="sidebar-item">
             <Link to="/purchase-orders" className="sidebar-link">
               Purchase Orders
             </Link>
@@ -36,7 +36,7 @@ export default function SideBar() {
             <Link to="/marketing" className="sidebar-link">
               Marketing List
             </Link>
-          </li>
+          </li> */}
           <li className="sidebar-item">
             <Link to="/timeSheets" className="sidebar-link">
               TimeSheets
@@ -47,7 +47,7 @@ export default function SideBar() {
               All-TimeSheets
             </Link>
           </li>
-          <li className="sidebar-item">
+          {/* <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email
             </Link>
@@ -61,7 +61,7 @@ export default function SideBar() {
             <Link to="/bulkemail" className="sidebar-link">
               Bulk Email
             </Link>
-          </li>
+          </li> */}
           {role === "SADMIN" && (
             <li className="sidebar-item">
               <Link to="/companyrole" className="sidebar-link">

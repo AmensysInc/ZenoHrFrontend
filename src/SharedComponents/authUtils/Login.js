@@ -18,11 +18,11 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="container">
-      <h2>Login</h2>
+      <h3>Log in to Zeno Pay & HR Online Portal</h3>
       <form onSubmit={handleLogin}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
-            Email Address
+            Email Id
           </label>
           <input
             type="text"
@@ -50,7 +50,7 @@ export default function Login({ onLogin }) {
           {errorMessage && <p className="text-danger">{errorMessage}</p>}
         </div>
         <button type="submit" className="btn btn-primary">
-          Login
+          Log In
         </button>
       </form>
       <p>

@@ -35,7 +35,7 @@ export default function Navbar({setIsLoggedIn, setRole}) {
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
           <div className="container-fluid">
             <Link className="navbar-brand" to="/">
-              Quick HRMS
+               Zeno Pay & HR Portal
             </Link>
           </div>
         </nav>
@@ -48,7 +48,7 @@ export default function Navbar({setIsLoggedIn, setRole}) {
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">
-            Quick HRMS
+             Zeno Pay & HR Portal
           </Link>
           <div style={{ marginRight: "20px", fontWeight: "bold" }}>
             {companies.map((company) =>

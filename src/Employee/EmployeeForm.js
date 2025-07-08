@@ -50,7 +50,7 @@ export default function EmployeeForm({ mode }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const companyData = await fetchCompanies(0,10);
+      const companyData = await fetchCompanies(0, 10);
       console.log("Fetched Companies:", companyData);
       setCompanies(companyData.content);
     };
@@ -62,12 +62,11 @@ export default function EmployeeForm({ mode }) {
       const fetchData = async () => {
         const employeeData = await fetchEmployeeDataById(employeeId);
         if (employeeData) {
-  setEmployee({
-    ...employeeData,
-    company: employeeData.company?.companyId || "",
-  });
-}
-
+          setEmployee({
+            ...employeeData,
+            company: employeeData.company?.companyId || "",
+          });
+        }
       };
       fetchData();
     }
@@ -75,6 +74,14 @@ export default function EmployeeForm({ mode }) {
 
   const onSubmit = async (event) => {
     event.preventDefault();
+
+    if (!isValidPassword(employee.password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
+      );
+      return;
+    }
+
     try {
       const success =
         mode === "edit"
@@ -95,7 +102,7 @@ export default function EmployeeForm({ mode }) {
   const handleSendDetails = async (e) => {
     e.preventDefault();
     const success = await sendLoginDetails(emailID);
-    console.log(emailID)
+    console.log(emailID);
     if (success) {
       setSendDetailsSuccess(true);
     } else {
@@ -117,8 +124,23 @@ export default function EmployeeForm({ mode }) {
     navigate("/");
   };
 
+  const isAlphaNumeric = (value) => {
+    return value.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 50);
+  };
+
+  const isValidPassword = (value) => {
+    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{0,}$/;
+    return pattern.test(value) && value.length <= 50;
+  };
+
   const onInputChange = (e) => {
-    setEmployee({ ...employee, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let newValue = value;
+
+    if (name === "firstName" || name === "lastName") {
+      newValue = isAlphaNumeric(value);
+    }
+    setEmployee({ ...employee, [name]: newValue });
   };
 
   const onInputChangeDate = (date, name) => {
@@ -130,7 +152,13 @@ export default function EmployeeForm({ mode }) {
   const isEditMode = mode === "edit";
 
   return (
-    <div style={{display: 'flex', flexDirection:'column-reverse',alignItems:'center'}}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column-reverse",
+        alignItems: "center",
+      }}
+    >
       <div className="form-container">
         {error && (
           <Alert
@@ -158,10 +186,14 @@ export default function EmployeeForm({ mode }) {
               <input
                 type="text"
                 className="form-control"
+                placeholder="First Name"
                 name="firstName"
                 value={firstName}
                 onChange={(e) => onInputChange(e)}
                 required
+                pattern="^[A-Za-z0-9 ]+$"
+                maxLength={50}
+                title="First Name"
               />
             </div>
             <div className="form-group col-md-6">
@@ -169,9 +201,13 @@ export default function EmployeeForm({ mode }) {
               <input
                 type="text"
                 className="form-control"
+                placeholder="Last Name"
                 name="lastName"
                 value={lastName}
                 onChange={(e) => onInputChange(e)}
+                pattern="^[A-Za-z0-9 ]+$"
+                maxLength={50}
+                title="Last Name"
               />
             </div>
           </div>
@@ -216,7 +252,7 @@ export default function EmployeeForm({ mode }) {
             )}
           </div>
           <div className="form-row">
-            <div className="form-group col-md-6">
+            {/* <div className="form-group col-md-6">
               <label htmlFor="clgOfGrad">College of Graduation</label>
               <input
                 type="text"
@@ -227,6 +263,26 @@ export default function EmployeeForm({ mode }) {
                 onChange={(e) => onInputChange(e)}
                 required
               />
+            </div> */}
+            <div className="form-group col-md-6">
+              <label htmlFor="company">Company</label>
+              <select
+                className="form-control"
+                name="company"
+                value={company}
+                onChange={(e) => onInputChange(e)}
+              >
+                <option value="">-- Select --</option>
+                {Array.isArray(companies) &&
+                  companies.map((companyData) => (
+                    <option
+                      key={companyData.companyId}
+                      value={companyData.companyId}
+                    >
+                      {companyData.companyName}
+                    </option>
+                  ))}
+              </select>
             </div>
             <div className="form-group col-md-6">
               <label htmlFor="phoneNo">Phone No</label>
@@ -252,13 +308,13 @@ export default function EmployeeForm({ mode }) {
                 required
               >
                 <option value="">-- Select --</option>
-                <option value="Working">onBench</option>
-                <option value="OnProject">OnProject</option>
-                <option value="OnVacation">OnVacation</option>
-                <option value="OnSick">OnSick</option>
+                <option value="Working">On Bench</option>
+                <option value="OnProject">On Project</option>
+                <option value="OnVacation">On Vacation</option>
+                <option value="OnSick">On Sick</option>
               </select>
             </div>
-            <div className="form-group col-md-6">
+            {/* <div className="form-group col-md-6">
               <label htmlFor="securityGroup">Role</label>
               <select
                 id="securityGroup"
@@ -274,9 +330,23 @@ export default function EmployeeForm({ mode }) {
                 <option value="SALES">Sales</option>
                 <option value="RECRUITER">Recruiter</option>
               </select>
+            </div> */}
+            <div className="form-group col-md-6">
+              <label htmlFor="password">Password</label>
+              <input
+                type="text"
+                className="form-control"
+                name="password"
+                value={password}
+                onChange={(e) => onInputChange(e)}
+                maxLength={50}
+                required
+                placeholder="e.g. StrongP@ss1"
+                title="Min 8 characters with uppercase, lowercase, number, and symbol"
+              />
             </div>
           </div>
-          <div className="form-row">
+          {/* <div className="form-row">
             <div className="form-group col-md-6">
               <label htmlFor="company">Company</label>
               <select
@@ -300,14 +370,18 @@ export default function EmployeeForm({ mode }) {
             <div className="form-group col-md-6">
               <label htmlFor="password">Password</label>
               <input
-                type={"text"}
+                type="text"
                 className="form-control"
                 name="password"
                 value={password}
                 onChange={(e) => onInputChange(e)}
+                maxLength={50}
+                required
+                placeholder="e.g. StrongP@ss1"
+                title="Min 8 characters with uppercase, lowercase, number, and symbol"
               />
             </div>
-          </div>
+          </div> */}
           <button type="submit" className="btn btn-outline-primary">
             {isEditMode ? "Update" : "Submit"}
           </button>
@@ -328,7 +402,7 @@ export default function EmployeeForm({ mode }) {
           )}
         </form>
       </div>
-      <div style={{paddingBottom:'1%'}}>{isEditMode && <Buttons />}</div>
+      <div style={{ paddingBottom: "1%" }}>{isEditMode && <Buttons />}</div>
     </div>
   );
 }
