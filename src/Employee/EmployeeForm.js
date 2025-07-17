@@ -72,32 +72,50 @@ export default function EmployeeForm({ mode }) {
     }
   }, [mode, employeeId]);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
+const onSubmit = async (event) => {
+  event.preventDefault();
 
-    if (!isValidPassword(employee.password)) {
-      setError(
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
-      );
-      return;
-    }
+  if (!isValidPassword(employee.password)) {
+    setError(
+      "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
+    );
+    return;
+  }
 
-    try {
-      const success =
-        mode === "edit"
-          ? await updateEmployee(employeeId, employee)
-          : await createEmployee(employee);
-
-      if (success) {
-        showModal();
-      }
-    } catch (error) {
-      console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} employee:`,
-        error
-      );
-    }
+  // Build payload with flat `companyId`
+  const employeeToSend = {
+    ...employee,
+    companyId: employee.company || null,  // backend wants companyId directly
   };
+  delete employeeToSend.company; // remove old company field
+
+  try {
+    console.log("Submitting employee:", employeeToSend);
+
+    const success =
+      mode === "edit"
+        ? await updateEmployee(employeeId, employeeToSend)
+        : await createEmployee(employeeToSend);
+
+    if (success) {
+      showModal();
+    }
+  } catch (error) {
+    console.error("Full Axios error:", error);
+
+    if (error.response) {
+      console.error("Backend responded with:", error.response.data);
+      setError(
+        error.response.data?.message ||
+        JSON.stringify(error.response.data) ||
+        "An unknown error occurred."
+      );
+    } else {
+      setError("Failed to reach server. Please check your connection.");
+    }
+  }
+};
+
 
   const handleSendDetails = async (e) => {
     e.preventDefault();
@@ -224,7 +242,19 @@ export default function EmployeeForm({ mode }) {
                 required
               />
             </div>
-            {mode === "add" ? (
+            <div className="form-group col-md-6">
+              <label htmlFor="phoneNo">Phone No</label>
+              <input
+                type="number"
+                className="form-control"
+                placeholder="Phone no"
+                name="phoneNo"
+                value={phoneNo}
+                onChange={(e) => onInputChange(e)}
+                required
+              />
+            </div>
+            {/* {mode === "add" ? (
               <div className="form-group col-md-6">
                 <label htmlFor="dob">Date of Birth</label>
                 <DatePicker
@@ -249,7 +279,7 @@ export default function EmployeeForm({ mode }) {
                   required
                 />
               </div>
-            )}
+            )} */}
           </div>
           <div className="form-row">
             {/* <div className="form-group col-md-6">
@@ -284,21 +314,7 @@ export default function EmployeeForm({ mode }) {
                   ))}
               </select>
             </div>
-            <div className="form-group col-md-6">
-              <label htmlFor="phoneNo">Phone No</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Phone no"
-                name="phoneNo"
-                value={phoneNo}
-                onChange={(e) => onInputChange(e)}
-                required
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group col-md-6">
+             <div className="form-group col-md-6">
               <label htmlFor="onBench">Working Stauts</label>
               <select
                 id="onBench"
@@ -314,6 +330,9 @@ export default function EmployeeForm({ mode }) {
                 <option value="OnSick">On Sick</option>
               </select>
             </div>
+          </div>
+          <div className="form-row">
+           
             {/* <div className="form-group col-md-6">
               <label htmlFor="securityGroup">Role</label>
               <select

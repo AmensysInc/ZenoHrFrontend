@@ -37,11 +37,11 @@ export default function SideBar() {
               Marketing List
             </Link>
           </li> */}
-          <li className="sidebar-item">
+          {/* <li className="sidebar-item">
             <Link to="/timeSheets" className="sidebar-link">
               TimeSheets
             </Link>
-          </li>
+          </li> */}
           <li className="sidebar-item">
             <Link to="/alltimeSheets" className="sidebar-link">
               All-TimeSheets
@@ -130,11 +130,11 @@ export default function SideBar() {
               Weekly Time Sheets
             </Link>
           </li>
-          <li className="sidebar-item">
+          {/* <li className="sidebar-item">
             <Link to="/trackings" className="sidebar-link">
               WithHold Tracking
             </Link>
-          </li>
+          </li> */}
           <li className="sidebar-item">
             <Link to="/withholdSheet" className="sidebar-link">
               WithHold Sheet
