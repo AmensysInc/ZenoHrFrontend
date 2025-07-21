@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { get, post } from "../SharedComponents/httpClient ";
 import Pagination from "../SharedComponents/Pagination";
-import { FaDownload } from "react-icons/fa";
+import { FaCheck, FaTimes } from "react-icons/fa";
 
 const AllTimeSheets = () => {
   const [employees, setEmployees] = useState([]);
+  const [allEmployees, setAllEmployees] = useState([]); // Store all employees
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -18,65 +19,111 @@ const AllTimeSheets = () => {
   const [companies, setCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [showAllProjects, setShowAllProjects] = useState(false);
-  const [documents, setDocuments] = useState({});
-  const [visibleDocRow, setVisibleDocRow] = useState(null);
+  const [uploadedDocs, setUploadedDocs] = useState([]);
+  const [showDocsModal, setShowDocsModal] = useState(false);
 
-  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8082";
+  const fetchUploadedFiles = async (employeeId, projectId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const monthName = new Date(
+        selectedYear,
+        selectedMonth - 1,
+        1
+      ).toLocaleString("default", {
+        month: "long",
+      });
 
+      const response = await get(
+        `/timeSheets/getUploadedFiles/${employeeId}/${projectId}/${selectedYear}/${monthName}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setUploadedDocs(response.data);
+      console.log(response);
+      setShowDocsModal(true);
+    } catch (error) {
+      console.error("Error fetching uploaded files:", error);
+      alert("Failed to fetch uploaded documents.");
+    }
+  };
+
+  // Fetch companies
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
         const response = await get(`/companies?page=0&size=100`);
         if (response.data && response.data.content) {
           setCompanies(response.data.content);
+          console.log("Companies fetched:", response.data.content);
         }
       } catch (error) {
         console.error("Error fetching companies:", error);
       }
     };
+
     fetchCompanies();
   }, []);
 
+  // Handle company selection
   const handleCompanyChange = (e) => {
-    setSelectedCompanyId(e.target.value);
+    const companyId = e.target.value;
+    console.log("Selected company ID:", companyId);
+    setSelectedCompanyId(companyId);
+    setCurrentPage(0); // Reset to first page when company changes
   };
 
+  // Fetch all employees (without company filter initially)
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchAllEmployees = async () => {
       setLoading(true);
       try {
-        const response = await get(
-          `/employees?page=${currentPage}&size=${pageSize}`
-        );
+        // Fetch all employees first
+        const response = await get(`/employees?page=0&size=1000`); // Get all employees
+
         if (!response.data.content) {
           console.error("Response data content is missing");
+          setLoading(false);
           return;
         }
 
+        console.log("All employees fetched:", response.data.content);
+
         const employeesWithProjects = await Promise.all(
           response.data.content.map(async (employee) => {
-            const projectResponse = await get(
-              `/employees/${employee.employeeID}/projects`
-            );
-            let filteredProjects = projectResponse.data.content || [];
-
-            if (!showAllProjects) {
-              filteredProjects = filteredProjects.filter(
-                (project) => project.projectStatus === "Active"
+            try {
+              const projectResponse = await get(
+                `/employees/${employee.employeeID}/projects`
               );
+
+              let filteredProjects = projectResponse.data.content || [];
+
+              if (!showAllProjects) {
+                filteredProjects = filteredProjects.filter(
+                  (project) => project.projectStatus === "Active"
+                );
+              }
+
+              const projectsWithEndDate = filteredProjects.map((project) => {
+                const projectEndDate = new Date(project.projectEndDate);
+                return { ...project, projectEndDate };
+              });
+
+              return { ...employee, projects: projectsWithEndDate };
+            } catch (error) {
+              console.error(
+                `Error fetching projects for employee ${employee.employeeID}:`,
+                error
+              );
+              return { ...employee, projects: [] };
             }
-
-            const projectsWithEndDate = filteredProjects.map((project) => {
-              const projectEndDate = new Date(project.projectEndDate);
-              return { ...project, projectEndDate };
-            });
-
-            return { ...employee, projects: projectsWithEndDate };
           })
         );
 
-        setEmployees(employeesWithProjects);
-        setTotalPages(response.data.totalPages);
+        setAllEmployees(employeesWithProjects);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -84,8 +131,57 @@ const AllTimeSheets = () => {
       }
     };
 
-    fetchEmployees();
-  }, [currentPage, pageSize, showAllProjects]);
+    fetchAllEmployees();
+  }, [showAllProjects]);
+
+  // Filter employees based on selected company
+  useEffect(() => {
+    let filteredEmployees = allEmployees;
+
+    if (selectedCompanyId) {
+      // Debug: Log employee data structure
+      console.log("All employees data:", allEmployees);
+      console.log("Looking for company ID:", selectedCompanyId);
+
+      filteredEmployees = allEmployees.filter((employee) => {
+        // Debug: Log each employee's company data
+        console.log("Employee company data:", {
+          employee: employee.firstName + " " + employee.lastName,
+          company: employee.company,
+          companyId: employee.company?.companyId,
+          companyID: employee.company?.companyID,
+          companyName: employee.company?.companyName,
+        });
+
+        // Check multiple possible company ID fields and formats
+        const employeeCompanyId =
+          employee.company?.companyId ||
+          employee.company?.companyID ||
+          employee.companyId ||
+          employee.companyID;
+
+        // Match by ID (number or string)
+        return (
+          employeeCompanyId &&
+          employeeCompanyId.toString() === selectedCompanyId.toString()
+        );
+      });
+
+      console.log(
+        "Filtered employees for company:",
+        selectedCompanyId,
+        filteredEmployees
+      );
+    }
+
+    // Apply pagination
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+
+    setEmployees(paginatedEmployees);
+    setTotalPages(Math.ceil(filteredEmployees.length / pageSize));
+  }, [allEmployees, selectedCompanyId, currentPage, pageSize]);
 
   const fetchTimeSheets = async () => {
     try {
@@ -115,40 +211,46 @@ const AllTimeSheets = () => {
     return timeSheet ? timeSheet.regularHours : 0;
   };
 
-  const getTimeSheetId = (empId, projectId, date) => {
-    const timeSheet = timeSheets.find(
-      (sheet) =>
-        sheet.empId === empId &&
-        sheet.projectId === projectId &&
-        new Date(sheet.date).getDate() === date
-    );
-    return timeSheet ? timeSheet.sheetId : null;
+  const daysInMonth = (month, year) => {
+    return new Date(year, month, 0).getDate();
   };
-
-  const daysInMonth = (month, year) => new Date(year, month, 0).getDate();
 
   const renderDates = () => {
     if (selectedMonth === null || selectedYear === null) return [];
     const numDays = daysInMonth(selectedMonth, selectedYear);
-    return Array.from({ length: numDays }, (_, i) => {
-      const date = new Date(selectedYear, selectedMonth - 1, i + 1);
-      return {
+    const dates = [];
+    for (let i = 1; i <= numDays; i++) {
+      const date = new Date(selectedYear, selectedMonth - 1, i);
+      dates.push({
         date: date.toLocaleDateString("en-US"),
         isWeekend: date.getDay() === 0 || date.getDay() === 6,
-      };
-    });
+      });
+    }
+    return dates;
+  };
+
+  const handleMonthChange = (e) => {
+    setSelectedMonth(parseInt(e.target.value));
+  };
+
+  const handleYearChange = (e) => {
+    setSelectedYear(parseInt(e.target.value));
   };
 
   const toggleEditMode = (empId, projectId) => {
     setEditingRow(empId);
     setEditedprojectId(projectId);
-    const edited = {};
+    setEditedRegularHours({});
+    const editedRegularHoursObj = {};
     renderDates().forEach((dateObj) => {
       const date = new Date(dateObj.date);
-      const regHours = findRegularHours(empId, projectId, date.getDate());
-      edited[`${empId}-${projectId}-${date.getDate()}`] = regHours;
+      const regularHours = findRegularHours(empId, projectId, date.getDate());
+      if (regularHours !== undefined) {
+        editedRegularHoursObj[`${empId}-${projectId}-${date.getDate()}`] =
+          regularHours;
+      }
     });
-    setEditedRegularHours(edited);
+    setEditedRegularHours(editedRegularHoursObj);
   };
 
   const handleEditChange = (e, empId, projectId, date) => {
@@ -166,10 +268,10 @@ const AllTimeSheets = () => {
         employee.projects.forEach((project) => {
           renderDates().forEach((dateObj) => {
             const date = new Date(dateObj.date);
-            const key = `${employee.employeeID}-${
-              project.projectId
-            }-${date.getDate()}`;
-            const editedValue = editedRegularHours[key];
+            const editedValue =
+              editedRegularHours[
+                `${employee.employeeID}-${project.projectId}-${date.getDate()}`
+              ];
             if (editedValue !== undefined) {
               const originalValue = findRegularHours(
                 employee.employeeID,
@@ -193,92 +295,135 @@ const AllTimeSheets = () => {
           });
         });
       });
-
       if (updatedTimeSheets.length > 0) {
-        await post("/timeSheets/createSheet", updatedTimeSheets);
+        await updateTimesheet(updatedTimeSheets);
       }
       await fetchTimeSheets();
       setEditingRow(null);
     } catch (error) {
-      console.error("Error saving timesheets:", error);
+      console.error("Error saving edited value:", error);
     }
   };
 
-  const handleDownloadFile = async (
-    employeeID,
-    projectID,
-    year,
-    month,
-    filename
-  ) => {
-    const token = sessionStorage.getItem("token");
-
+  const updateTimesheet = async (updatedTimeSheets) => {
     try {
-      const response = await fetch(
-        `${apiUrl}/timeSheets/downloadFile/${employeeID}/${projectID}/${year}/${month}/${filename}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`, // <-- Add token here
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("File download failed");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
-  };
-
-  const getMonthName = (monthNumber) => {
-    const date = new Date();
-    date.setMonth(monthNumber - 1); // Month is 0-based
-    return date.toLocaleString("default", { month: "long" });
-  };
-
-  const handleFetchDocuments = async (employeeID, projectID) => {
-    const key = `${employeeID}-${projectID}`;
-    setVisibleDocRow((prev) => (prev === key ? null : key));
-
-    if (visibleDocRow === key) return;
-
-    try {
-      const response = await get(
-        `${apiUrl}/timeSheets/getUploadedFiles/${employeeID}/${projectID}/${selectedYear}/${getMonthName(
-          selectedMonth
-        )}`
-      );
-      setDocuments((prev) => ({
-        ...prev,
-        [key]: response.data || [],
+      const requestBody = updatedTimeSheets.map((updatedTimeSheet) => ({
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: updatedTimeSheet.empId,
+        projectId: updatedTimeSheet.projectId,
+        sheetId: updatedTimeSheet.sheetId,
+        regularHours: updatedTimeSheet.regularHours,
+        date: updatedTimeSheet.date,
       }));
+      await post("/timeSheets/createSheet", requestBody);
     } catch (error) {
-      console.error("Error fetching documents:", error);
+      console.error("Error updating timesheets:", error);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const getTimeSheetId = (empId, projectId, date) => {
+    const timeSheet = timeSheets.find(
+      (sheet) =>
+        sheet.empId === empId &&
+        sheet.projectId === projectId &&
+        new Date(sheet.date).getDate() === date
+    );
+    return timeSheet ? timeSheet.sheetId : null;
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  const handleApprove = (employee, project) => {
+    const timeSheetData = timeSheets
+      .filter(
+        (sheet) =>
+          sheet.empId === employee.employeeID &&
+          sheet.projectId === project.projectId &&
+          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
+          new Date(sheet.date).getFullYear() === selectedYear
+      )
+      .map((sheet) => ({
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: employee.employeeID,
+        projectId: project.projectId,
+        sheetId: sheet.sheetId,
+        regularHours: sheet.regularHours,
+        overTimeHours: sheet.overTimeHours,
+        date: new Date(sheet.date).toISOString(),
+        status: "APPROVED",
+      }));
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      timeSheetData.some((s) => s.sheetId === t.sheetId)
+        ? { ...t, status: "APPROVED" }
+        : t
+    );
+
+    setTimeSheets(updatedTimeSheets);
+
+    post("/timeSheets/createTimeSheet", timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error("Error approving time sheets:", error);
+      });
+  };
+
+  const handleReject = (employee, project) => {
+    const timeSheetData = timeSheets
+      .filter(
+        (sheet) =>
+          sheet.empId === employee.employeeID &&
+          sheet.projectId === project.projectId &&
+          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
+          new Date(sheet.date).getFullYear() === selectedYear
+      )
+      .map((sheet) => ({
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: employee.employeeID,
+        projectId: project.projectId,
+        sheetId: sheet.sheetId,
+        regularHours: sheet.regularHours,
+        overTimeHours: sheet.overTimeHours,
+        date: new Date(sheet.date).toISOString(),
+        status: "REJECTED",
+      }));
+
+    const updatedTimeSheets = timeSheets.map((t) =>
+      timeSheetData.some((s) => s.sheetId === t.sheetId)
+        ? { ...t, status: "REJECTED" }
+        : t
+    );
+
+    setTimeSheets(updatedTimeSheets);
+
+    post("/timeSheets/createTimeSheet", timeSheetData)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error("Error rejecting time sheets:", error);
+      });
+  };
 
   return (
     <div className="container">
-      <h2>Employee Grid</h2>
-      <div>
-        <label htmlFor="month">Month:</label>
+      <h2>All Employee Time Sheets</h2>
+      <div style={{ marginBottom: "20px" }}>
+        <label htmlFor="month" style={{ marginRight: "10px" }}>
+          Month:
+        </label>
         <select
           id="month"
           value={selectedMonth || ""}
-          onChange={(e) => setSelectedMonth(+e.target.value)}
+          onChange={handleMonthChange}
+          style={{ marginRight: "20px" }}
         >
           <option value="">Select Month</option>
           {Array.from({ length: 12 }, (_, i) => (
@@ -290,235 +435,229 @@ const AllTimeSheets = () => {
           ))}
         </select>
 
-        <label htmlFor="year">Year:</label>
+        <label htmlFor="year" style={{ marginRight: "10px" }}>
+          Year:
+        </label>
         <select
           id="year"
           value={selectedYear || ""}
-          onChange={(e) => setSelectedYear(+e.target.value)}
+          onChange={handleYearChange}
+          style={{ marginRight: "20px" }}
         >
           <option value="">Select Year</option>
-          {Array.from({ length: 11 }, (_, i) => {
-            const year = new Date().getFullYear() - 5 + i;
+          {(() => {
+            const currentYear = new Date().getFullYear();
+            const years = [];
+            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+              years.push(
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              );
+            }
+            return years;
+          })()}
+        </select>
+
+        <label htmlFor="company" style={{ marginRight: "10px" }}>
+          Company:
+        </label>
+        <select
+          id="company"
+          value={selectedCompanyId}
+          onChange={handleCompanyChange}
+          style={{ marginRight: "20px" }}
+        >
+          <option value="">All Companies</option>
+          {companies.map((company) => {
+            console.log("Company in dropdown:", company); // Debug log
             return (
-              <option key={year} value={year}>
-                {year}
+              <option key={company.companyId} value={company.companyId}>
+                {company.companyName}
               </option>
             );
           })}
         </select>
 
-        <label htmlFor="company">Company:</label>
-        <select
-          id="company"
-          value={selectedCompanyId}
-          onChange={handleCompanyChange}
-        >
-          <option value="">All Companies</option>
-          {companies.map((company) => (
-            <option key={company.companyId} value={company.companyId}>
-              {company.companyName}
-            </option>
-          ))}
-        </select>
-
-        <label>
+        <label style={{ marginRight: "10px" }}>
           <input
             type="checkbox"
             checked={showAllProjects}
             onChange={() => setShowAllProjects(!showAllProjects)}
+            style={{ marginRight: "5px" }}
           />
           Show All Projects
         </label>
       </div>
 
       {selectedMonth !== null && selectedYear !== null && (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>FirstName</th>
-              <th>LastName</th>
-              <th>Company</th>
-              <th>Projects</th>
-              {renderDates().map((dateObj, idx) => (
-                <th
-                  key={idx}
-                  style={{ color: dateObj.isWeekend ? "red" : "black" }}
-                >
-                  {dateObj.date}
-                </th>
-              ))}
-              <th>Documents</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees
-              .filter(
-                (emp) =>
-                  !selectedCompanyId ||
-                  emp.company?.companyId?.toString() === selectedCompanyId
-              )
-              .map((employee) => (
-                <React.Fragment key={employee.employeeID}>
-                  {employee.projects.length > 0 ? (
-                    employee.projects.map((project, index) => {
-                      const rowKey = `${employee.employeeID}-${project.projectId}`;
-                      return (
-                        <React.Fragment key={rowKey}>
-                          <tr>
-                            {index === 0 && (
-                              <>
-                                <td rowSpan={employee.projects.length}>
-                                  {visibleDocRow === rowKey ? (
-                                    <strong>{employee.firstName}</strong>
-                                  ) : (
-                                    employee.firstName
-                                  )}
-                                </td>
-                                <td rowSpan={employee.projects.length}>
-                                  {visibleDocRow === rowKey ? (
-                                    <strong>{employee.lastName}</strong>
-                                  ) : (
-                                    employee.lastName
-                                  )}
-                                </td>
-                                <td rowSpan={employee.projects.length}>
-                                  {employee.company?.companyName || "N/A"}
-                                </td>
-                              </>
-                            )}
+        <div style={{ overflowX: "auto" }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>Company</th>
+                <th>Projects</th>
+                {renderDates().map((dateObj, index) => (
+                  <th
+                    key={index}
+                    style={{ color: dateObj.isWeekend ? "red" : "black" }}
+                  >
+                    {dateObj.date}
+                  </th>
+                ))}
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {employees.length > 0 ? (
+                employees.map((employee) => (
+                  <React.Fragment key={employee.employeeID}>
+                    {employee.projects.length > 0 ? (
+                      employee.projects.map((project, index) => (
+                        <tr
+                          key={`${employee.employeeID}-${project.projectId}-${index}`}
+                        >
+                          {index === 0 && (
+                            <>
+                              <td rowSpan={employee.projects.length}>
+                                {employee.firstName}
+                              </td>
+                              <td rowSpan={employee.projects.length}>
+                                {employee.lastName}
+                              </td>
+                              <td rowSpan={employee.projects.length}>
+                                {employee.company?.companyName}
+                              </td>
+                            </>
+                          )}
+                          <td
+                            style={{
+                              color:
+                                project.projectEndDate < new Date()
+                                  ? "red"
+                                  : "black",
+                            }}
+                          >
+                            {`${project.subVendorOne}/${project.subVendorTwo}`}
+                          </td>
+                          {renderDates().map((dateObj, idx) => (
                             <td
+                              key={idx}
+                              onDoubleClick={() =>
+                                toggleEditMode(
+                                  employee.employeeID,
+                                  project.projectId
+                                )
+                              }
                               style={{
-                                color:
-                                  project.projectEndDate < new Date()
-                                    ? "red"
-                                    : "black",
+                                color: dateObj.isWeekend ? "red" : "black",
                               }}
                             >
-                              {`${project.subVendorOne}/${project.subVendorTwo}`}
+                              {editingRow === employee.employeeID &&
+                              editedprojectId === project.projectId ? (
+                                <input
+                                  type="text"
+                                  value={
+                                    editedRegularHours[
+                                      `${employee.employeeID}-${
+                                        project.projectId
+                                      }-${new Date(dateObj.date).getDate()}`
+                                    ] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleEditChange(
+                                      e,
+                                      employee.employeeID,
+                                      project.projectId,
+                                      new Date(dateObj.date).getDate()
+                                    )
+                                  }
+                                />
+                              ) : (
+                                findRegularHours(
+                                  employee.employeeID,
+                                  project.projectId,
+                                  new Date(dateObj.date).getDate()
+                                )
+                              )}
                             </td>
-                            {renderDates().map((dateObj, i) => {
-                              const date = new Date(dateObj.date);
-                              const key = `${employee.employeeID}-${
-                                project.projectId
-                              }-${date.getDate()}`;
-                              return (
-                                <td
-                                  key={i}
-                                  onDoubleClick={() =>
-                                    toggleEditMode(
+                          ))}
+                          <td>
+                            {editingRow === employee.employeeID &&
+                            editedprojectId === project.projectId ? (
+                              <button onClick={handleSave}>Save</button>
+                            ) : (
+                              <>
+                                {/* <FaCheck
+                                  size={20}
+                                  title="Approve"
+                                  onClick={() =>
+                                    handleApprove(employee, project)
+                                  }
+                                  style={{
+                                    color: "green",
+                                    cursor: "pointer",
+                                    marginRight: "10px",
+                                  }}
+                                />
+                                <FaTimes
+                                  size={20}
+                                  title="Reject"
+                                  onClick={() =>
+                                    handleReject(employee, project)
+                                  }
+                                  style={{
+                                    color: "red",
+                                    cursor: "pointer",
+                                    marginRight: "10px",
+                                  }}
+                                /> */}
+                                <button
+                                  onClick={() =>
+                                    fetchUploadedFiles(
                                       employee.employeeID,
                                       project.projectId
                                     )
                                   }
                                   style={{
-                                    color: dateObj.isWeekend ? "red" : "black",
+                                    padding: "2px 6px",
+                                    fontSize: "12px",
                                   }}
                                 >
-                                  {editingRow === employee.employeeID &&
-                                  editedprojectId === project.projectId ? (
-                                    <input
-                                      type="text"
-                                      value={editedRegularHours[key] || ""}
-                                      onChange={(e) =>
-                                        handleEditChange(
-                                          e,
-                                          employee.employeeID,
-                                          project.projectId,
-                                          date.getDate()
-                                        )
-                                      }
-                                    />
-                                  ) : (
-                                    findRegularHours(
-                                      employee.employeeID,
-                                      project.projectId,
-                                      date.getDate()
-                                    )
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td>
-                              <button
-                                onClick={() =>
-                                  handleFetchDocuments(
-                                    employee.employeeID,
-                                    project.projectId
-                                  )
-                                }
-                              >
-                                {visibleDocRow === rowKey ? "Hide" : "View"}{" "}
-                                Docs
-                              </button>
-                            </td>
-                            <td>
-                              {editingRow === employee.employeeID &&
-                                editedprojectId === project.projectId && (
-                                  <button onClick={handleSave}>Save</button>
-                                )}
-                            </td>
-                          </tr>
-                          {visibleDocRow === rowKey && (
-                            <tr>
-                              <td colSpan={5 + renderDates().length + 2}>
-                                <strong>Documents:</strong>
-                                {documents[rowKey]?.length > 0 ? (
-                                  <ul>
-                                    {documents[rowKey].map((doc, idx) => (
-                                      <li key={idx}>
-                                        <a
-                                          href={doc.fileUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          style={{ marginRight: "8px" }}
-                                        >
-                                          {doc.fileName}
-                                        </a>
-                                        <button
-                                          onClick={() =>
-                                            handleDownloadFile(
-                                              employee.employeeID,
-                                              project.projectId,
-                                              selectedYear,
-                                              getMonthName(selectedMonth),
-                                              doc.fileName
-                                            )
-                                          }
-                                          style={{
-                                            background: "none",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            color: "#007bff",
-                                          }}
-                                          title="Download"
-                                        >
-                                          <FaDownload />
-                                        </button>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p>No documents uploaded.</p>
-                                )}
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td>{employee.firstName}</td>
-                      <td>{employee.lastName}</td>
-                      <td>{employee.company?.companyName || "N/A"}</td>
-                      <td colSpan={renderDates().length + 3}>No Projects</td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-          </tbody>
-        </table>
+                                  View Docs
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr key={employee.employeeID}>
+                        <td>{employee.firstName}</td>
+                        <td>{employee.lastName}</td>
+                        <td>{employee.company?.companyName}</td>
+                        <td colSpan={renderDates().length + 1}>No Projects</td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={renderDates().length + 4}
+                    style={{ textAlign: "center" }}
+                  >
+                    {selectedCompanyId
+                      ? "No employees found for selected company"
+                      : "No employees found"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <Pagination
@@ -526,6 +665,61 @@ const AllTimeSheets = () => {
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
+      {showDocsModal && (
+        <>
+          {/* Overlay */}
+          <div
+            onClick={() => setShowDocsModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.3)",
+              zIndex: 999,
+            }}
+          />
+
+          {/* Modal content */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              padding: "20px",
+              borderRadius: "10px",
+              zIndex: 1000,
+              width: "400px",
+              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h5>Uploaded Documents</h5>
+            {uploadedDocs.length === 0 ? (
+              <p>No documents found.</p>
+            ) : (
+              <ul>
+                {uploadedDocs.map((doc, index) => (
+                  <li key={index}>
+                    📄 {doc.fileName} <br />
+                    <small>
+                      Uploaded At: {new Date(doc.uploadedAt).toLocaleString()}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              onClick={() => setShowDocsModal(false)}
+              style={{ marginTop: "10px" }}
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

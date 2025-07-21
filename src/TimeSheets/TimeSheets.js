@@ -637,6 +637,7 @@ export default function TimeSheets() {
             className="select-class"
             value={selectedMonth}
             onChange={(value) => setSelectedMonth(value)}
+            required
           >
             <Option value="">-- Select --</Option>
             {monthOptions.map((month, index) => (
@@ -653,6 +654,7 @@ export default function TimeSheets() {
             className="select-class"
             value={selectedYear}
             onChange={(value) => setSelectedYear(value)}
+            required
           >
             <Option value="">-- Select --</Option>
             {yearOptions.map((year) => (
