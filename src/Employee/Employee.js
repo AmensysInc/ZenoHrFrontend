@@ -134,9 +134,9 @@ const fetchData = async () => {
           >
             <BsFillPersonPlusFill size={25} title="Add Employee" />
           </Link>
-          <Link className="add-pro-link" to="/addprospect">
+          {/* <Link className="add-pro-link" to="/addprospect">
             <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
-          </Link>
+          </Link> */}
         </div>
       </div>
 
@@ -146,9 +146,9 @@ const fetchData = async () => {
           <thead>
             <tr>
               <th scope="col">S.No</th>
-              <th scope="col">FirstName</th>
-              <th scope="col">LastName</th>
-              <th scope="col">EmailID</th>
+              <th scope="col">First Name</th>
+              <th scope="col">Last Name</th>
+              <th scope="col">Email ID</th>
               <th scope="col">Company</th>
               <th scope="col">Phone No</th>
               <th scope="col">Working Status</th>
