@@ -72,50 +72,54 @@ export default function EmployeeForm({ mode }) {
     }
   }, [mode, employeeId]);
 
-const onSubmit = async (event) => {
-  event.preventDefault();
+  const onSubmit = async (event) => {
+    event.preventDefault();
 
-  if (!isValidPassword(employee.password)) {
-    setError(
-      "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
-    );
-    return;
-  }
-
-  // Build payload with flat `companyId`
-  const employeeToSend = {
-    ...employee,
-    companyId: employee.company || null,  // backend wants companyId directly
-  };
-  delete employeeToSend.company; // remove old company field
-
-  try {
-    console.log("Submitting employee:", employeeToSend);
-
-    const success =
-      mode === "edit"
-        ? await updateEmployee(employeeId, employeeToSend)
-        : await createEmployee(employeeToSend);
-
-    if (success) {
-      showModal();
-    }
-  } catch (error) {
-    console.error("Full Axios error:", error);
-
-    if (error.response) {
-      console.error("Backend responded with:", error.response.data);
+    if (!isValidPassword(employee.password)) {
       setError(
-        error.response.data?.message ||
-        JSON.stringify(error.response.data) ||
-        "An unknown error occurred."
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
       );
-    } else {
-      setError("Failed to reach server. Please check your connection.");
+      return;
     }
-  }
-};
+    const employeeToSend = {
+      ...employee,
+      companyId: employee.company ? parseInt(employee.company, 10) : null,
+    };
 
+    // Remove empty fields that might cause validation issues
+    Object.keys(employeeToSend).forEach((key) => {
+      if (employeeToSend[key] === "") {
+        employeeToSend[key] = null;
+      }
+    });
+
+    delete employeeToSend.company;
+    try {
+      console.log("Submitting employee:", employeeToSend);
+
+      const success =
+        mode === "edit"
+          ? await updateEmployee(employeeId, employeeToSend)
+          : await createEmployee(employeeToSend);
+
+      if (success) {
+        showModal();
+      }
+    } catch (error) {
+      console.error("Full Axios error:", error);
+
+      if (error.response) {
+        console.error("Backend responded with:", error.response.data);
+        setError(
+          error.response.data?.message ||
+            JSON.stringify(error.response.data) ||
+            "An unknown error occurred."
+        );
+      } else {
+        setError("Failed to reach server. Please check your connection.");
+      }
+    }
+  };
 
   const handleSendDetails = async (e) => {
     e.preventDefault();
@@ -314,7 +318,7 @@ const onSubmit = async (event) => {
                   ))}
               </select>
             </div>
-             <div className="form-group col-md-6">
+            <div className="form-group col-md-6">
               <label htmlFor="onBench">Working Stauts</label>
               <select
                 id="onBench"
@@ -332,7 +336,6 @@ const onSubmit = async (event) => {
             </div>
           </div>
           <div className="form-row">
-           
             {/* <div className="form-group col-md-6">
               <label htmlFor="securityGroup">Role</label>
               <select
