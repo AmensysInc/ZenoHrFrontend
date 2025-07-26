@@ -47,6 +47,11 @@ export default function SideBar() {
               All-TimeSheets
             </Link>
           </li>
+          <li className="sidebar-item">
+            <Link to="/email-templates" className="sidebar-link">
+              Email Templates
+            </Link>
+          </li>
           {/* <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email

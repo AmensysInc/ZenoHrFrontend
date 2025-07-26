@@ -47,6 +47,9 @@ import UserRole from "./Companies/UserRole";
 import AddUserRole from "./Companies/AddUserRole";
 import EditUserRole from "./Companies/EditUserRole";
 import CompanyContact from "./Companies/CompanyContact";
+import EmailTemplateForm from "./EmailTemplates/EmailTemplateForm";
+import EmailTemplateList from "./EmailTemplates/EmailTemplateList";
+import EmailTemplateEdit from "./EmailTemplates/EmailTemplateEdit";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -116,6 +119,9 @@ function App() {
         return (
           <>
             <Route path="/" element={<Employee />} />
+           <Route path="/email-template/create" element={<EmailTemplateForm />} />
+           <Route path="/email-templates" element={<EmailTemplateList />} />
+           <Route path="/email-template/edit/:id" element={<EmailTemplateEdit />} />
             <Route path="/adduser" element={<EmployeeForm mode="add" />} />
             <Route
               path="/editemployee/:employeeId"
