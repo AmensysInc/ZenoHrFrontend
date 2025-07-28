@@ -4,11 +4,13 @@ import { Link, useLocation } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
 import { logoutUser } from "../authUtils/authUtils";
 import { fetchCompanies } from "../../SharedComponents/services/CompaniesServies";
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({setIsLoggedIn, setRole}) {
   const [companies, setCompanies] = useState([]);
   const location = useLocation();
   const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
+  const navigate = useNavigate();
 
   const fetchCompany = async () => {
     try {
@@ -26,7 +28,7 @@ export default function Navbar({setIsLoggedIn, setRole}) {
   }, [defaultCompanyId]);
 
   const handleLogout = () => {
-    logoutUser(setIsLoggedIn, setRole);
+    logoutUser(setIsLoggedIn, setRole, navigate);
   };
 
   if (location.pathname === "/login") {

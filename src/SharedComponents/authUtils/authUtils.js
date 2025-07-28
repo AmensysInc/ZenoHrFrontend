@@ -1,8 +1,8 @@
-export const logoutUser = (setIsLoggedIn, setRole) => {
+export const logoutUser = (setIsLoggedIn, setRole, navigate) => {
   sessionStorage.clear();
   setIsLoggedIn(false);
   setRole("");
-  window.location.href = "/login";
+  navigate("/login", { replace: true });
 };
 
 export const loginUser = async (email, password, onLogin, navigate) => {
