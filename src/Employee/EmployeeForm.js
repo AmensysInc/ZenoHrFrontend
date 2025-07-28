@@ -353,7 +353,7 @@ export default function EmployeeForm({ mode }) {
                 <option value="RECRUITER">Recruiter</option>
               </select>
             </div> */}
-            <div className="form-group col-md-6">
+            {/* <div className="form-group col-md-6">
               <label htmlFor="password">Password</label>
               <input
                 type="text"
@@ -366,7 +366,7 @@ export default function EmployeeForm({ mode }) {
                 placeholder="e.g. StrongP@ss1"
                 title="Min 8 characters with uppercase, lowercase, number, and symbol"
               />
-            </div>
+            </div> */}
           </div>
           {/* <div className="form-row">
             <div className="form-group col-md-6">

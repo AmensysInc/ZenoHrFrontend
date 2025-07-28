@@ -115,6 +115,7 @@ export async function updateEmployee(employeeId, employee) {
     try {
       const response = await post(`/auth/resetPassword`, {
         email: emailID,
+        category : "LOGIN_DETAILS"
       });
   
       if (response.status === 200 || response.status === 201) {

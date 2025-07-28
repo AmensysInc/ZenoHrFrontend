@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { logoutUser, updatePassword } from "./authUtils";
+import { useNavigate } from 'react-router-dom';
 
 const ChangePasswordForm = ({setIsLoggedIn, setRole}) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logoutUser(setIsLoggedIn, setRole);
+    logoutUser(setIsLoggedIn, setRole, navigate);
   };
   
   const handleChangePassword = async (e) => {

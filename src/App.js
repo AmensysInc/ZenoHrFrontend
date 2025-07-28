@@ -3,7 +3,6 @@ import "../src/App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./SharedComponents/layout/Navbar";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -47,6 +46,9 @@ import UserRole from "./Companies/UserRole";
 import AddUserRole from "./Companies/AddUserRole";
 import EditUserRole from "./Companies/EditUserRole";
 import CompanyContact from "./Companies/CompanyContact";
+import EmailTemplateForm from "./EmailTemplates/EmailTemplateForm";
+import EmailTemplateList from "./EmailTemplates/EmailTemplateList";
+import EmailTemplateEdit from "./EmailTemplates/EmailTemplateEdit";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -67,7 +69,6 @@ function App() {
 
   return (
     <div className="app">
-      <Router>
         <Navbar
           location={window.location}
           setIsLoggedIn={setIsLoggedIn}
@@ -99,13 +100,14 @@ function App() {
             </div>
           </div>
         ) : (
+          <>
           <Routes>
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/*" element={<Navigate to="/login" />} />
           </Routes>
+          </>
         )}
-      </Router>
     </div>
   );
 
@@ -116,6 +118,9 @@ function App() {
         return (
           <>
             <Route path="/" element={<Employee />} />
+            <Route path="/email-template/create" element={<EmailTemplateForm />} />
+           <Route path="/email-templates" element={<EmailTemplateList />} />
+           <Route path="/email-template/edit/:id" element={<EmailTemplateEdit />} />
             <Route path="/adduser" element={<EmployeeForm mode="add" />} />
             <Route
               path="/editemployee/:employeeId"
@@ -311,7 +316,11 @@ function App() {
         );
 
       default:
-        return <Route path="/*" element={<Navigate to="/login" />} />;
+        return (
+          <>
+            <Route path="/*" element={<Navigate to="/login" />} />
+          </>
+        );
     }
   }
 }
