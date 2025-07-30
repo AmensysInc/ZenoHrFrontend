@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate,Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./UserRole.css";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 
@@ -18,11 +18,14 @@ const UserRole = () => {
     },
   };
 
+  // Use base API URL from .env
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const roleRes = await axios.get("http://localhost:8082/user-company", config);
-        const userRes = await axios.get("http://localhost:8082/users", config);
+        const roleRes = await axios.get(`${API_BASE_URL}/user-company`, config);
+        const userRes = await axios.get(`${API_BASE_URL}/users`, config);
 
         setRoles(roleRes.data);
         setUsers(userRes.data);
@@ -34,7 +37,7 @@ const UserRole = () => {
     };
 
     fetchData();
-  }, []);
+  }, [API_BASE_URL]);
 
   const handleEdit = (role) => {
     navigate(`/editcompanyrole/${role.id}`);
@@ -56,14 +59,14 @@ const UserRole = () => {
       <div className="header-with-add">
         <h2>User Role Information</h2>
         <div style={{ display: "flex", alignItems: "center" }}>
-                  <Link
-                    className="add-user-link"
-                    to="/addcompanyrole"
-                    style={{ marginRight: "10px" }}
-                  >
-                    <BsFillPersonPlusFill size={25} title="Add DefaultCompany" />
-                  </Link>
-                </div>
+          <Link
+            className="add-user-link"
+            to="/addcompanyrole"
+            style={{ marginRight: "10px" }}
+          >
+            <BsFillPersonPlusFill size={25} title="Add DefaultCompany" />
+          </Link>
+        </div>
       </div>
       <table className="user-role-table">
         <thead>
