@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { get, post } from "../SharedComponents/httpClient ";
 import Pagination from "../SharedComponents/Pagination";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { TbNotes } from "react-icons/tb";
 
 const AllTimeSheets = () => {
   const [employees, setEmployees] = useState([]);
@@ -21,6 +22,10 @@ const AllTimeSheets = () => {
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState([]);
   const [showDocsModal, setShowDocsModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [noteEmployeeId, setNoteEmployeeId] = useState(null);
+  const [noteProjectId, setNoteProjectId] = useState(null);
 
   const fetchUploadedFiles = async (employeeId, projectId) => {
     try {
@@ -412,6 +417,63 @@ const AllTimeSheets = () => {
       });
   };
 
+const handleOpenNotes = async (employeeId, projectId) => {
+  try {
+    const requestBody = {
+      month: selectedMonth,
+      year: selectedYear,
+      employeeId,
+      projectId,
+    };
+    const response = await post("/timeSheets/getAllTimeSheets", requestBody);
+    // Look for first time sheet with a non-empty note
+    const note = response.data.find((sheet) => sheet.notes)?.notes;
+
+    setNoteEmployeeId(employeeId);
+    setNoteProjectId(projectId);
+    setNoteText(note || "");
+    setShowNotesModal(true);
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    setNoteText("");
+    setShowNotesModal(true);
+  }
+};
+
+  const handleSaveNote = async () => {
+    try {
+      // Find matching timesheet (any date in selected month)
+      const existingSheet = timeSheets.find(
+        (sheet) =>
+          sheet.empId === noteEmployeeId &&
+          sheet.projectId === noteProjectId &&
+          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
+          new Date(sheet.date).getFullYear() === selectedYear
+      );
+
+      const sheetId = existingSheet?.sheetId || null;
+
+      const requestBody = [
+        {
+          month: selectedMonth,
+          year: selectedYear,
+          employeeId: noteEmployeeId,
+          projectId: noteProjectId,
+          sheetId: sheetId,
+          date: new Date(selectedYear, selectedMonth - 1, 1),
+          notes: noteText,
+        },
+      ];
+
+      await post("/timeSheets/createTimeSheet", requestBody);
+      alert("Note saved successfully!");
+      setShowNotesModal(false);
+    } catch (error) {
+      console.error("Error saving note:", error);
+      alert("Failed to save note.");
+    }
+  };
+
   return (
     <div className="container">
       <h2>All Employee Time Sheets</h2>
@@ -590,7 +652,7 @@ const AllTimeSheets = () => {
                               <button onClick={handleSave}>Save</button>
                             ) : (
                               <>
-                                {/* <FaCheck
+                                <FaCheck
                                   size={20}
                                   title="Approve"
                                   onClick={() =>
@@ -613,7 +675,22 @@ const AllTimeSheets = () => {
                                     cursor: "pointer",
                                     marginRight: "10px",
                                   }}
-                                /> */}
+                                />
+                                <TbNotes
+                                  size={20}
+                                  title="Notes"
+                                  onClick={() =>
+                                    handleOpenNotes(
+                                      employee.employeeID,
+                                      project.projectId
+                                    )
+                                  }
+                                  style={{
+                                    color: "#007bff",
+                                    cursor: "pointer",
+                                    marginRight: "10px",
+                                  }}
+                                />
                                 <button
                                   onClick={() =>
                                     fetchUploadedFiles(
@@ -665,11 +742,10 @@ const AllTimeSheets = () => {
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
-      {showDocsModal && (
+      {showNotesModal && (
         <>
-          {/* Overlay */}
           <div
-            onClick={() => setShowDocsModal(false)}
+            onClick={() => setShowNotesModal(false)}
             style={{
               position: "fixed",
               top: 0,
@@ -681,7 +757,6 @@ const AllTimeSheets = () => {
             }}
           />
 
-          {/* Modal content */}
           <div
             style={{
               position: "fixed",
@@ -696,27 +771,24 @@ const AllTimeSheets = () => {
               boxShadow: "0 0 10px rgba(0,0,0,0.3)",
             }}
           >
-            <h5>Uploaded Documents</h5>
-            {uploadedDocs.length === 0 ? (
-              <p>No documents found.</p>
-            ) : (
-              <ul>
-                {uploadedDocs.map((doc, index) => (
-                  <li key={index}>
-                    📄 {doc.fileName} <br />
-                    <small>
-                      Uploaded At: {new Date(doc.uploadedAt).toLocaleString()}
-                    </small>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button
-              onClick={() => setShowDocsModal(false)}
-              style={{ marginTop: "10px" }}
+            <h5>Notes</h5>
+            <textarea
+              rows={5}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              style={{ width: "100%" }}
+              placeholder="Add notes here..."
+            />
+            <div
+              style={{
+                marginTop: "10px",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
             >
-              Close
-            </button>
+              <button onClick={handleSaveNote}>Save</button>
+              <button onClick={() => setShowNotesModal(false)}>Close</button>
+            </div>
           </div>
         </>
       )}
