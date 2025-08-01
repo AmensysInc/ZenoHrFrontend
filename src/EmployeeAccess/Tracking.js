@@ -4,11 +4,13 @@ import axios from 'axios';
 const Tracking = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [trackings, setTrackings] = useState([]);
+  const [employeeEmail, setEmployeeEmail] = useState("");
   const employeeId = sessionStorage.getItem('id');
   const token = sessionStorage.getItem('token');
 
   useEffect(() => {
     fetchTrackings();
+    fetchEmployeeEmail();
   }, []);
 
   const fetchTrackings = async () => {
@@ -24,15 +26,67 @@ const Tracking = () => {
         config
       );
       setTrackings(response.data.content);
-      console.log(response.data.content)
     } catch (error) {
       console.error('Error fetching trackings:', error);
     }
   };
 
+  const fetchEmployeeEmail = async () => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.get(
+        `${apiUrl}/employees/${employeeId}`,
+        config
+      );
+      setEmployeeEmail(response.data.emailID);
+    } catch (error) {
+      console.error("Failed to fetch employee email:", error);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!employeeEmail) {
+      alert("Email not available.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${apiUrl}/auth/resetPassword`,
+        {
+          email: employeeEmail,
+          category: "WITHHOLD_EMP",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Email sent successfully.");
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      alert("Failed to send email.");
+    }
+  };
+
   return (
     <div className="container">
-      <h2 className="text-center">Tracking Details</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Tracking Details</h2>
+        <button
+          className="btn btn-success"
+          onClick={handleSendEmail}
+          disabled={!employeeEmail}
+        >
+          Call me
+        </button>
+      </div>
+
       <div className="table-container">
         <table className="table border shadow">
           <thead>
