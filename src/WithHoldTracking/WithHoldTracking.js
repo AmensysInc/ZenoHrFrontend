@@ -3,7 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import Pagination from "../SharedComponents/Pagination";
-import { getEmployeeDetails, getTrackingForEmployee } from "../SharedComponents/services/WithHoldService";
+import {
+  getEmployeeDetails,
+  getTrackingForEmployee,
+  resetPassword,
+} from "../SharedComponents/services/WithHoldService";
 
 export default function WithHoldTracking() {
   const [trackings, setTrackings] = useState([]);
@@ -22,21 +26,43 @@ export default function WithHoldTracking() {
 
   const loadTrackings = async () => {
     try {
-      const trackings = await getTrackingForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
+      const trackings = await getTrackingForEmployee(
+        employeeId,
+        currentPage,
+        pageSize,
+        searchQuery,
+        searchField
+      );
       const detailsData = await getEmployeeDetails(employeeId);
-
+      console.log("Employee Details:", detailsData);
       setTrackings(trackings.content);
       setTotalPages(trackings.totalPages);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
+        email: detailsData.emailID,
       });
     } catch (error) {
-      console.error("Error loading orders:", error);
+      console.error("Error loading data:", error);
     }
   };
-  const handleSearch = () => {
-    loadTrackings();
+
+  const handleSendEmail = async () => {
+    if (!userDetail.email) {
+      alert("Email not available for this user.");
+      return;
+    }
+
+    try {
+      await resetPassword({
+        email: userDetail.email,
+        category: "WITH_HOLD",
+      });
+      alert("Email sent successfully.");
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      alert("Failed to send email.");
+    }
   };
 
   const handleClearSearch = () => {
@@ -59,7 +85,16 @@ export default function WithHoldTracking() {
         <h4 className="text-center">
           {userDetail.first} {userDetail.last} - WithHold Details
         </h4>
-        <div className="d-flex justify-content-end">
+
+        <div className="d-flex justify-content-between mb-3">
+          <button
+            className="btn btn-success"
+            onClick={handleSendEmail}
+            disabled={!userDetail.email}
+          >
+            Send Email
+          </button>
+
           <button
             className="btn btn-primary"
             onClick={() => handleAddTracking(employeeId)}
@@ -80,26 +115,28 @@ export default function WithHoldTracking() {
               );
               return (
                 <div key={projectName} className="project-grid">
-                  
                   <h5>Project: {projectName}</h5>
                   <table className="table border shadow">
                     <thead>
-                      <th scope="col">S.No</th>
-                      <th scope="col">Month</th>
-                      <th scope="col">Year</th>
-                      <th scope="col">Project</th>
-                      <th scope="col">Actual Hours</th>
-                      <th scope="col">Actual Rate</th>
-                      <th scope="col">Actual Amount</th>
-                      <th scope="col">Paid Hours</th>
-                      <th scope="col">Paid Rate</th>
-                      <th scope="col">Paid Amount</th>
-                      <th scope="col">Balance</th>
+                      <tr>
+                        <th>S.No</th>
+                        <th>Month</th>
+                        <th>Year</th>
+                        <th>Project</th>
+                        <th>Actual Hours</th>
+                        <th>Actual Rate</th>
+                        <th>Actual Amount</th>
+                        <th>Paid Hours</th>
+                        <th>Paid Rate</th>
+                        <th>Paid Amount</th>
+                        <th>Balance</th>
+                        <th>Action</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {projectTrackings.map((tracking, index) => (
                         <tr key={tracking.trackingId}>
-                          <th scope="row">{index + 1}</th>
+                          <td>{index + 1}</td>
                           <td>{tracking.month}</td>
                           <td>{tracking.year}</td>
                           <td>{tracking.projectName}</td>

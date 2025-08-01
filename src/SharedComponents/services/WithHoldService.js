@@ -1,4 +1,5 @@
 import { get, post, put } from "../httpClient ";
+import axios from "axios";
 
 export const getTrackingForEmployee = async (employeeId, currentPage, pageSize, searchQuery, searchField) => {
     const searchParams = new URLSearchParams();
@@ -80,3 +81,17 @@ export const getTrackingForEmployee = async (employeeId, currentPage, pageSize, 
       throw error;
     }
   };
+
+  export const resetPassword = async (request) => {
+  const token = sessionStorage.getItem("token");
+  const response = await post(
+    "/auth/resetPassword",
+    request,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};

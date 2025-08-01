@@ -135,11 +135,11 @@ export default function SideBar() {
               Weekly Time Sheets
             </Link>
           </li>
-          {/* <li className="sidebar-item">
+          <li className="sidebar-item">
             <Link to="/trackings" className="sidebar-link">
               WithHold Tracking
             </Link>
-          </li> */}
+          </li>
           <li className="sidebar-item">
             <Link to="/withholdSheet" className="sidebar-link">
               WithHold Sheet
