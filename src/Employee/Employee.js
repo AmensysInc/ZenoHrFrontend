@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { BiDollar } from "react-icons/bi";
-import { HiShoppingCart } from "react-icons/hi";
+import { IoIosPause } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
@@ -27,31 +27,32 @@ export default function Employee() {
     fetchData();
   }, [currentPage, pageSize, searchQuery, searchField]);
 
-const fetchData = async () => {
-  const { content, totalPages } = await fetchEmployees(
-    currentPage,
-    pageSize,
-    searchQuery,
-    searchField
-  );
-
-  const loggedInUserId = sessionStorage.getItem("id");
-
-  if (loggedInUserId === "admin_id") {
-    // Admin sees all employees
-    setUsers(content);
-  } else {
-    // Normal user: filter employees based on default company
-    const filteredContent = content.filter(employee =>
-      employee.company && employee.company.companyId === defaultCompanyId
+  const fetchData = async () => {
+    const { content, totalPages } = await fetchEmployees(
+      currentPage,
+      pageSize,
+      searchQuery,
+      searchField
     );
-    setUsers(filteredContent);
-  }
 
-  setTotalPages(totalPages);
-};
+    const loggedInUserId = sessionStorage.getItem("id");
 
-/*
+    if (loggedInUserId === "admin_id") {
+      // Admin sees all employees
+      setUsers(content);
+    } else {
+      // Normal user: filter employees based on default company
+      const filteredContent = content.filter(
+        (employee) =>
+          employee.company && employee.company.companyId === defaultCompanyId
+      );
+      setUsers(filteredContent);
+    }
+
+    setTotalPages(totalPages);
+  };
+
+  /*
   const fetchData = async () => {
     const { content, totalPages } = await fetchEmployees(
       currentPage,
@@ -93,11 +94,13 @@ const fetchData = async () => {
     fetchData();
   };
 
+  const handleAddLeaveBalance = (employeeId) => {
+    navigate(`/addleavebalance/${employeeId}`);
+  };
+
   return (
     <>
       <h4 className="text-center">Employee details</h4>
-
-      {/* Search bar and company display */}
       <div
         className="search-container"
         style={{ display: "flex", justifyContent: "space-between" }}
@@ -134,9 +137,9 @@ const fetchData = async () => {
           >
             <BsFillPersonPlusFill size={25} title="Add Employee" />
           </Link>
-          {/* <Link className="add-pro-link" to="/addprospect">
+          <Link className="add-pro-link" to="/addprospect">
             <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
-          </Link> */}
+          </Link>
         </div>
       </div>
 
@@ -165,7 +168,9 @@ const fetchData = async () => {
                     <td>{employee.firstName}</td>
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
-                    <td>{employee.company ? employee.company.companyName : 'N/A'}</td>
+                    <td>
+                      {employee.company ? employee.company.companyName : "N/A"}
+                    </td>
                     <td>{employee.phoneNo}</td>
                     <td>{employee.onBench}</td>
                     <td>
@@ -176,6 +181,14 @@ const fetchData = async () => {
                           }
                           size={20}
                           title="Edit Employee"
+                        />
+                        <IoIosPause
+                          onClick={() =>
+                            handleAddLeaveBalance(employee.employeeID)
+                          }
+                          size={20}
+                          title="Add Leave Balance"
+                          style={{ cursor: "pointer", color: "black" }}
                         />
                         {/* <HiShoppingCart
                           onClick={() => handleViewOrders(employee.employeeID)}

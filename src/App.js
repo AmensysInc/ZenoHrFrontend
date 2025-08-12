@@ -49,6 +49,9 @@ import CompanyContact from "./Companies/CompanyContact";
 import EmailTemplateForm from "./EmailTemplates/EmailTemplateForm";
 import EmailTemplateList from "./EmailTemplates/EmailTemplateList";
 import EmailTemplateEdit from "./EmailTemplates/EmailTemplateEdit";
+import LeaveApplicationForm from "./LeaveApplicationForm/LeaveApplicationForm";
+import AddLeaveBalance from "./LeaveApplicationForm/AddLeaveBalance";
+import LeaveBalanceList from "./LeaveApplicationForm/AddLeaveBalance";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -117,6 +120,8 @@ function App() {
       case "SADMIN":
         return (
           <>
+            <Route path="/apply-leave" element={<LeaveApplicationForm />} />
+            <Route path="/addleavebalance/:employeeId" element={<LeaveBalanceList />} />
             <Route path="/" element={<Employee />} />
             <Route path="/email-template/create" element={<EmailTemplateForm />} />
            <Route path="/email-templates" element={<EmailTemplateList />} />
