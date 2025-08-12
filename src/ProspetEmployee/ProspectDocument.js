@@ -5,7 +5,7 @@ import "./ProspectDocument.css";
 export default function ProspectDocument() {
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const employeeId = localStorage.getItem("id");
+  const employeeId = sessionStorage.getItem("id");
   
   const [documents, setDocuments] = useState({
     educational: null,
@@ -22,7 +22,7 @@ export default function ProspectDocument() {
   const onDocumentSubmit = async (event) => {
     event.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const formData = new FormData();
 
