@@ -52,6 +52,8 @@ import EmailTemplateEdit from "./EmailTemplates/EmailTemplateEdit";
 import LeaveApplicationForm from "./LeaveApplicationForm/LeaveApplicationForm";
 import AddLeaveBalance from "./LeaveApplicationForm/AddLeaveBalance";
 import LeaveBalanceList from "./LeaveApplicationForm/AddLeaveBalance";
+import EmployeeFiles from "./Employee/EmployeeFilesGrid";
+import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -188,6 +190,7 @@ function App() {
               }
             />
             <Route path="/addprospect" element={<AddProspectEmployee />} />
+            <Route path="/prospectfiles" element={<EmployeeFilesGrid />} />
             <Route path="/candidates" element={<CandidateList />} />
             <Route
               path="/addcandidate"

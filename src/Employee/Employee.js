@@ -5,8 +5,9 @@ import { IoIosPause } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
+import { MdFileDownload } from "react-icons/md";
 import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button } from "antd";
+import { Select, Input, Button, Modal, List } from "antd";
 import "../Employee/Employee.css";
 import {
   deleteEmployee,
@@ -20,8 +21,12 @@ export default function Employee() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
+  const [fileList, setFileList] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+  const [fileModalVisible, setFileModalVisible] = useState(false);
   const navigate = useNavigate();
   const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchData();
@@ -38,10 +43,8 @@ export default function Employee() {
     const loggedInUserId = sessionStorage.getItem("id");
 
     if (loggedInUserId === "admin_id") {
-      // Admin sees all employees
       setUsers(content);
     } else {
-      // Normal user: filter employees based on default company
       const filteredContent = content.filter(
         (employee) =>
           employee.company && employee.company.companyId === defaultCompanyId
@@ -52,28 +55,11 @@ export default function Employee() {
     setTotalPages(totalPages);
   };
 
-  /*
-  const fetchData = async () => {
-    const { content, totalPages } = await fetchEmployees(
-      currentPage,
-      pageSize,
-      searchQuery,
-      searchField
-    );
-    setUsers(content);
-    setTotalPages(totalPages);
-  };
-*/
-
   const handleDeleteEmployee = async (employeeId) => {
     const success = await deleteEmployee(employeeId);
     if (success) {
       fetchData();
     }
-  };
-
-  const handleViewOrders = (employeeId) => {
-    navigate(`/orders/${employeeId}`);
   };
 
   const handleViewTracking = (employeeId) => {
@@ -82,6 +68,10 @@ export default function Employee() {
 
   const handleEditEmployee = (employeeId) => {
     navigate(`/editemployee/${employeeId}`);
+  };
+
+  const handleAddLeaveBalance = (employeeId) => {
+    navigate(`/addleavebalance/${employeeId}`);
   };
 
   const handleSearch = () => {
@@ -94,8 +84,55 @@ export default function Employee() {
     fetchData();
   };
 
-  const handleAddLeaveBalance = (employeeId) => {
-    navigate(`/addleavebalance/${employeeId}`);
+  // ✅ Fetch available files for employee
+  const handleDownloadFiles = async (employeeId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`${apiUrl}/employees/prospectFiles/${employeeId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch files");
+
+      const files = await res.json();
+      setFileList(files);
+      setSelectedEmployeeId(employeeId);
+      setFileModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  // ✅ Download single file
+  const downloadFile = async (fileName) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(
+        `${apiUrl}/employees/prospectFiles/${selectedEmployeeId}/${fileName}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("File download failed");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
   };
 
   return (
@@ -143,7 +180,6 @@ export default function Employee() {
         </div>
       </div>
 
-      {/* Employee table */}
       <div>
         <table className="table table-striped border shadow">
           <thead>
@@ -176,36 +212,29 @@ export default function Employee() {
                     <td>
                       <div className="icon-container">
                         <FiEdit2
-                          onClick={() =>
-                            handleEditEmployee(employee.employeeID)
-                          }
+                          onClick={() => handleEditEmployee(employee.employeeID)}
                           size={20}
                           title="Edit Employee"
                         />
                         <IoIosPause
-                          onClick={() =>
-                            handleAddLeaveBalance(employee.employeeID)
-                          }
+                          onClick={() => handleAddLeaveBalance(employee.employeeID)}
                           size={20}
                           title="Add Leave Balance"
                           style={{ cursor: "pointer", color: "black" }}
                         />
-                        {/* <HiShoppingCart
-                          onClick={() => handleViewOrders(employee.employeeID)}
-                          size={20}
-                          title="Purchase Orders"
-                        /> */}
                         <BiDollar
-                          onClick={() =>
-                            handleViewTracking(employee.employeeID)
-                          }
+                          onClick={() => handleViewTracking(employee.employeeID)}
                           size={20}
                           title="WithHold Tracking"
                         />
+                        <MdFileDownload
+                          onClick={() => handleDownloadFiles(employee.employeeID)}
+                          size={20}
+                          title="Download Files"
+                          style={{ cursor: "pointer", color: "black" }}
+                        />
                         <AiFillDelete
-                          onClick={() =>
-                            handleDeleteEmployee(employee.employeeID)
-                          }
+                          onClick={() => handleDeleteEmployee(employee.employeeID)}
                           size={20}
                           className="delete-icon"
                           title="Delete"
@@ -224,15 +253,43 @@ export default function Employee() {
         </table>
       </div>
 
-      {/* Pagination */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
+
+      {/* Modal for file list */}
+      <Modal
+        title="Available Files"
+        open={fileModalVisible}
+        onCancel={() => setFileModalVisible(false)}
+        footer={null}
+      >
+        {fileList.length > 0 ? (
+          <List
+            dataSource={fileList}
+            renderItem={(file) => (
+              <List.Item
+                actions={[
+                  <Button type="link" onClick={() => downloadFile(file)}>
+                    Download
+                  </Button>,
+                ]}
+              >
+                {file}
+              </List.Item>
+            )}
+          />
+        ) : (
+          <p>No files found.</p>
+        )}
+      </Modal>
     </>
   );
 }
+
+
 
 /*
 import { useEffect, useState } from "react";

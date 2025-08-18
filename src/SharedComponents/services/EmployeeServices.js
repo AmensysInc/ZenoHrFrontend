@@ -1,6 +1,5 @@
 import { get, post, put, remove } from "../httpClient ";
 
-
 export async function fetchEmployees(currentPage, pageSize, searchQuery, searchField, companyId) {
   try {
     const searchParams = new URLSearchParams();
@@ -25,6 +24,7 @@ export async function fetchEmployees(currentPage, pageSize, searchQuery, searchF
   }
   return { content: [], totalPages: 0 };
 }
+
 /*
 export async function fetchEmployees(currentPage, pageSize, searchQuery, searchField) {
   try {
