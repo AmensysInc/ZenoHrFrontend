@@ -52,7 +52,7 @@ const EmployeeDetails = () => {
             </tr>
             <tr>
               <th>Company</th>
-              <td>{employee.company.companyName}</td>
+               <td>{employee.company?.companyName || "N/A"}</td>
             </tr>
             <tr>
               <th>Date Of Birth</th>

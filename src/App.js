@@ -54,6 +54,7 @@ import AddLeaveBalance from "./LeaveApplicationForm/AddLeaveBalance";
 import LeaveBalanceList from "./LeaveApplicationForm/AddLeaveBalance";
 import EmployeeFiles from "./Employee/EmployeeFilesGrid";
 import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
+import Files from "./Employee/Files";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -190,7 +191,7 @@ function App() {
               }
             />
             <Route path="/addprospect" element={<AddProspectEmployee />} />
-            <Route path="/prospectfiles" element={<EmployeeFilesGrid />} />
+            <Route path="/uploadedfiles" element={<EmployeeFilesGrid />} />
             <Route path="/candidates" element={<CandidateList />} />
             <Route
               path="/addcandidate"
@@ -247,6 +248,7 @@ function App() {
             <Route path="/timeSheets" element={<TimeSheets />} />
             <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
             <Route path="/contactus" element={<CompanyContact />} />
+            <Route path="/myfiles" element={<Files />} />
           </>
         );
 
