@@ -52,6 +52,11 @@ export default function SideBar() {
               Email Templates
             </Link>
           </li>
+           <li className="sidebar-item">
+            <Link to="/uploadedfiles" className="sidebar-link">
+              Files
+            </Link>
+          </li>
           {/* <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email
@@ -73,6 +78,7 @@ export default function SideBar() {
                 User Role
               </Link>
             </li>
+            
           )}
         </ul>
       </div>
@@ -143,6 +149,11 @@ export default function SideBar() {
           <li className="sidebar-item">
             <Link to="/withholdSheet" className="sidebar-link">
               WithHold Sheet
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/myfiles" className="sidebar-link">
+              Files
             </Link>
           </li>
           <li className="sidebar-item">
