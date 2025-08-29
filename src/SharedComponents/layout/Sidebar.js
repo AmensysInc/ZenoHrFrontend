@@ -22,12 +22,17 @@ export default function SideBar() {
               Employees
             </Link>
           </li>
-          {/* <li className="sidebar-item">
+          <li className="sidebar-item">
             <Link to="/purchase-orders" className="sidebar-link">
               Purchase Orders
             </Link>
           </li>
           <li className="sidebar-item">
+            <Link to="/projects" className="sidebar-link">
+              Projects
+            </Link>
+          </li>
+          {/* <li className="sidebar-item">
             <Link to="/candidates" className="sidebar-link">
               Candidate List
             </Link>
@@ -37,6 +42,11 @@ export default function SideBar() {
               Marketing List
             </Link>
           </li> */}
+          <li className="sidebar-item">
+            <Link to="/announcements" className="sidebar-link">
+              Announcements
+            </Link>
+          </li>
           {/* <li className="sidebar-item">
             <Link to="/timeSheets" className="sidebar-link">
               TimeSheets
@@ -154,6 +164,11 @@ export default function SideBar() {
           <li className="sidebar-item">
             <Link to="/myfiles" className="sidebar-link">
               Files
+            </Link>
+          </li>
+          <li className="sidebar-item">
+            <Link to="/announcements" className="sidebar-link">
+              Announcements
             </Link>
           </li>
           <li className="sidebar-item">
