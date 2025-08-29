@@ -55,6 +55,11 @@ import LeaveBalanceList from "./LeaveApplicationForm/AddLeaveBalance";
 import EmployeeFiles from "./Employee/EmployeeFilesGrid";
 import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
 import Files from "./Employee/Files";
+import VisaDetailsGrid from "./VisaDetails/VisaDetailsGrid";
+import AllProjects from "./ProjectHistory/AllProjects";
+import Dashboard from "./Dashboard";
+import AnnouncementForm from "./Announcements/AnnouncementForm";
+import AnnouncementGrid from "./Announcements/AnnouncementGrid";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -123,9 +128,11 @@ function App() {
       case "SADMIN":
         return (
           <>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/announcements" element={<AnnouncementGrid />} />
             <Route path="/apply-leave" element={<LeaveApplicationForm />} />
             <Route path="/addleavebalance/:employeeId" element={<LeaveBalanceList />} />
-            <Route path="/" element={<Employee />} />
+            <Route path="/employees" element={<Employee />} />
             <Route path="/email-template/create" element={<EmailTemplateForm />} />
            <Route path="/email-templates" element={<EmailTemplateList />} />
            <Route path="/email-template/edit/:id" element={<EmailTemplateEdit />} />
@@ -160,6 +167,10 @@ function App() {
               element={<ProjectHistory />}
             />
             <Route
+              path="/projects"
+              element={<AllProjects />}
+            />
+            <Route
               path="/editemployee/:employeeId/project-history/:projectId/editproject"
               element={<ProjectHistoryForm mode="edit" />}
             />
@@ -170,6 +181,10 @@ function App() {
             <Route
               path="/editemployee/:employeeId/visa-details"
               element={<VisaDetails />}
+            />
+            <Route
+              path="/visa-details"
+              element={<VisaDetailsGrid />}
             />
             <Route
               path="/editemployee/:employeeId/visa-details/:visaId/editvisadetails"
@@ -242,6 +257,7 @@ function App() {
                 />
               }
             />
+            <Route path="/announcements" element={<AnnouncementForm />} />
             <Route path="/" element={<EmployeeDetails />} />
             <Route path="/trackings" element={<Tracking />} />
             <Route path="/withholdSheet" element={<WithHoldSheet />} />
