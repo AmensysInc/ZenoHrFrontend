@@ -10,13 +10,13 @@ export default function VisaDetailsGrid() {
   const [searchString, setSearchString] = useState("");
   const [totalPages, setTotalPages] = useState(0);
   const [showExpired, setShowExpired] = useState(false);
+  const API_URL = process.env.REACT_APP_API_URL;
 
-  // Fetch Visa Details
   const fetchVisaDetails = async () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:8082/visa-details", {
+      const response = await axios.get(`${API_URL}/visa-details`, {
         params: { page, size, searchField, searchString },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -27,11 +27,11 @@ export default function VisaDetailsGrid() {
         const today = new Date().toISOString().split("T")[0];
         data = data
           .filter((visa) => visa.visaExpiryDate && visa.visaExpiryDate < today)
-          .sort((a, b) => (a.visaExpiryDate < b.visaExpiryDate ? 1 : -1)); // Descending expiry date
+          .sort((a, b) => (a.visaExpiryDate < b.visaExpiryDate ? 1 : -1));
       } else {
         data = data.sort((a, b) =>
           (b.employeeName || "").localeCompare(a.employeeName || "")
-        ); // Descending employee name
+        );
       }
 
       setVisaDetails(data);
@@ -54,8 +54,6 @@ export default function VisaDetailsGrid() {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Visa Details (All Employees)</h2>
-
-      {/* Filter Controls */}
       <div className="flex items-center gap-4 mb-4">
         <label className="flex items-center gap-2">
           <input
@@ -97,8 +95,6 @@ export default function VisaDetailsGrid() {
           </tbody>
         </table>
       )}
-
-      {/* Pagination Controls */}
       <div className="flex justify-between mt-4">
         <button
           disabled={page === 0}

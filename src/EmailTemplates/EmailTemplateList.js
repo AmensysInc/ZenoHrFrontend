@@ -6,6 +6,7 @@ export default function EmailTemplateList() {
   const [templates, setTemplates] = useState([]);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchTemplates();
@@ -15,7 +16,7 @@ export default function EmailTemplateList() {
     try {
       const token = sessionStorage.getItem("token");
 
-      const response = await axios.get("http://localhost:8082/messages", {
+      const response = await axios.get(`${API_URL}/messages`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -34,7 +35,7 @@ export default function EmailTemplateList() {
     try {
       const token = sessionStorage.getItem("token");
 
-      await axios.delete(`http://localhost:8082/messages/${id}`, {
+      await axios.delete(`${API_URL}/messages/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

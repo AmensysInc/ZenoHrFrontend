@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const token = sessionStorage.getItem("token");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -15,13 +16,9 @@ export default function Dashboard() {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [empRes, poRes, visaRes] = await Promise.all([
-          axios.get("http://localhost:8082/employees?page=0&size=10", {
-            headers,
-          }),
-          axios.get("http://localhost:8082/orders?page=0&size=10", { headers }),
-          axios.get("http://localhost:8082/visa-details?page=0&size=10", {
-            headers,
-          }),
+          axios.get(`${API_URL}/employees?page=0&size=10`, { headers }),
+          axios.get(`${API_URL}/orders?page=0&size=10`, { headers }),
+          axios.get(`${API_URL}/visa-details?page=0&size=10`, { headers }),
         ]);
 
         setEmployees(empRes.data.content || []);
@@ -56,7 +53,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, API_URL]);
 
   const formatDate = (dateArray) => {
     if (!dateArray || dateArray.length < 3) return "N/A";
@@ -84,26 +81,31 @@ export default function Dashboard() {
         <p>Loading...</p>
       ) : (
         <>
-          {/* Summary Cards */}
-{/* Summary Row */}
-<div className="flex items-center justify-start gap-4 mb-8 bg-white shadow rounded-2xl p-4">
-  <span className="text-lg font-semibold">
-    Employees: <span className="font-bold text-blue-600">{employees.length}</span>
-  </span>
+          {/* Summary Row */}
+          <div className="flex items-center justify-start gap-4 mb-8 bg-white shadow rounded-2xl p-4">
+            <span className="text-lg font-semibold">
+              Employees:{" "}
+              <span className="font-bold text-blue-600">{employees.length}</span>
+            </span>
 
-  <span className="text-gray-400">|</span>
+            <span className="text-gray-400">|</span>
 
-  <span className="text-lg font-semibold">
-    Orders: <span className="font-bold text-green-600">{purchaseOrders.length}</span>
-  </span>
+            <span className="text-lg font-semibold">
+              Orders:{" "}
+              <span className="font-bold text-green-600">
+                {purchaseOrders.length}
+              </span>
+            </span>
 
-  <span className="text-gray-400">|</span>
+            <span className="text-gray-400">|</span>
 
-  <span className="text-lg font-semibold">
-    Visas: <span className="font-bold text-red-600">{visaDetails.length}</span>
-  </span>
-</div>
-
+            <span className="text-lg font-semibold">
+              Visas:{" "}
+              <span className="font-bold text-red-600">
+                {visaDetails.length}
+              </span>
+            </span>
+          </div>
 
           {/* Employees Grid */}
           <div className="mb-10">
@@ -128,9 +130,7 @@ export default function Dashboard() {
                       <td className="p-2 border">
                         {emp.company?.companyName || "N/A"}
                       </td>
-                      <td className="p-2 border">
-                        {formatDate(emp.createdAt)}
-                      </td>
+                      <td className="p-2 border">{formatDate(emp.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

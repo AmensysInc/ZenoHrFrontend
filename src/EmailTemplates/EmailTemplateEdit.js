@@ -17,11 +17,12 @@ export default function EmailTemplateEdit() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchTemplate = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8082/messages/${id}`, {
+      const response = await axios.get(`${API_URL}/messages/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,7 +53,7 @@ export default function EmailTemplateEdit() {
     e.preventDefault();
     try {
       const token = sessionStorage.getItem("token");
-      await axios.put(`http://localhost:8082/messages/${id}`, template, {
+      await axios.put(`${API_URL}/messages/${id}`, template, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

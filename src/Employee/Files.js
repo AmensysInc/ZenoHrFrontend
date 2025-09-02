@@ -6,10 +6,9 @@ export default function EmployeeFiles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
-
   const employeeID = sessionStorage.getItem("id");
+  const API_URL = process.env.REACT_APP_API_URL;
 
-  // Fetch all files
   const fetchFiles = async () => {
     if (!employeeID) {
       setError("No employee ID found in session.");
@@ -20,7 +19,7 @@ export default function EmployeeFiles() {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8082/employees/prospectFiles/${employeeID}`,
+        `${API_URL}/employees/prospectFiles/${employeeID}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setFiles(response.data);
@@ -36,12 +35,11 @@ export default function EmployeeFiles() {
     fetchFiles();
   }, [employeeID]);
 
-  // Download a file
   const downloadFile = async (fileName) => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8082/employees/prospectFiles/${employeeID}/${fileName}`,
+        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
@@ -76,7 +74,7 @@ export default function EmployeeFiles() {
       setUploading(true);
       const token = sessionStorage.getItem("token");
       await axios.post(
-        `http://localhost:8082/employees/prospectFiles/${employeeID}`,
+        `${API_URL}/employees/prospectFiles/${employeeID}`,
         formData,
         {
           headers: {
@@ -87,13 +85,13 @@ export default function EmployeeFiles() {
       );
 
       alert("Files uploaded successfully!");
-      fetchFiles(); // Refresh file list
+      fetchFiles();
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Failed to upload files.");
     } finally {
       setUploading(false);
-      event.target.value = ""; // Reset file input
+      event.target.value = "";
     }
   };
 

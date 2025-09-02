@@ -12,12 +12,13 @@ export default function AllProjects() {
   const [size, setSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [searchString, setSearchString] = useState("");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchProjects = async (pageNumber = page, pageSize = size, search = searchString) => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:8082/projects", {
+      const response = await axios.get(`${API_URL}/projects`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           page: pageNumber - 1,
