@@ -5,11 +5,12 @@ export default function EmployeeFilesGrid() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchFiles = (query = "") => {
     const token = sessionStorage.getItem("token");
     axios
-      .get(`http://localhost:8082/employees/prospectFiles/all`, {
+      .get(`${API_URL}/employees/prospectFiles/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,7 +40,7 @@ export default function EmployeeFilesGrid() {
     const token = sessionStorage.getItem("token");
     axios
       .get(
-        `http://localhost:8082/employees/prospectFiles/${employeeID}/${fileName}`,
+        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +62,6 @@ export default function EmployeeFilesGrid() {
       });
   };
 
-  // ✅ Delete function
   const handleDelete = (employeeID, fileName) => {
     if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
       return;
@@ -70,7 +70,7 @@ export default function EmployeeFilesGrid() {
     const token = sessionStorage.getItem("token");
     axios
       .delete(
-        `http://localhost:8082/employees/prospectFiles/${employeeID}/${fileName}`,
+        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -99,7 +99,6 @@ export default function EmployeeFilesGrid() {
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Employee Files</h2>
 
-      {/* 🔍 Search Bar */}
       <form onSubmit={handleSearch} className="mb-4 flex gap-2">
         <input
           type="text"

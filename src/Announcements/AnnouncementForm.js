@@ -9,18 +9,19 @@ export default function AnnouncementForm({ onClose, onSuccess }) {
   const [form] = Form.useForm();
 
   const token = sessionStorage.getItem("token");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Fetch Employees
   useEffect(() => {
     setFetchingEmployees(true);
     axios
-      .get("http://localhost:8082/employees", {
+      .get(`${API_URL}/employees`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setEmployees(res.data.content || []))
       .catch(() => setEmployees([]))
       .finally(() => setFetchingEmployees(false));
-  }, [token]);
+  }, [token, API_URL]);
 
   const handleSubmit = async (values) => {
     if (!values.employeeIds || values.employeeIds.length === 0) {
@@ -31,7 +32,7 @@ export default function AnnouncementForm({ onClose, onSuccess }) {
     setLoading(true);
     try {
       await axios.post(
-        "http://localhost:8082/announcements",
+        `${API_URL}/announcements`,
         {
           title: values.title,
           message: values.message,

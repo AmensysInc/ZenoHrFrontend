@@ -17,8 +17,8 @@ const EditUserRole = () => {
   const [userName, setUserName] = useState("");
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const token = sessionStorage.getItem("token");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const config = {
     headers: {
@@ -26,44 +26,40 @@ const EditUserRole = () => {
     },
   };
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      // Fetch role data
-      const roleResponse = await axios.get(
-        `http://localhost:8082/user-company/${id}`,
-        config
-      );
-      setRoleData(roleResponse.data);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch role data
+        const roleResponse = await axios.get(
+          `${API_URL}/user-company/${id}`,
+          config
+        );
+        setRoleData(roleResponse.data);
 
-      // Fetch users and find the matching user
-      const userResponse = await axios.get("http://localhost:8082/users", config);
-      const matchedUser = userResponse.data.find(
-        (user) => user.id === roleResponse.data.userId
-      );
+        // Fetch users and find the matching user
+        const userResponse = await axios.get(`${API_URL}/users`, config);
+        const matchedUser = userResponse.data.find(
+          (user) => user.id === roleResponse.data.userId
+        );
 
-      if (matchedUser) {
-        setUserName(`${matchedUser.firstname} ${matchedUser.lastname}`);
-      } else {
-        setUserName("User not found");
+        if (matchedUser) {
+          setUserName(`${matchedUser.firstname} ${matchedUser.lastname}`);
+        } else {
+          setUserName("User not found");
+        }
+
+        // Fetch companies
+        const companyResponse = await axios.get(`${API_URL}/companies`, config);
+        setCompanies(companyResponse.data.content);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Fetch companies
-      const companyResponse = await axios.get(
-        "http://localhost:8082/companies",
-        config
-      );
-      setCompanies(companyResponse.data.content);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, [id]);
-
+    fetchData();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -78,14 +74,10 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        `http://localhost:8082/user-company/${id}`,
-        roleData,
-        config
-      );
-       if (roleData.defaultCompany === true) {
-      sessionStorage.setItem("defaultCompanyId", roleData.companyId);
-    }
+      await axios.put(`${API_URL}/user-company/${id}`, roleData, config);
+      if (roleData.defaultCompany === true) {
+        sessionStorage.setItem("defaultCompanyId", roleData.companyId);
+      }
       alert("Role updated successfully!");
       navigate("/companyrole");
     } catch (err) {

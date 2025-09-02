@@ -15,6 +15,7 @@ export default function EmailTemplateForm() {
   });
 
   const [error, setError] = useState(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -31,7 +32,7 @@ export default function EmailTemplateForm() {
       const token = sessionStorage.getItem("token");
 
       const response = await axios.post(
-        "http://localhost:8082/messages",
+        `${API_URL}/messages`,
         template,
         {
           headers: {

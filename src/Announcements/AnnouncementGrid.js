@@ -100,9 +100,9 @@ export default function EmployeeAnnouncement() {
   const [loading, setLoading] = useState(false);
 
   const token = sessionStorage.getItem("token");
-  const employeeId = sessionStorage.getItem("id"); // 👈 employee id stored in sessionStorage
+  const employeeId = sessionStorage.getItem("id");
+  const API_URL = process.env.REACT_APP_API_URL;
 
-  // Convert [year,month,day,hour,minute,second] → JS Date
   const formatDateArray = (arr) => {
     if (!arr || arr.length < 3) return "-";
     const [year, month, day, hour = 0, minute = 0, second = 0] = arr;
@@ -112,11 +112,9 @@ export default function EmployeeAnnouncement() {
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8082/announcements", {
+      const res = await axios.get(`${API_URL}/announcements`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Filter only announcements where current employee is a recipient
       const employeeAnnouncements = res.data.filter((a) =>
         a.recipients.some((r) => r.employeeId === employeeId)
       );

@@ -9,11 +9,11 @@ const AddUserRole = () => {
 
   const [userId, setUserId] = useState("");
   const [companyId, setCompanyId] = useState("");
-  const [defaultCompany, setDefaultCompany] = useState(""); // "true" or "false"
+  const [defaultCompany, setDefaultCompany] = useState("");
   const [role, setRole] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const token = sessionStorage.getItem("token");
 
   const config = {
@@ -26,8 +26,8 @@ const AddUserRole = () => {
     const fetchData = async () => {
       try {
         const [userRes, companyRes] = await Promise.all([
-          axios.get("http://localhost:8082/users", config),
-          axios.get("http://localhost:8082/companies?page=0&size=100", config),
+          axios.get(`${API_URL}/users`, config),
+          axios.get(`${API_URL}/companies?page=0&size=100`, config),
         ]);
 
         // Ensure the response is as expected
@@ -35,7 +35,7 @@ const AddUserRole = () => {
         setCompanies(companyRes.data?.content || []);
       } catch (err) {
         console.error("Error loading users or companies", err);
-        setEmployees([]); // fallback to empty array
+        setEmployees([]);
         setCompanies([]);
       }
     };
@@ -43,39 +43,36 @@ const AddUserRole = () => {
     fetchData();
   }, []);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!userId || !companyId || defaultCompany === "") {
-    alert("Please select all fields including Default Company.");
-    return;
-  }
+    if (!userId || !companyId || defaultCompany === "") {
+      alert("Please select all fields including Default Company.");
+      return;
+    }
 
-  const payload = {
-    userId,
-    companyId: parseInt(companyId),
-    defaultCompany,
-    createdAt: new Date().toISOString().split("T")[0],
+    const payload = {
+      userId,
+      companyId: parseInt(companyId),
+      defaultCompany,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    try {
+      setSubmitting(true);
+      await axios.post(`${API_URL}/user-company`, payload, config);
+      alert("User role added successfully!");
+      setUserId("");
+      setCompanyId("");
+      setDefaultCompany("");
+      navigate("/companyrole");
+    } catch (error) {
+      console.error("Error adding user role", error);
+      alert("Failed to add user role.");
+    } finally {
+      setSubmitting(false);
+    }
   };
-
-  try {
-    setSubmitting(true);
-    await axios.post("http://localhost:8082/user-company", payload, config);
-    alert("User role added successfully!");
-
-    // Reset form
-    setUserId("");
-    setCompanyId("");
-    setDefaultCompany("");
-    navigate("/companyrole");
-  } catch (error) {
-    console.error("Error adding user role", error);
-    alert("Failed to add user role.");
-  } finally {
-    setSubmitting(false);
-  }
-};
-
 
   const handleDefaultCheckboxChange = (value) => {
     setDefaultCompany((prev) => (prev === value ? "" : value));

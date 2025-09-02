@@ -10,6 +10,7 @@ const LeaveBalanceList = () => {
   const [form] = Form.useForm();
   const token = sessionStorage.getItem("token");
   const { employeeId } = useParams();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     if (employeeId) {
@@ -20,7 +21,7 @@ const LeaveBalanceList = () => {
 
   const fetchLeaveTypes = async () => {
     try {
-      const response = await axios.get("http://localhost:8082/leave/types", {
+      const response = await axios.get(`${API_URL}/leave/types`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -42,7 +43,7 @@ const LeaveBalanceList = () => {
   const fetchEmployeeName = async (id) => {
     try {
       const response = await axios.get(
-        `http://localhost:8082/employees/${id}`,
+        `${API_URL}/employees/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -77,7 +78,7 @@ const LeaveBalanceList = () => {
         editingRecord.availableDays === undefined
       ) {
         await axios.post(
-          `http://localhost:8082/leave/balances/${employeeId}`,
+          `${API_URL}/leave/balances/${employeeId}`,
           {
             availableDays: values.availableDays,
             bookedDays: values.bookedDays,
@@ -100,7 +101,7 @@ const LeaveBalanceList = () => {
       } else {
         // Existing record → update
         await axios.put(
-          `http://localhost:8082/leave/balances/${
+          `${API_URL}/leave/balances/${
             editingRecord.id || editingRecord.leaveBalanceId
           }`,
           {

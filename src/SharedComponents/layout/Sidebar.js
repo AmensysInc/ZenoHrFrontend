@@ -18,7 +18,7 @@ export default function SideBar() {
             </Link>
           </li>
           <li className="sidebar-item">
-            <Link to="/" className="sidebar-link">
+            <Link to="/employees" className="sidebar-link">
               Employees
             </Link>
           </li>
