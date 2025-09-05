@@ -130,6 +130,7 @@ function App() {
           <>
           <Route path="/" element={<Dashboard />} />
           <Route path="/announcements" element={<AnnouncementGrid />} />
+          <Route path="/addannouncements" element={<AnnouncementForm />} />
             <Route path="/apply-leave" element={<LeaveApplicationForm />} />
             <Route path="/addleavebalance/:employeeId" element={<LeaveBalanceList />} />
             <Route path="/employees" element={<Employee />} />
