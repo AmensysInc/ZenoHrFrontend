@@ -67,7 +67,7 @@ export default function SideBar() {
               Files
             </Link>
           </li>
-          {/* <li className="sidebar-item">
+          <li className="sidebar-item">
             <Link to="/email" className="sidebar-link">
               Send Email
             </Link>
@@ -81,7 +81,7 @@ export default function SideBar() {
             <Link to="/bulkemail" className="sidebar-link">
               Bulk Email
             </Link>
-          </li> */}
+          </li>
           {role === "SADMIN" && (
             <li className="sidebar-item">
               <Link to="/companyrole" className="sidebar-link">
