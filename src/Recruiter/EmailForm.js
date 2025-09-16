@@ -354,7 +354,7 @@ export default function EmailForm() {
             /> */}
             <FroalaEditor model={body} onModelChange={handleEditorChange} />
           </div>
-          <div className="form-group">
+          {/* <div className="form-group">
             <label htmlFor="attachment">Attachment:</label>
             <input
               type="file"
@@ -364,7 +364,7 @@ export default function EmailForm() {
               onChange={handleAttachmentChange}
               multiple
             />
-          </div>
+          </div> */}
           <Button variant="outlined" onClick={handleSubmit}>
             Submit
           </Button>

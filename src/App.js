@@ -2,11 +2,7 @@ import React, { useEffect } from "react";
 import "../src/App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./SharedComponents/layout/Navbar";
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import PurchaseOrder from "./PurchaseOrder/PurchaseOrder";
 import WithHoldTracking from "./WithHoldTracking/WithHoldTracking";
 import ProjectHistory from "./ProjectHistory/ProjectHistory";
@@ -60,6 +56,7 @@ import AllProjects from "./ProjectHistory/AllProjects";
 import Dashboard from "./Dashboard";
 import AnnouncementForm from "./Announcements/AnnouncementForm";
 import AnnouncementGrid from "./Announcements/AnnouncementGrid";
+import ProfitAndLoss from "./Profit&Loss/ProfitAndLoss";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -80,45 +77,45 @@ function App() {
 
   return (
     <div className="app">
-        <Navbar
-          location={window.location}
-          setIsLoggedIn={setIsLoggedIn}
-          setRole={setRole}
-        />
+      <Navbar
+        location={window.location}
+        setIsLoggedIn={setIsLoggedIn}
+        setRole={setRole}
+      />
 
-        {isLoggedIn ? (
-          <div className="row">
-            <div className="col-md-2 bg-light" style={{ display: "flex" }}>
-              {(role === "ADMIN" ||
-                role === "SADMIN" ||
-                role === "RECRUITER" ||
-                role === "SALES" ||
-                role === "EMPLOYEE") &&
-                !window.location.pathname.includes("change-password") && (
-                  <Sidebar />
-                )}
-            </div>
-            <div
-              className="col-md-10 bg-light"
-              style={{
-                overflowX: "auto",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              {shouldRenderBreadcrumb() && <Breadcrumbs />}
-              <Routes>{renderRoutes(role)}</Routes>
-            </div>
+      {isLoggedIn ? (
+        <div className="row">
+          <div className="col-md-2 bg-light" style={{ display: "flex" }}>
+            {(role === "ADMIN" ||
+              role === "SADMIN" ||
+              role === "RECRUITER" ||
+              role === "SALES" ||
+              role === "EMPLOYEE") &&
+              !window.location.pathname.includes("change-password") && (
+                <Sidebar />
+              )}
           </div>
-        ) : (
-          <>
+          <div
+            className="col-md-10 bg-light"
+            style={{
+              overflowX: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {shouldRenderBreadcrumb() && <Breadcrumbs />}
+            <Routes>{renderRoutes(role)}</Routes>
+          </div>
+        </div>
+      ) : (
+        <>
           <Routes>
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/*" element={<Navigate to="/login" />} />
           </Routes>
-          </>
-        )}
+        </>
+      )}
     </div>
   );
 
@@ -128,15 +125,25 @@ function App() {
       case "SADMIN":
         return (
           <>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/announcements" element={<AnnouncementGrid />} />
-          <Route path="/addannouncements" element={<AnnouncementForm />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/profit-loss/:employeeId" element={<ProfitAndLoss />} />
+            <Route path="/announcements" element={<AnnouncementGrid />} />
+            <Route path="/addannouncements" element={<AnnouncementForm />} />
             <Route path="/apply-leave" element={<LeaveApplicationForm />} />
-            <Route path="/addleavebalance/:employeeId" element={<LeaveBalanceList />} />
+            <Route
+              path="/addleavebalance/:employeeId"
+              element={<LeaveBalanceList />}
+            />
             <Route path="/employees" element={<Employee />} />
-            <Route path="/email-template/create" element={<EmailTemplateForm />} />
-           <Route path="/email-templates" element={<EmailTemplateList />} />
-           <Route path="/email-template/edit/:id" element={<EmailTemplateEdit />} />
+            <Route
+              path="/email-template/create"
+              element={<EmailTemplateForm />}
+            />
+            <Route path="/email-templates" element={<EmailTemplateList />} />
+            <Route
+              path="/email-template/edit/:id"
+              element={<EmailTemplateEdit />}
+            />
             <Route path="/adduser" element={<EmployeeForm mode="add" />} />
             <Route
               path="/editemployee/:employeeId"
@@ -167,10 +174,7 @@ function App() {
               path="/editemployee/:employeeId/project-history"
               element={<ProjectHistory />}
             />
-            <Route
-              path="/projects"
-              element={<AllProjects />}
-            />
+            <Route path="/projects" element={<AllProjects />} />
             <Route
               path="/editemployee/:employeeId/project-history/:projectId/editproject"
               element={<ProjectHistoryForm mode="edit" />}
@@ -183,10 +187,7 @@ function App() {
               path="/editemployee/:employeeId/visa-details"
               element={<VisaDetails />}
             />
-            <Route
-              path="/visa-details"
-              element={<VisaDetailsGrid />}
-            />
+            <Route path="/visa-details" element={<VisaDetailsGrid />} />
             <Route
               path="/editemployee/:employeeId/visa-details/:visaId/editvisadetails"
               element={<VisaDetailsForm mode="edit" />}
@@ -232,7 +233,10 @@ function App() {
             <Route path="/bulkemail" element={<BulkMailForm />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/addcontact" element={<ContactForm mode="add" />} />
-            <Route path="/editcontact/:id" element={<ContactForm mode="edit" />} />
+            <Route
+              path="/editcontact/:id"
+              element={<ContactForm mode="edit" />}
+            />
             <Route path="/companies" element={<Companies />} />
             <Route path="/selectcompanies" element={<SelectCompany />} />
             {role === "SADMIN" && (
@@ -294,9 +298,15 @@ function App() {
             <Route path="/bulkemail" element={<BulkMailForm />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/addcontact" element={<ContactForm mode="add" />} />
-            <Route path="/editcontact/:id" element={<ContactForm mode="edit" />} />
+            <Route
+              path="/editcontact/:id"
+              element={<ContactForm mode="edit" />}
+            />
             <Route path="/" element={<RecruiterDashboard />} />
-            <Route path="/marketing" element={<CandidateList inMarketing={true} />} />
+            <Route
+              path="/marketing"
+              element={<CandidateList inMarketing={true} />}
+            />
             <Route
               path="/marketing/editcandidate/:candidateID"
               element={<CandidateForm mode="edit" />}
@@ -318,13 +328,19 @@ function App() {
         return (
           <>
             <Route path="/candidates" element={<CandidateList />} />
-            <Route path="/addcandidate" element={<CandidateForm mode="add" />} />
+            <Route
+              path="/addcandidate"
+              element={<CandidateForm mode="add" />}
+            />
             <Route path="/" element={<RecruiterDashboard />} />
             <Route
               path="/editcandidate/:candidateID"
               element={<CandidateForm mode="edit" />}
             />
-            <Route path="/marketing" element={<CandidateList inMarketing={true} />} />
+            <Route
+              path="/marketing"
+              element={<CandidateList inMarketing={true} />}
+            />
             <Route
               path="/marketing/editcandidate/:candidateID"
               element={<CandidateForm mode="edit" />}
