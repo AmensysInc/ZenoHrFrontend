@@ -30,15 +30,25 @@ const Contacts = () => {
     navigate(`/editcontact/${id}`);
   };
 
+  const handleAddContact = () => {
+    navigate("/addcontact");
+  };
+
   return (
     <div className="col-md-10" style={{ overflowX: "auto" }}>
-      <h1 className="text-center mb-4">Contacts List</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>Contacts List</h1>
+        <button className="btn btn-primary" onClick={handleAddContact}>
+          Add Contacts
+        </button>
+      </div>
       <div className="row justify-content-center">
         <div className="col-md-8">
           <table className="table table-bordered text-center">
             <thead>
               <tr>
                 <th>Email</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -51,6 +61,7 @@ const Contacts = () => {
                         onClick={() => handleEditContact(contact.id)}
                         size={20}
                         title="Edit Contact"
+                        style={{ cursor: "pointer" }}
                       />
                     </div>
                   </td>

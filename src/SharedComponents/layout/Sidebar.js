@@ -79,7 +79,7 @@ export default function SideBar() {
           </li>
           <li className="sidebar-item">
             <Link to="/bulkemail" className="sidebar-link">
-              Bulk Email
+              Campaigns
             </Link>
           </li>
           {role === "SADMIN" && (

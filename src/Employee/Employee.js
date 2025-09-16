@@ -6,6 +6,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { MdFileDownload } from "react-icons/md";
+import { GiTakeMyMoney } from "react-icons/gi";  // ✅ Import new icon
 import Pagination from "../SharedComponents/Pagination";
 import { Select, Input, Button, Modal, List } from "antd";
 import "../Employee/Employee.css";
@@ -62,6 +63,10 @@ export default function Employee() {
     }
   };
 
+  const handleProfitAndLoss = (employeeId) => {
+  navigate(`/profit-loss/${employeeId}`);
+  };
+
   const handleViewTracking = (employeeId) => {
     navigate(`/tracking/${employeeId}`);
   };
@@ -84,7 +89,6 @@ export default function Employee() {
     fetchData();
   };
 
-  // ✅ Fetch available files for employee
   const handleDownloadFiles = async (employeeId) => {
     try {
       const token = sessionStorage.getItem("token");
@@ -106,7 +110,6 @@ export default function Employee() {
     }
   };
 
-  // ✅ Download single file
   const downloadFile = async (fileName) => {
     try {
       const token = sessionStorage.getItem("token");
@@ -138,10 +141,7 @@ export default function Employee() {
   return (
     <>
       <h4 className="text-center">Employee details</h4>
-      <div
-        className="search-container"
-        style={{ display: "flex", justifyContent: "space-between" }}
-      >
+      <div className="search-container" style={{ display: "flex", justifyContent: "space-between" }}>
         <div className="search-bar">
           <Select
             value={searchField}
@@ -167,11 +167,7 @@ export default function Employee() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Link
-            className="add-user-link"
-            to="/adduser"
-            style={{ marginRight: "10px" }}
-          >
+          <Link className="add-user-link" to="/adduser" style={{ marginRight: "10px" }}>
             <BsFillPersonPlusFill size={25} title="Add Employee" />
           </Link>
           <Link className="add-pro-link" to="/addprospect">
@@ -204,9 +200,7 @@ export default function Employee() {
                     <td>{employee.firstName}</td>
                     <td>{employee.lastName}</td>
                     <td>{employee.emailID}</td>
-                    <td>
-                      {employee.company ? employee.company.companyName : "N/A"}
-                    </td>
+                    <td>{employee.company ? employee.company.companyName : "N/A"}</td>
                     <td>{employee.phoneNo}</td>
                     <td>{employee.onBench}</td>
                     <td>
@@ -232,6 +226,12 @@ export default function Employee() {
                           size={20}
                           title="Download Files"
                           style={{ cursor: "pointer", color: "black" }}
+                        />
+                        <GiTakeMyMoney
+                          onClick={() => handleProfitAndLoss(employee.employeeID)}
+                          size={20}
+                          title="Profit & Loss"
+                          style={{ cursor: "pointer"}}
                         />
                         <AiFillDelete
                           onClick={() => handleDeleteEmployee(employee.employeeID)}
@@ -259,7 +259,6 @@ export default function Employee() {
         setCurrentPage={setCurrentPage}
       />
 
-      {/* Modal for file list */}
       <Modal
         title="Available Files"
         open={fileModalVisible}
@@ -288,6 +287,7 @@ export default function Employee() {
     </>
   );
 }
+
 
 
 
