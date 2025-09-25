@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button } from "antd";
+import { Select, Input, Button, Space } from "antd";
 import { getUserDetails } from "../SharedComponents/services/OrderService";
 import { getVisaForEmployee } from "../SharedComponents/services/VisaDetailsService";
 
@@ -26,14 +26,6 @@ export default function VisaDetails() {
 
   const fetchVisaDetails = async () => {
     try {
-      const searchParams = new URLSearchParams();
-      searchParams.append("page", currentPage);
-      searchParams.append("size", pageSize);
-      if (searchQuery) {
-        searchParams.append("searchField", searchField);
-        searchParams.append("searchString", searchQuery);
-      }
-
       const detailsData = await getUserDetails(employeeId);
       setUserDetail({
         first: detailsData.firstName,
@@ -56,7 +48,9 @@ export default function VisaDetails() {
   };
 
   const handleEditDetails = (employeeId, visaId) => {
-    navigate(`/editemployee/${employeeId}/visa-details/${visaId}/editvisadetails`);
+    navigate(
+      `/editemployee/${employeeId}/visa-details/${visaId}/editvisadetails`
+    );
   };
 
   const handleAddDetails = (employeeId) => {
@@ -81,17 +75,21 @@ export default function VisaDetails() {
         </h4>
 
         <div className="d-flex justify-content-end mb-3">
-          <button className="btn btn-primary" onClick={() => handleAddDetails(employeeId)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => handleAddDetails(employeeId)}
+          >
             <BiSolidAddToQueue size={15} />
             &nbsp;Visa Details
           </button>
         </div>
 
-        <div className="search-container mb-3 d-flex align-items-center gap-2">
+        {/* Search */}
+        {/* <div className="search-container mb-3 d-flex align-items-center gap-2">
           <Select
             value={searchField}
             onChange={(value) => setSearchField(value)}
-            style={{ width: 160 }}
+            style={{ width: 180 }}
           >
             <Select.Option value="">Select Field</Select.Option>
             <Select.Option value="visaStartDate">Visa Start Date</Select.Option>
@@ -101,6 +99,11 @@ export default function VisaDetails() {
             <Select.Option value="lcaNumber">LCA Number</Select.Option>
             <Select.Option value="jobTitle">Job Title</Select.Option>
             <Select.Option value="i140Status">I140 Status</Select.Option>
+            <Select.Option value="gcStatus">GC Status</Select.Option>
+            <Select.Option value="attorney">Attorney</Select.Option>
+            <Select.Option value="receipt">Receipt</Select.Option>
+            <Select.Option value="residentialAddress">Residential Address</Select.Option>
+            <Select.Option value="comments">Comments</Select.Option>
           </Select>
           <Input.Search
             placeholder="Search..."
@@ -111,8 +114,44 @@ export default function VisaDetails() {
             style={{ maxWidth: 300 }}
           />
           <Button onClick={handleClearSearch}>Clear</Button>
-        </div>
+        </div> */}
+         <div className="search-container">
+                <Space.Compact className="search-bar" size="large">
+                  <Select
+                    value={searchField}
+                    onChange={setSearchField}
+                    style={{ width: 150 }}
+                    placeholder="Select Field"
+                  >
+            <Select.Option value="">Select Field</Select.Option>
+            <Select.Option value="visaStartDate">Visa Start Date</Select.Option>
+            <Select.Option value="visaExpiryDate">Visa End Date</Select.Option>
+            <Select.Option value="visaType">Visa Type</Select.Option>
+            <Select.Option value="i94Date">I94 Date</Select.Option>
+            <Select.Option value="lcaNumber">LCA Number</Select.Option>
+            <Select.Option value="jobTitle">Job Title</Select.Option>
+            <Select.Option value="i140Status">I140 Status</Select.Option>
+            <Select.Option value="gcStatus">GC Status</Select.Option>
+            <Select.Option value="attorney">Attorney</Select.Option>
+            <Select.Option value="receipt">Receipt</Select.Option>
+            <Select.Option value="residentialAddress">Residential Address</Select.Option>
+            <Select.Option value="comments">Comments</Select.Option>
+                  </Select>
+        
+                  <Input.Search
+                    placeholder="Search..."
+                    allowClear
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onSearch={handleSearch}
+                    enterButton
+                  />
+        
+                  <Button onClick={handleClearSearch}>Clear</Button>
+                </Space.Compact>
+              </div>
 
+        {/* Table */}
         <div className="table-responsive">
           <table className="table border shadow">
             <thead className="table-light">
@@ -126,6 +165,12 @@ export default function VisaDetails() {
                 <th>LCA Wage</th>
                 <th>Job Title</th>
                 <th>I140 Status</th>
+                {/* ✅ New fields */}
+                <th>GC Status</th>
+                <th>Attorney</th>
+                <th>Receipt</th>
+                <th>Residential Address</th>
+                <th>Comments</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -134,7 +179,7 @@ export default function VisaDetails() {
                 visaDetails.map((details, index) => {
                   const userIndex = index + currentPage * pageSize;
                   return (
-                    <tr key={userIndex}>
+                    <tr key={details.visaId}>
                       <td>{userIndex + 1}</td>
                       <td>{details.visaStartDate}</td>
                       <td>{details.visaExpiryDate}</td>
@@ -144,9 +189,17 @@ export default function VisaDetails() {
                       <td>{details.lcaWage}</td>
                       <td>{details.jobTitle}</td>
                       <td>{details.i140Status}</td>
+                      {/* ✅ New fields */}
+                      <td>{details.gcStatus}</td>
+                      <td>{details.attorney}</td>
+                      <td>{details.receipt}</td>
+                      <td>{details.residentialAddress}</td>
+                      <td>{details.comments}</td>
                       <td>
                         <FiEdit2
-                          onClick={() => handleEditDetails(employeeId, details.visaId)}
+                          onClick={() =>
+                            handleEditDetails(employeeId, details.visaId)
+                          }
                           size={20}
                           title="Edit Visa Details"
                           style={{ cursor: "pointer" }}
@@ -157,7 +210,7 @@ export default function VisaDetails() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" className="text-center">
+                  <td colSpan="15" className="text-center">
                     No Visa Details Available
                   </td>
                 </tr>
@@ -166,6 +219,7 @@ export default function VisaDetails() {
           </table>
         </div>
 
+        {/* Pagination */}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, DatePicker, Alert } from "antd";
 import dayjs from "dayjs";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Buttons from "./Buttons";
 import {
   createEmployee,
@@ -13,7 +13,7 @@ import { fetchCompanies } from "../SharedComponents/services/CompaniesServies";
 
 export default function EmployeeForm({ mode }) {
   const navigate = useNavigate();
-  let { employeeId } = useParams();
+  const { employeeId } = useParams();
   const [companies, setCompanies] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
@@ -48,29 +48,30 @@ export default function EmployeeForm({ mode }) {
     company,
   } = employee;
 
+  const isEditMode = mode === "edit";
+
   useEffect(() => {
     const fetchData = async () => {
       const companyData = await fetchCompanies(0, 10);
-      console.log("Fetched Companies:", companyData);
-      setCompanies(companyData.content);
+      setCompanies(companyData?.content || []);
     };
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (mode === "edit" && employeeId) {
+    if (isEditMode && employeeId) {
       const fetchData = async () => {
-        const employeeData = await fetchEmployeeDataById(employeeId);
-        if (employeeData) {
+        const data = await fetchEmployeeDataById(employeeId);
+        if (data) {
           setEmployee({
-            ...employeeData,
-            company: employeeData.company?.companyId || "",
+            ...data,
+            company: data.company?.companyId || "",
           });
         }
       };
       fetchData();
     }
-  }, [mode, employeeId]);
+  }, [isEditMode, employeeId]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -81,35 +82,29 @@ export default function EmployeeForm({ mode }) {
       );
       return;
     }
+
     const employeeToSend = {
       ...employee,
       companyId: employee.company ? parseInt(employee.company, 10) : null,
     };
 
-    // Remove empty fields that might cause validation issues
     Object.keys(employeeToSend).forEach((key) => {
       if (employeeToSend[key] === "") {
         employeeToSend[key] = null;
       }
     });
-
     delete employeeToSend.company;
-    try {
-      console.log("Submitting employee:", employeeToSend);
 
-      const success =
-        mode === "edit"
-          ? await updateEmployee(employeeId, employeeToSend)
-          : await createEmployee(employeeToSend);
+    try {
+      const success = isEditMode
+        ? await updateEmployee(employeeId, employeeToSend)
+        : await createEmployee(employeeToSend);
 
       if (success) {
-        showModal();
+        setIsModalOpen(true);
       }
     } catch (error) {
-      console.error("Full Axios error:", error);
-
-      if (error.response) {
-        console.error("Backend responded with:", error.response.data);
+      if (error?.response) {
         setError(
           error.response.data?.message ||
             JSON.stringify(error.response.data) ||
@@ -124,16 +119,8 @@ export default function EmployeeForm({ mode }) {
   const handleSendDetails = async (e) => {
     e.preventDefault();
     const success = await sendLoginDetails(emailID);
-    console.log(emailID);
-    if (success) {
-      setSendDetailsSuccess(true);
-    } else {
-      setError("An error occurred");
-    }
-  };
-
-  const showModal = () => {
-    setIsModalOpen(true);
+    if (success) setSendDetailsSuccess(true);
+    else setError("An error occurred");
   };
 
   const handleOk = () => {
@@ -146,44 +133,37 @@ export default function EmployeeForm({ mode }) {
     navigate("/");
   };
 
-  const isAlphaNumeric = (value) => {
-    return value.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 50);
-  };
+  const isAlphaNumeric = (value) =>
+    value.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 50);
 
   const isValidPassword = (value) => {
-    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{0,}$/;
+    const pattern = /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[^A-Za-z\d]).{8,}$/; // enforce 8+ chars
     return pattern.test(value) && value.length <= 50;
   };
 
   const onInputChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
-
     if (name === "firstName" || name === "lastName") {
       newValue = isAlphaNumeric(value);
     }
-    setEmployee({ ...employee, [name]: newValue });
+    setEmployee((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const onInputChangeDate = (date, name) => {
     if (date) {
-      setEmployee({ ...employee, [name]: date.format("YYYY-MM-DD") });
+      setEmployee((prev) => ({ ...prev, [name]: date.format("YYYY-MM-DD") }));
     }
   };
 
-  const isEditMode = mode === "edit";
-
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column-reverse",
-        alignItems: "center",
-      }}
-    >
+    <div className="d-flex flex-column align-items-center">
+      <div style={{ paddingBottom: "1%" }}>{isEditMode && <Buttons />}</div>
+
       <div className="form-container">
         {error && (
           <Alert
+            className="mb-3"
             message={error}
             type="error"
             closable
@@ -192,26 +172,28 @@ export default function EmployeeForm({ mode }) {
         )}
         {sendDetailsSuccess && (
           <Alert
+            className="mb-3"
             message="Login Details emailed successfully"
             type="success"
             showIcon
             closable
           />
         )}
-        <h2 className="text-center m-4">
-          {isEditMode ? "Edit" : "Add"} Employee
-        </h2>
-        <form onSubmit={(e) => onSubmit(e)}>
+
+        <h2 className="text-center m-4">{isEditMode ? "Edit" : "Add"} Employee</h2>
+
+        <form onSubmit={onSubmit}>
           <div className="form-row">
             <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
               <input
+                id="firstName"
                 type="text"
                 className="form-control"
                 placeholder="First Name"
                 name="firstName"
                 value={firstName}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
                 required
                 pattern="^[A-Za-z0-9 ]+$"
                 maxLength={50}
@@ -221,90 +203,70 @@ export default function EmployeeForm({ mode }) {
             <div className="form-group col-md-6">
               <label htmlFor="lastName">Last Name</label>
               <input
+                id="lastName"
                 type="text"
                 className="form-control"
                 placeholder="Last Name"
                 name="lastName"
                 value={lastName}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
                 pattern="^[A-Za-z0-9 ]+$"
                 maxLength={50}
                 title="Last Name"
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group col-md-6">
               <label htmlFor="emailID">Email</label>
               <input
+                id="emailID"
                 type="email"
                 className="form-control"
                 placeholder="Email Address"
                 name="emailID"
                 value={emailID}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
                 required
               />
             </div>
             <div className="form-group col-md-6">
               <label htmlFor="phoneNo">Phone No</label>
               <input
+                id="phoneNo"
                 type="number"
                 className="form-control"
                 placeholder="Phone no"
                 name="phoneNo"
                 value={phoneNo}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
                 required
               />
             </div>
-            {/* {mode === "add" ? (
-              <div className="form-group col-md-6">
-                <label htmlFor="dob">Date of Birth</label>
-                <DatePicker
-                  className="form-control"
-                  value={dob}
-                  onChange={(date) =>
-                    onInputChange({ target: { name: "dob", value: date } })
-                  }
-                  required
-                />
-              </div>
-            ) : (
-              <div className="form-group col-md-6">
-                <label htmlFor="DOB">Date Of Birth</label>
-                <DatePicker
-                  type="text"
-                  className="form-control"
-                  placeholder="Date of Birth"
-                  name="dob"
-                  value={dayjs(dob)}
-                  onChange={(date) => onInputChangeDate(date, "dob")}
-                  required
-                />
-              </div>
-            )} */}
-          </div>
-          <div className="form-row">
+            {/* If you need DOB, keep one of these DatePicker blocks and ensure value uses dayjs correctly */}
             {/* <div className="form-group col-md-6">
-              <label htmlFor="clgOfGrad">College of Graduation</label>
-              <input
-                type="text"
+              <label htmlFor="DOB">Date Of Birth</label>
+              <DatePicker
                 className="form-control"
-                placeholder="College of Graduation"
-                name="clgOfGrad"
-                value={clgOfGrad}
-                onChange={(e) => onInputChange(e)}
+                placeholder="Date of Birth"
+                name="dob"
+                value={dob ? dayjs(dob) : null}
+                onChange={(date) => onInputChangeDate(date, "dob")}
                 required
               />
             </div> */}
+          </div>
+
+          <div className="form-row">
             <div className="form-group col-md-6">
               <label htmlFor="company">Company</label>
               <select
+                id="company"
                 className="form-control"
                 name="company"
-                value={company}
-                onChange={(e) => onInputChange(e)}
+                value={company || ""}
+                onChange={onInputChange}
               >
                 <option value="">-- Select --</option>
                 {Array.isArray(companies) &&
@@ -318,13 +280,15 @@ export default function EmployeeForm({ mode }) {
                   ))}
               </select>
             </div>
+
             <div className="form-group col-md-6">
               <label htmlFor="onBench">Working Stauts</label>
               <select
                 id="onBench"
+                className="form-control"
                 name="onBench"
-                value={onBench}
-                onChange={(e) => onInputChange(e)}
+                value={onBench || ""}
+                onChange={onInputChange}
                 required
               >
                 <option value="">-- Select --</option>
@@ -335,96 +299,35 @@ export default function EmployeeForm({ mode }) {
               </select>
             </div>
           </div>
-          <div className="form-row">
-            {/* <div className="form-group col-md-6">
-              <label htmlFor="securityGroup">Role</label>
-              <select
-                id="securityGroup"
-                name="securityGroup"
-                value={securityGroup}
-                onChange={(e) => onInputChange(e)}
-                required
+
+          <div className="d-flex align-items-center flex-wrap gap-2 mt-3">
+            {isEditMode && (
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={handleSendDetails}
               >
-                <option value="">-- Select --</option>
-                <option value="ADMIN">Admin</option>
-                <option value="EMPLOYEE">Employee</option>
-                <option value="PROSPECT">Prospect</option>
-                <option value="SALES">Sales</option>
-                <option value="RECRUITER">Recruiter</option>
-              </select>
-            </div> */}
-            {/* <div className="form-group col-md-6">
-              <label htmlFor="password">Password</label>
-              <input
-                type="text"
-                className="form-control"
-                name="password"
-                value={password}
-                onChange={(e) => onInputChange(e)}
-                maxLength={50}
-                required
-                placeholder="e.g. StrongP@ss1"
-                title="Min 8 characters with uppercase, lowercase, number, and symbol"
-              />
-            </div> */}
-          </div>
-          {/* <div className="form-row">
-            <div className="form-group col-md-6">
-              <label htmlFor="company">Company</label>
-              <select
-                className="form-control"
-                name="company"
-                value={company}
-                onChange={(e) => onInputChange(e)}
-              >
-                <option value="">-- Select --</option>
-                {Array.isArray(companies) &&
-                  companies.map((companyData) => (
-                    <option
-                      key={companyData.companyId}
-                      value={companyData.companyId}
-                    >
-                      {companyData.companyName}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="form-group col-md-6">
-              <label htmlFor="password">Password</label>
-              <input
-                type="text"
-                className="form-control"
-                name="password"
-                value={password}
-                onChange={(e) => onInputChange(e)}
-                maxLength={50}
-                required
-                placeholder="e.g. StrongP@ss1"
-                title="Min 8 characters with uppercase, lowercase, number, and symbol"
-              />
-            </div>
-          </div> */}
-          <button type="submit" className="btn btn-outline-primary">
-            {isEditMode ? "Update" : "Submit"}
-          </button>
-          <Link className="btn btn-outline-danger mx-2" to="/">
-            Cancel
-          </Link>
-          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-            <p>Employee {isEditMode ? "Updated" : "Added"} successfully</p>
-          </Modal>
-          {isEditMode && (
+                Send Login Details
+              </button>
+            )}
+
             <button
               type="button"
-              className="btn btn-outline-primary"
-              onClick={handleSendDetails}
+              className="btn btn-outline-danger"
+              onClick={() => navigate("/")}
             >
-              Send Login Details
+              Cancel
             </button>
-          )}
+
+            <button type="submit" className="btn btn-outline-primary">
+              {isEditMode ? "Update" : "Submit"}
+            </button>
+          </div>
         </form>
       </div>
-      <div style={{ paddingBottom: "1%" }}>{isEditMode && <Buttons />}</div>
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>Employee {isEditMode ? "Updated" : "Added"} successfully</p>
+      </Modal>
     </div>
   );
 }

@@ -98,7 +98,6 @@ export default function EmployeeFilesGrid() {
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Employee Files</h2>
-
       <form onSubmit={handleSearch} className="mb-4 flex gap-2">
         <input
           type="text"
@@ -125,7 +124,6 @@ export default function EmployeeFilesGrid() {
           Reset
         </button>
       </form>
-
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300 rounded-lg shadow">
           <thead className="bg-gray-200">

@@ -30,7 +30,8 @@ export default function EmailTemplateList() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this template?")) return;
+    if (!window.confirm("Are you sure you want to delete this template?"))
+      return;
 
     try {
       const token = sessionStorage.getItem("token");
@@ -72,7 +73,9 @@ export default function EmailTemplateList() {
         <tbody>
           {templates.length === 0 ? (
             <tr>
-              <td colSpan="5" className="text-center">No templates found.</td>
+              <td colSpan="5" className="text-center">
+                No templates found.
+              </td>
             </tr>
           ) : (
             templates.map((template) => (
@@ -82,7 +85,7 @@ export default function EmailTemplateList() {
                 <td>{template.category || "-"}</td>
                 <td>{template.isActive ? "Yes" : "No"}</td>
                 <td>
-                  <Link
+                  {/* <Link
                     to={`/email-template/edit/${template.id}`}
                     className="btn btn-sm btn-primary me-2"
                   >
@@ -93,7 +96,39 @@ export default function EmailTemplateList() {
                     onClick={() => handleDelete(template.id)}
                   >
                     Delete
-                  </button>
+                  </button> */}
+                  <div
+                    className="mt-3 d-flex justify-content-end align-items-center"
+                    style={{ gap: 12 }}
+                  >
+                    <button
+                      type="submit"
+                      className="btn btn-outline-primary"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        height: 40,
+                        padding: "0 16px",
+                      }}
+                    >
+                      Edit
+                    </button>
+
+                    {/* Cancel is a real button, not a Link */}
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger"
+                      onClick={() => handleDelete(template.id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        height: 40,
+                        padding: "0 16px",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
