@@ -278,12 +278,29 @@ export default function VisaDetailsForm({ mode }) {
           </select>
         </div>
 
-        <button type="submit" className="btn btn-outline-primary">
-          {isEditMode ? "Update" : "Submit"}
-        </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
-          Cancel
-        </Link>
+       <div
+            className="mt-3 d-flex justify-content-end align-items-center"
+            style={{ gap: 12 }}
+          >
+            <button
+              type="submit"
+              className="btn btn-outline-primary"
+              style={{ display: "inline-flex", alignItems: "center", height: 40, padding: "0 16px" }}
+            >
+              {isEditMode ? "Update" : "Submit"}
+            </button>
+
+            {/* Cancel is a real button, not a Link */}
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={handleNavigate}
+              style={{ display: "inline-flex", alignItems: "center", height: 40, padding: "0 16px" }}
+            >
+              Cancel
+            </button>
+          </div>
+
         <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
           <p>Visa Details {isEditMode ? "Updated" : "Added"} Successfully</p>
         </Modal>

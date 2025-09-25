@@ -7,7 +7,12 @@ import {
   getEmployeeDetails,
   getTrackingForEmployee,
   resetPassword,
+  updateTracking,
 } from "../SharedComponents/services/WithHoldService";
+
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import "froala-editor/js/plugins.pkgd.min.js";
+import FroalaEditor from "react-froala-wysiwyg";
 
 export default function WithHoldTracking() {
   const [trackings, setTrackings] = useState([]);
@@ -17,6 +22,7 @@ export default function WithHoldTracking() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
+  const [editorValues, setEditorValues] = useState({}); // local changes
   const navigate = useNavigate();
   const { employeeId } = useParams();
 
@@ -34,7 +40,6 @@ export default function WithHoldTracking() {
         searchField
       );
       const detailsData = await getEmployeeDetails(employeeId);
-      console.log("Employee Details:", detailsData);
       setTrackings(trackings.content);
       setTotalPages(trackings.totalPages);
       setUserDetail({
@@ -42,6 +47,12 @@ export default function WithHoldTracking() {
         last: detailsData.lastName,
         email: detailsData.emailID,
       });
+      // preload editor values
+      const initValues = {};
+      trackings.content.forEach((t) => {
+        initValues[t.trackingId] = t.excelData || "";
+      });
+      setEditorValues(initValues);
     } catch (error) {
       console.error("Error loading data:", error);
     }
@@ -52,7 +63,6 @@ export default function WithHoldTracking() {
       alert("Email not available for this user.");
       return;
     }
-
     try {
       await resetPassword({
         email: userDetail.email,
@@ -65,18 +75,48 @@ export default function WithHoldTracking() {
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setSearchField("");
-    loadTrackings();
-  };
-
   const handleAddTracking = (employeeId) => {
     navigate(`/tracking/${employeeId}/addtracking`);
   };
 
   const handleEditTracking = (employeeId, trackingId) => {
     navigate(`/tracking/${employeeId}/${trackingId}/edittracking`);
+  };
+
+  // Update local editor value
+  const handleEditorChange = (trackingId, html) => {
+    setEditorValues((prev) => ({
+      ...prev,
+      [trackingId]: html,
+    }));
+  };
+
+  // Save excelData updates
+  const handleSaveExcel = async (trackingId) => {
+    try {
+      const trackingToUpdate = trackings.find(
+        (t) => t.trackingId === trackingId
+      );
+      if (trackingToUpdate) {
+        const updated = {
+          ...trackingToUpdate,
+          excelData: editorValues[trackingId] || "",
+        };
+        await updateTracking(trackingId, updated);
+        // update local state
+        setTrackings((prev) =>
+          prev.map((t) =>
+            t.trackingId === trackingId
+              ? { ...t, excelData: editorValues[trackingId] || "" }
+              : t
+          )
+        );
+        alert("Excel data saved!");
+      }
+    } catch (error) {
+      console.error("Error saving excel data:", error);
+      alert("Failed to save excel data.");
+    }
   };
 
   return (
@@ -114,7 +154,7 @@ export default function WithHoldTracking() {
                 0
               );
               return (
-                <div key={projectName} className="project-grid">
+                <div key={projectName} className="project-grid mb-5">
                   <h5>Project: {projectName}</h5>
                   <table className="table border shadow">
                     <thead>
@@ -130,6 +170,9 @@ export default function WithHoldTracking() {
                         <th>Paid Rate</th>
                         <th>Paid Amount</th>
                         <th>Balance</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Bill Rate</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -147,6 +190,9 @@ export default function WithHoldTracking() {
                           <td>{tracking.paidRate}</td>
                           <td>{tracking.paidAmt}</td>
                           <td>{tracking.balance}</td>
+                          <td>{tracking.type}</td>
+                          <td>{tracking.status}</td>
+                          <td>{tracking.billRate}</td>
                           <td>
                             <div className="icon-container">
                               <FiEdit2
@@ -157,18 +203,38 @@ export default function WithHoldTracking() {
                                   )
                                 }
                                 size={20}
+                                style={{ cursor: "pointer" }}
                               />
                             </div>
                           </td>
                         </tr>
                       ))}
                       <tr>
-                        <td colSpan="11" className="text-end">
+                        <td colSpan="14" className="text-end fw-bold">
                           Total Balance: {totalBalance}
                         </td>
                       </tr>
                     </tbody>
                   </table>
+
+                  {projectTrackings.map((tracking) => (
+                    <div key={tracking.trackingId} className="mb-4">
+                      <label>Excel Data:</label>
+                      <FroalaEditor
+                        model={editorValues[tracking.trackingId] || ""}
+                        onModelChange={(html) =>
+                          handleEditorChange(tracking.trackingId, html)
+                        }
+                      />
+                      <button
+                        className="btn btn-sm btn-success mt-2"
+                        onClick={() => handleSaveExcel(tracking.trackingId)}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ))}
+
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

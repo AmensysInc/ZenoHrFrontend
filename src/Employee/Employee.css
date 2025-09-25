@@ -104,6 +104,7 @@
 
 .search-container {
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -112,7 +113,14 @@
   align-items: center; 
   margin-right: 0px; 
 }
-
-.table-striped tbody tr:nth-of-type(odd) {
-  background-color: #f0f0f0 !important; /* Your desired background color */
+.search-bar .ant-input-search-button {
+  height: 30px !important;
+  width: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0 4px 4px 0 !important;
+  background-color: #1890ff !important;
+  border: 1px solid #1890ff !important;
+  border-left: none !important;
 }

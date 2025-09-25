@@ -32,6 +32,11 @@ export default function SideBar() {
               Projects
             </Link>
           </li>
+          <li className="sidebar-item">
+            <Link to="/visa-details" className="sidebar-link">
+              Visa Details
+            </Link>
+          </li>
           {/* <li className="sidebar-item">
             <Link to="/candidates" className="sidebar-link">
               Candidate List

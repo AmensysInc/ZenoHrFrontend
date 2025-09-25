@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DatePicker, Modal } from "antd";
 import dayjs from "dayjs";
-import { createOrder, fetchEmployeeDetails, fetchOrderDetails, updateOrder } from "../SharedComponents/services/OrderService";
+import {
+  createOrder,
+  fetchEmployeeDetails,
+  fetchOrderDetails,
+  updateOrder,
+} from "../SharedComponents/services/OrderService";
 
 export default function PurchaseOrderForm({ mode }) {
-  let navigate = useNavigate();
-  let { orderId, employeeId } = useParams();
+  const navigate = useNavigate();
+  const { orderId, employeeId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [employeeDetails, setEmployeeDetails] = useState({
     firstName: "",
     lastName: "",
@@ -36,44 +42,35 @@ export default function PurchaseOrderForm({ mode }) {
       if (mode === "add" || (mode === "edit" && employeeId)) {
         try {
           const employeeResponse = await fetchEmployeeDetails(employeeId);
-          if (employeeResponse) {
-            setEmployeeDetails(employeeResponse);
-          }
-          if (mode === "edit") {
+          if (employeeResponse) setEmployeeDetails(employeeResponse);
+
+          if (mode === "edit" && orderId) {
             const orderResponse = await fetchOrderDetails(orderId);
-            setOrders(orderResponse);
+            if (orderResponse) setOrders(orderResponse);
           }
         } catch (error) {
           console.error("Error fetching data:", error);
         }
       }
     };
-    
     fetchData();
   }, [mode, employeeId, orderId]);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
+  const onSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const success = mode === "edit"
-        ? await updateOrder(orderId, orders)
-        : await createOrder(employeeId, orders);
-  
-      if (success) {
-        showModal();
-      }
+      const success =
+        mode === "edit"
+          ? await updateOrder(orderId, orders)
+          : await createOrder(employeeId, orders);
+
+      if (success) setIsModalOpen(true);
     } catch (error) {
-      console.error(`Error ${mode === "edit" ? "updating" : "adding"} orders:`, error);
+      console.error("Error submitting form:", error);
     }
-  }
-
-  const handleNavigate = (employeeId) => {
-    navigate(`/orders/${employeeId}`);
   };
 
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
+  const handleNavigate = (empId) => navigate(`/orders/${empId}`);
 
   const handleOk = () => {
     setIsModalOpen(false);
@@ -87,16 +84,14 @@ export default function PurchaseOrderForm({ mode }) {
 
   const onInputChange = (e) => {
     const { name, value } = e.target;
-    setOrders({
-      ...orders,
-      [name]: value,
-    });
+    setOrders((prev) => ({ ...prev, [name]: value }));
   };
 
   const onInputChangeDate = (date, name) => {
-    if (date) {
-      setOrders({ ...orders, [name]: date.format("YYYY-MM-DD") });
-    }
+    setOrders((prev) => ({
+      ...prev,
+      [name]: date ? date.format("YYYY-MM-DD") : "",
+    }));
   };
 
   const isEditMode = mode === "edit";
@@ -107,7 +102,8 @@ export default function PurchaseOrderForm({ mode }) {
         <h2 className="text-center m-4">
           {isEditMode ? "Edit" : "Add"} Purchase Order
         </h2>
-        <form onSubmit={(e) => onSubmit(e)}>
+
+        <form onSubmit={onSubmit}>
           <div className="form-row">
             <div className="form-group col-md-6">
               <label htmlFor="firstName">First Name</label>
@@ -132,81 +128,120 @@ export default function PurchaseOrderForm({ mode }) {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group col-md-6">
-              <label htmlFor="dateOfJoining">Date Of Joining</label>
+              <label htmlFor="dateOfJoining">Project Start Date</label>
               <DatePicker
-                className="form-control"
-                name="dateOfJoining"
+                className="w-100" // <-- important: NOT "form-control"
                 value={dateOfJoining ? dayjs(dateOfJoining) : null}
-                onChange={(date) => onInputChangeDate(date, "dateOfJoining")}
+                onChange={(d) => onInputChangeDate(d, "dateOfJoining")}
                 required
               />
             </div>
             <div className="form-group col-md-6">
-              <label>Project End Date:</label>
+              <label htmlFor="projectEndDate">Project End Date</label>
               <DatePicker
-                type="text"
-                name="projectEndDate"
-                className="form-control"
+                className="w-100" // <-- important
                 value={projectEndDate ? dayjs(projectEndDate) : null}
-                onChange={(date) => onInputChangeDate(date, "projectEndDate")}
+                onChange={(d) => onInputChangeDate(d, "projectEndDate")}
                 required
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group col-md-6">
-              <label>Bill Rate:</label>
+              <label htmlFor="billRate">Bill Rate</label>
               <input
                 type="number"
+                className="form-control"
                 name="billRate"
                 value={billRate}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
               />
             </div>
             <div className="form-group col-md-6">
-              <label>Client Name:</label>
+              <label htmlFor="endClientName">Client Name</label>
               <input
                 type="text"
+                className="form-control"
                 name="endClientName"
                 value={endClientName}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group col-md-6">
-              <label>Vendor PhoneNo:</label>
+              <label htmlFor="vendorPhoneNo">Vendor Phone No</label>
               <input
-                type="number"
+                type="tel"
+                className="form-control"
                 name="vendorPhoneNo"
                 value={vendorPhoneNo}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
               />
             </div>
             <div className="form-group col-md-6">
-              <label>Vendor Email:</label>
+              <label htmlFor="vendorEmailId">Vendor Email</label>
               <input
                 type="email"
+                className="form-control"
                 name="vendorEmailId"
                 value={vendorEmailId}
-                onChange={(e) => onInputChange(e)}
+                onChange={onInputChange}
               />
             </div>
           </div>
-          <br />
-          <button type="submit" className="btn btn-outline-primary">
-            {isEditMode ? "Update" : "Submit"}
-          </button>
-          <Link className="btn btn-outline-danger mx-2" to="/">
-            Cancel
-          </Link>
-          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-            <p>PurchaseOrder {isEditMode ? "Updated" : "Added"} successfully</p>
-          </Modal>
+
+          {/* Actions: perfectly aligned Update + Cancel */}
+<div
+  className="mt-3 d-flex justify-content-end"
+  style={{ gap: 12 }}
+>
+  <div className="btn-group" role="group" aria-label="actions">
+    <button
+      type="submit"
+      className="btn btn-success"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        height: 40,
+        lineHeight: "40px",
+        padding: "0 16px",
+        fontWeight: 600,
+        borderRadius: 4,
+      }}
+    >
+      {isEditMode ? "Update" : "Submit"}
+    </button>
+
+    <button
+      type="button"
+      className="btn btn-outline-danger"
+      onClick={() => handleNavigate(employeeId)}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        height: 40,
+        lineHeight: "40px",
+        padding: "0 16px",
+        fontWeight: 600,
+        borderRadius: 4,
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
         </form>
       </div>
+
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>Purchase Order {isEditMode ? "Updated" : "Added"} successfully</p>
+      </Modal>
     </div>
   );
 }
