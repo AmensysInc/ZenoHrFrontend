@@ -1,85 +1,74 @@
-import './Navbar.css';
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Layout } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
 import { logoutUser } from "../authUtils/authUtils";
 import { fetchCompanies } from "../../SharedComponents/services/CompaniesServies";
-import { useNavigate } from 'react-router-dom';
 
-export default function Navbar({setIsLoggedIn, setRole}) {
-  const [companies, setCompanies] = useState([]);
+const { Header } = Layout;
+
+export default function Navbar({ setIsLoggedIn, setRole }) {
   const location = useLocation();
-  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
   const navigate = useNavigate();
+  const [companies, setCompanies] = useState([]);
+  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
 
   const fetchCompany = async () => {
     try {
       const { content } = await fetchCompanies(0, 10, "", "");
       setCompanies(content);
     } catch (error) {
-      console.error("Failed to fetch companies:", error);
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    if (defaultCompanyId) {
-      fetchCompany();
-    }
+    if (defaultCompanyId) fetchCompany();
   }, [defaultCompanyId]);
 
   const handleLogout = () => {
     logoutUser(setIsLoggedIn, setRole, navigate);
   };
 
-  if (location.pathname === "/login") {
-    return (
-      <div>
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-          <div className="container-fluid">
-            <Link className="navbar-brand" to="/">
-               Zeno Pay & HR Portal
-            </Link>
-          </div>
-        </nav>
-      </div>
-    );
-  }
+  if (location.pathname === "/login") return null;
 
   return (
-    <div>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container-fluid">
-          <Link className="navbar-brand" to="/">
-             Zeno Pay & HR Portal
-          </Link>
-          <div style={{ marginRight: "20px", fontWeight: "bold" }}>
-            {companies.map((company) =>
-              company.companyId === defaultCompanyId ? (
-                <div key={company.companyId}>
-                  Company:{" "}
-                  <span style={{ fontWeight: "bold" }}>
-                    {company.companyName}
-                  </span>
-                </div>
-              ) : null
-            )}
-          </div>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <>
-            <BsBoxArrowInLeft size={30} onClick={handleLogout} className="logout-icon" title="logout"/>
-          </>
-        </div>
-      </nav>
-    </div>
+    <Header
+      style={{
+        position: "fixed",
+        left: 0,
+        top: 0,
+        width: "100%",
+        zIndex: 1001,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: "#667eea",
+        padding: "0 24px",
+        height: 64,
+      }}
+    >
+      <Link to="/" style={{ color: "#fff", fontWeight: 600, fontSize: 18 }}>
+        Zeno HR & PAY Portal
+      </Link>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        {companies.map(
+          (c) =>
+            c.companyId === defaultCompanyId && (
+              <span key={c.companyId} style={{ color: "#fff", fontWeight: 600 }}>
+                Company: {c.companyName}
+              </span>
+            )
+        )}
+
+        <BsBoxArrowInLeft
+          size={26}
+          style={{ color: "#fff", cursor: "pointer" }}
+          title="Logout"
+          onClick={handleLogout}
+        />
+      </div>
+    </Header>
   );
 }

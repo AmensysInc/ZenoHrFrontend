@@ -376,3 +376,264 @@ export default function EmailForm() {
     </div>
   );
 }
+/*
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  Form,
+  Input,
+  Select,
+  Checkbox,
+  Button,
+  Space,
+  Modal,
+  Typography,
+  message,
+  Upload,
+} from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import FroalaEditor from "react-froala-wysiwyg";
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import "froala-editor/js/plugins.pkgd.min.js";
+import htmlToFormattedText from "html-to-formatted-text";
+
+const { Title } = Typography;
+const { Option } = Select;
+const { Dragger } = Upload;
+
+export default function EmailForm() {
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const navigate = useNavigate();
+
+  const [fromEmail, setFromEmail] = useState("");
+  const [to, setTo] = useState([]);
+  const [cc, setCc] = useState([]);
+  const [bcc, setBcc] = useState([]);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [plainText, setPlainText] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
+  const [emails, setEmails] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectAllCc, setSelectAllCc] = useState(false);
+  const [selectAllBcc, setSelectAllBcc] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+
+  const token = sessionStorage.getItem("token");
+  const recruiterId = sessionStorage.getItem("id");
+
+  useEffect(() => {
+    const fetchEmails = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/bulkmails/${recruiterId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEmails(response.data.map((e) => e.email));
+      } catch (error) {
+        console.error("Error fetching emails:", error);
+      }
+    };
+    fetchEmails();
+  }, [apiUrl, recruiterId, token]);
+
+  const handleSelectAll = (listType) => {
+    if (listType === "to") {
+      setTo(selectAll ? [] : [...emails]);
+      setSelectAll(!selectAll);
+    } else if (listType === "cc") {
+      setCc(selectAllCc ? [] : [...emails]);
+      setSelectAllCc(!selectAllCc);
+    } else if (listType === "bcc") {
+      setBcc(selectAllBcc ? [] : [...emails]);
+      setSelectAllBcc(!selectAllBcc);
+    }
+  };
+
+  const handleEditorChange = (newContent) => {
+    setBody(newContent);
+    setIsDirty(true);
+  };
+
+  const htmlToText = useCallback((html) => htmlToFormattedText(html), []);
+  useEffect(() => {
+    if (isDirty) {
+      setPlainText(htmlToText(body));
+      setIsDirty(false);
+    }
+  }, [body, isDirty, htmlToText]);
+
+  const handleAttachmentChange = ({ fileList }) => {
+    setAttachments(fileList.map((f) => f.originFileObj));
+  };
+
+  const handleSubmit = async () => {
+    if (!fromEmail) {
+      message.error("Please enter From email.");
+      return;
+    }
+
+    const allEmails = [...to, ...cc, ...bcc];
+    const uniqueEmails = [...new Set(allEmails)];
+
+    const uniqueTo = [];
+    const uniqueCc = [];
+    const uniqueBcc = [];
+
+    uniqueEmails.forEach((email) => {
+      if (to.includes(email)) uniqueTo.push(email);
+      else if (cc.includes(email)) uniqueCc.push(email);
+      else uniqueBcc.push(email);
+    });
+
+    const formData = new FormData();
+    formData.append("fromEmail", fromEmail);
+    formData.append("subject", subject);
+    formData.append("body", plainText);
+    attachments.forEach((file) => formData.append("attachment", file));
+
+    uniqueTo.forEach((email) => formData.append("toList", email));
+    uniqueCc.forEach((email) => formData.append("ccList", email));
+    uniqueBcc.forEach((email) => formData.append("bccList", email));
+
+    try {
+      const response = await axios.post(`${apiUrl}/email/send`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if ([200, 201, 202].includes(response.status)) setIsModalOpen(true);
+    } catch (error) {
+      console.error(error);
+      message.error("Error sending email. Permission may be denied.");
+    }
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+    navigate("/contacts");
+  };
+
+  return (
+    <div className="p-6">
+      <Title level={3}>Send Email</Title>
+      <Form layout="vertical">
+        <Form.Item label="From">
+          <Input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} />
+        </Form.Item>
+
+        <Form.Item label="To">
+          <Select
+            mode="multiple"
+            value={to}
+            onChange={(val) => {
+              setTo(val);
+              setSelectAll(false);
+            }}
+            style={{ width: "100%" }}
+            placeholder="Select recipients"
+          >
+            <Select.Option key="selectAllTo">
+              <Checkbox checked={selectAll} onChange={() => handleSelectAll("to")}>
+                Select All
+              </Checkbox>
+            </Select.Option>
+            {emails.map((email) => (
+              <Option key={email} value={email}>
+                {email}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item label="Cc">
+          <Select
+            mode="multiple"
+            value={cc}
+            onChange={(val) => {
+              setCc(val);
+              setSelectAllCc(false);
+            }}
+            style={{ width: "100%" }}
+            placeholder="Select CC recipients"
+          >
+            <Select.Option key="selectAllCc">
+              <Checkbox checked={selectAllCc} onChange={() => handleSelectAll("cc")}>
+                Select All
+              </Checkbox>
+            </Select.Option>
+            {emails.map((email) => (
+              <Option key={email} value={email}>
+                {email}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item label="Bcc">
+          <Select
+            mode="multiple"
+            value={bcc}
+            onChange={(val) => {
+              setBcc(val);
+              setSelectAllBcc(false);
+            }}
+            style={{ width: "100%" }}
+            placeholder="Select BCC recipients"
+          >
+            <Select.Option key="selectAllBcc">
+              <Checkbox checked={selectAllBcc} onChange={() => handleSelectAll("bcc")}>
+                Select All
+              </Checkbox>
+            </Select.Option>
+            {emails.map((email) => (
+              <Option key={email} value={email}>
+                {email}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item label="Subject">
+          <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
+        </Form.Item>
+
+        <Form.Item label="Body">
+          <FroalaEditor model={body} onModelChange={handleEditorChange} />
+        </Form.Item>
+
+        <Form.Item label="Attachments">
+          <Dragger
+            multiple
+            beforeUpload={() => false}
+            onChange={handleAttachmentChange}
+            fileList={attachments}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">Click or drag files to this area to upload</p>
+          </Dragger>
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button type="primary" onClick={handleSubmit}>
+              Send Email
+            </Button>
+            <Button onClick={() => navigate("/contacts")}>Cancel</Button>
+          </Space>
+        </Form.Item>
+      </Form>
+
+      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleOk} title="Success">
+        <p>Mail sent successfully</p>
+      </Modal>
+    </div>
+  );
+}
+
+*/

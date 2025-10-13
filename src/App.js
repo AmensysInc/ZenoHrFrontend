@@ -57,6 +57,7 @@ import Dashboard from "./Dashboard";
 import AnnouncementForm from "./Announcements/AnnouncementForm";
 import AnnouncementGrid from "./Announcements/AnnouncementGrid";
 import ProfitAndLoss from "./Profit&Loss/ProfitAndLoss";
+import CompanyEmployees from "./Companies/CompanyEmployees";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -126,6 +127,7 @@ function App() {
         return (
           <>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/company/:companyId" element={<CompanyEmployees />} />
             <Route path="/profit-loss/:employeeId" element={<ProfitAndLoss />} />
             <Route path="/announcements" element={<AnnouncementGrid />} />
             <Route path="/addannouncements" element={<AnnouncementForm />} />

@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BiSolidAddToQueue } from "react-icons/bi";
-import { FiEdit2 } from "react-icons/fi";
-import Pagination from "../SharedComponents/Pagination";
+import {
+  Card,
+  Table,
+  Button,
+  Typography,
+  Space,
+  message,
+  Collapse,
+  Modal,
+  Pagination,
+  Row,
+  Col,
+} from "antd";
+import { MailOutlined, PlusOutlined, EditOutlined, SaveOutlined } from "@ant-design/icons";
+import FroalaEditor from "react-froala-wysiwyg";
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import "froala-editor/js/plugins.pkgd.min.js";
+
 import {
   getEmployeeDetails,
   getTrackingForEmployee,
@@ -10,256 +25,312 @@ import {
   updateTracking,
 } from "../SharedComponents/services/WithHoldService";
 
-import "froala-editor/css/froala_editor.pkgd.min.css";
-import "froala-editor/js/plugins.pkgd.min.js";
-import FroalaEditor from "react-froala-wysiwyg";
+const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
 export default function WithHoldTracking() {
+  const { employeeId } = useParams();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
   const [trackings, setTrackings] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
-  const [editorValues, setEditorValues] = useState({}); // local changes
-  const navigate = useNavigate();
-  const { employeeId } = useParams();
+  const [editorValues, setEditorValues] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     loadTrackings();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+  }, [currentPage, pageSize]);
 
   const loadTrackings = async () => {
     try {
-      const trackings = await getTrackingForEmployee(
+      setLoading(true);
+      const trackingResponse = await getTrackingForEmployee(
         employeeId,
         currentPage,
-        pageSize,
-        searchQuery,
-        searchField
+        pageSize
       );
       const detailsData = await getEmployeeDetails(employeeId);
-      setTrackings(trackings.content);
-      setTotalPages(trackings.totalPages);
+
+      setTrackings(trackingResponse.content || []);
+      setTotalPages(trackingResponse.totalPages || 1);
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
         email: detailsData.emailID,
       });
-      // preload editor values
+
       const initValues = {};
-      trackings.content.forEach((t) => {
+      (trackingResponse.content || []).forEach((t) => {
         initValues[t.trackingId] = t.excelData || "";
       });
       setEditorValues(initValues);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Error loading trackings:", error);
+      message.error("Failed to load tracking data.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSendEmail = async () => {
     if (!userDetail.email) {
-      alert("Email not available for this user.");
+      message.warning("Email not available for this user.");
       return;
     }
     try {
-      await resetPassword({
-        email: userDetail.email,
-        category: "WITH_HOLD",
-      });
-      alert("Email sent successfully.");
+      await resetPassword({ email: userDetail.email, category: "WITH_HOLD" });
+      message.success("Email sent successfully.");
     } catch (error) {
-      console.error("Failed to send email:", error);
-      alert("Failed to send email.");
+      console.error("Email send failed:", error);
+      message.error("Failed to send email.");
     }
   };
 
-  const handleAddTracking = (employeeId) => {
+  const handleAddTracking = () => {
     navigate(`/tracking/${employeeId}/addtracking`);
   };
 
-  const handleEditTracking = (employeeId, trackingId) => {
+  const handleEditTracking = (trackingId) => {
     navigate(`/tracking/${employeeId}/${trackingId}/edittracking`);
   };
 
-  // Update local editor value
   const handleEditorChange = (trackingId, html) => {
-    setEditorValues((prev) => ({
-      ...prev,
-      [trackingId]: html,
-    }));
+    setEditorValues((prev) => ({ ...prev, [trackingId]: html }));
   };
 
-  // Save excelData updates
   const handleSaveExcel = async (trackingId) => {
     try {
-      const trackingToUpdate = trackings.find(
-        (t) => t.trackingId === trackingId
+      const tracking = trackings.find((t) => t.trackingId === trackingId);
+      if (!tracking) return;
+
+      const updated = { ...tracking, excelData: editorValues[trackingId] || "" };
+      await updateTracking(trackingId, updated);
+
+      setTrackings((prev) =>
+        prev.map((t) =>
+          t.trackingId === trackingId
+            ? { ...t, excelData: editorValues[trackingId] || "" }
+            : t
+        )
       );
-      if (trackingToUpdate) {
-        const updated = {
-          ...trackingToUpdate,
-          excelData: editorValues[trackingId] || "",
-        };
-        await updateTracking(trackingId, updated);
-        // update local state
-        setTrackings((prev) =>
-          prev.map((t) =>
-            t.trackingId === trackingId
-              ? { ...t, excelData: editorValues[trackingId] || "" }
-              : t
-          )
-        );
-        alert("Excel data saved!");
-      }
+      message.success("Excel data saved successfully.");
     } catch (error) {
       console.error("Error saving excel data:", error);
-      alert("Failed to save excel data.");
+      message.error("Failed to save excel data.");
     }
   };
 
+  const grouped = groupByProject(trackings);
+
   return (
-    <div className="container">
-      <div className="py-4">
-        <h4 className="text-center">
-          {userDetail.first} {userDetail.last} - WithHold Details
-        </h4>
+    <div style={{ maxWidth: 1200, margin: "auto", padding: "2rem" }}>
+      <Title level={3} style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        {userDetail.first} {userDetail.last} — WithHold Details
+      </Title>
 
-        <div className="d-flex justify-content-between mb-3">
-          <button
-            className="btn btn-success"
-            onClick={handleSendEmail}
-            disabled={!userDetail.email}
-          >
-            Send Email
-          </button>
+      <Space
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 24,
+        }}
+      >
+        <Button
+          type="primary"
+          icon={<MailOutlined />}
+          onClick={handleSendEmail}
+          disabled={!userDetail.email}
+        >
+          Send Email
+        </Button>
+        <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddTracking}>
+          New WithHold
+        </Button>
+      </Space>
 
-          <button
-            className="btn btn-primary"
-            onClick={() => handleAddTracking(employeeId)}
-          >
-            <BiSolidAddToQueue size={15} />
-            New WithHold
-          </button>
-        </div>
+      {Object.keys(grouped).length === 0 ? (
+        <Text type="secondary" style={{ display: "block", textAlign: "center" }}>
+          No tracking data found.
+        </Text>
+      ) : (
+        <Collapse accordion bordered={false}>
+          {Object.entries(grouped).map(([projectName, projectTrackings]) => {
+            const totalBalance = projectTrackings.reduce(
+              (sum, t) => sum + (t.balance || 0),
+              0
+            );
 
-        {trackings.length === 0 ? (
-          <p className="text-center">NO TRACKINGS</p>
-        ) : (
-          Object.entries(groupByProject(trackings)).map(
-            ([projectName, projectTrackings]) => {
-              const totalBalance = projectTrackings.reduce(
-                (sum, tracking) => sum + tracking.balance,
-                0
-              );
-              return (
-                <div key={projectName} className="project-grid mb-5">
-                  <h5>Project: {projectName}</h5>
-                  <table className="table border shadow">
-                    <thead>
-                      <tr>
-                        <th>S.No</th>
-                        <th>Month</th>
-                        <th>Year</th>
-                        <th>Project</th>
-                        <th>Actual Hours</th>
-                        <th>Actual Rate</th>
-                        <th>Actual Amount</th>
-                        <th>Paid Hours</th>
-                        <th>Paid Rate</th>
-                        <th>Paid Amount</th>
-                        <th>Balance</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Bill Rate</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {projectTrackings.map((tracking, index) => (
-                        <tr key={tracking.trackingId}>
-                          <td>{index + 1}</td>
-                          <td>{tracking.month}</td>
-                          <td>{tracking.year}</td>
-                          <td>{tracking.projectName}</td>
-                          <td>{tracking.actualHours}</td>
-                          <td>{tracking.actualRate}</td>
-                          <td>{tracking.actualAmt}</td>
-                          <td>{tracking.paidHours}</td>
-                          <td>{tracking.paidRate}</td>
-                          <td>{tracking.paidAmt}</td>
-                          <td>{tracking.balance}</td>
-                          <td>{tracking.type}</td>
-                          <td>{tracking.status}</td>
-                          <td>{tracking.billRate}</td>
-                          <td>
-                            <div className="icon-container">
-                              <FiEdit2
-                                onClick={() =>
-                                  handleEditTracking(
-                                    employeeId,
-                                    tracking.trackingId
-                                  )
-                                }
-                                size={20}
-                                style={{ cursor: "pointer" }}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      <tr>
-                        <td colSpan="14" className="text-end fw-bold">
-                          Total Balance: {totalBalance}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            const columns = [
+              {
+                title: "Month",
+                dataIndex: "month",
+                key: "month",
+              },
+              {
+                title: "Year",
+                dataIndex: "year",
+                key: "year",
+              },
+              {
+                title: "Project",
+                dataIndex: "projectName",
+                key: "projectName",
+              },
+              {
+                title: "Actual Hours",
+                dataIndex: "actualHours",
+                key: "actualHours",
+              },
+              {
+                title: "Actual Rate",
+                dataIndex: "actualRate",
+                key: "actualRate",
+              },
+              {
+                title: "Actual Amount",
+                dataIndex: "actualAmt",
+                key: "actualAmt",
+              },
+              {
+                title: "Paid Hours",
+                dataIndex: "paidHours",
+                key: "paidHours",
+              },
+              {
+                title: "Paid Rate",
+                dataIndex: "paidRate",
+                key: "paidRate",
+              },
+              {
+                title: "Paid Amount",
+                dataIndex: "paidAmt",
+                key: "paidAmt",
+              },
+              {
+                title: "Balance",
+                dataIndex: "balance",
+                key: "balance",
+                render: (val) => (
+                  <Text strong type={val >= 0 ? "success" : "danger"}>
+                    {val}
+                  </Text>
+                ),
+              },
+              {
+                title: "Type",
+                dataIndex: "type",
+                key: "type",
+              },
+              {
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
+              },
+              {
+                title: "Bill Rate",
+                dataIndex: "billRate",
+                key: "billRate",
+              },
+              {
+                title: "Action",
+                key: "action",
+                render: (_, record) => (
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEditTracking(record.trackingId)}
+                  >
+                    Edit
+                  </Button>
+                ),
+              },
+            ];
 
-                  {projectTrackings.map((tracking) => (
-                    <div key={tracking.trackingId} className="mb-4">
-                      <label>Excel Data:</label>
+            return (
+              <Panel
+                header={
+                  <Space>
+                    <Text strong>Project:</Text>
+                    <Text>{projectName}</Text>
+                    <Text type="secondary">
+                      (Total Balance: {totalBalance})
+                    </Text>
+                  </Space>
+                }
+                key={projectName}
+              >
+                <Card bordered={true}>
+                  <Table
+                    columns={columns}
+                    dataSource={projectTrackings}
+                    rowKey="trackingId"
+                    pagination={false}
+                    size="small"
+                    loading={loading}
+                  />
+
+                  {projectTrackings.map((t) => (
+                    <Card
+                      key={t.trackingId}
+                      type="inner"
+                      title={`Excel Data — ${t.month} ${t.year}`}
+                      style={{ marginTop: 24 }}
+                    >
                       <FroalaEditor
-                        model={editorValues[tracking.trackingId] || ""}
+                        model={editorValues[t.trackingId] || ""}
                         onModelChange={(html) =>
-                          handleEditorChange(tracking.trackingId, html)
+                          handleEditorChange(t.trackingId, html)
                         }
                       />
-                      <button
-                        className="btn btn-sm btn-success mt-2"
-                        onClick={() => handleSaveExcel(tracking.trackingId)}
+                      <Button
+                        icon={<SaveOutlined />}
+                        type="primary"
+                        size="small"
+                        style={{ marginTop: 12 }}
+                        onClick={() => handleSaveExcel(t.trackingId)}
                       >
-                        Save
-                      </button>
-                    </div>
+                        Save Excel Data
+                      </Button>
+                    </Card>
                   ))}
 
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    setCurrentPage={setCurrentPage}
-                  />
-                </div>
-              );
-            }
-          )
-        )}
-      </div>
+                  <Row justify="end" style={{ marginTop: 24 }}>
+                    <Pagination
+                      current={currentPage + 1}
+                      pageSize={pageSize}
+                      total={totalPages * pageSize}
+                      onChange={(page) => setCurrentPage(page - 1)}
+                      showSizeChanger={false}
+                    />
+                  </Row>
+                </Card>
+              </Panel>
+            );
+          })}
+        </Collapse>
+      )}
+
+      <Modal
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <Text>Operation successful</Text>
+      </Modal>
     </div>
   );
 }
 
 function groupByProject(trackings) {
-  if (!Array.isArray(trackings)) {
-    return {};
-  }
-  return trackings.reduce((groups, tracking) => {
-    const projectName = tracking.projectName;
-    if (!groups[projectName]) {
-      groups[projectName] = [];
-    }
-    groups[projectName].push(tracking);
-    return groups;
+  if (!Array.isArray(trackings)) return {};
+  return trackings.reduce((acc, t) => {
+    const key = t.projectName || "Unknown Project";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(t);
+    return acc;
   }, {});
 }

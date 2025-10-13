@@ -1,188 +1,255 @@
 import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Card,
+  Space,
+  Button,
+  Input,
+  Typography,
+  message,
+  Popconfirm,
+  Tooltip,
+  Empty,
+  Row,
+  Col,
+} from "antd";
+import {
+  FileTextOutlined,
+  DownloadOutlined,
+  DeleteOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
+
+const { Title } = Typography;
 
 export default function EmployeeFilesGrid() {
   const [files, setFiles] = useState([]);
+  const [filteredFiles, setFilteredFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const API_URL = process.env.REACT_APP_API_URL;
 
-  const fetchFiles = (query = "") => {
-    const token = sessionStorage.getItem("token");
-    axios
-      .get(`${API_URL}/employees/prospectFiles/all`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: query ? { search: query } : {},
-      })
-      .then((res) => {
-        setFiles(res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching prospect files", err);
-      })
-      .finally(() => setLoading(false));
+  // Fetch files from API
+  const fetchFiles = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await axios.get(`${API_URL}/employees/prospectFiles/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFiles(res.data);
+      setFilteredFiles(res.data);
+    } catch (err) {
+      message.error("Failed to fetch files");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchFiles();
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    fetchFiles(search);
-  };
-
-  // ✅ Download function
-  const handleDownload = (employeeID, fileName) => {
-    const token = sessionStorage.getItem("token");
-    axios
-      .get(
-        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          responseType: "blob", // important for file download
-        }
-      )
-      .then((res) => {
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", fileName);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      })
-      .catch((err) => {
-        console.error("Error downloading file", err);
-      });
-  };
-
-  const handleDelete = (employeeID, fileName) => {
-    if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
+  // Filter files based on search
+  const handleSearch = () => {
+    if (!search.trim()) {
+      setFilteredFiles(files);
       return;
     }
 
-    const token = sessionStorage.getItem("token");
-    axios
-      .delete(
-        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then(() => {
-        setFiles((prev) =>
-          prev.filter(
-            (f) => !(f.employeeID === employeeID && f.fileName === fileName)
-          )
-        );
-        alert("File deleted successfully!");
-      })
-      .catch((err) => {
-        console.error("Error deleting file", err);
-        alert("Failed to delete file");
-      });
+    const filtered = files.filter(
+      (f) =>
+        f.fileName?.toLowerCase().includes(search.toLowerCase()) ||
+        f.uploadedBy?.toLowerCase().includes(search.toLowerCase()) ||
+        f.employeeID?.toString().includes(search)
+    );
+    setFilteredFiles(filtered);
   };
 
-  if (loading) {
-    return <p className="text-center mt-4">Loading...</p>;
-  }
+  const handleReset = () => {
+    setSearch("");
+    setFilteredFiles(files);
+  };
+
+  // Auto-search when search input is cleared
+  useEffect(() => {
+    if (search === "") {
+      setFilteredFiles(files);
+    }
+  }, [search, files]);
+
+  // Download file
+  const handleDownload = async (employeeID, fileName) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await axios.get(
+        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
+        { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" }
+      );
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      message.error("Failed to download file");
+    }
+  };
+
+  // Delete file
+  const handleDelete = async (employeeID, fileName) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.delete(
+        `${API_URL}/employees/prospectFiles/${employeeID}/${fileName}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFiles((prev) =>
+        prev.filter(
+          (f) => !(f.employeeID === employeeID && f.fileName === fileName)
+        )
+      );
+      setFilteredFiles((prev) =>
+        prev.filter(
+          (f) => !(f.employeeID === employeeID && f.fileName === fileName)
+        )
+      );
+      message.success("File deleted successfully!");
+    } catch {
+      message.error("Failed to delete file");
+    }
+  };
+
+  const columns = [
+    {
+      title: "File Name",
+      dataIndex: "fileName",
+      key: "fileName",
+      render: (text) => (
+        <Space>
+          <FileTextOutlined style={{ color: "#1677ff" }} />
+          {text}
+        </Space>
+      ),
+    },
+    { title: "Uploaded By", dataIndex: "uploadedBy", key: "uploadedBy" },
+    {
+      title: "Uploaded Date & Time",
+      dataIndex: "uploadTime",
+      key: "uploadTime",
+      render: (time) =>
+        time
+          ? new Date(
+              time[0],
+              time[1] - 1,
+              time[2],
+              time[3],
+              time[4],
+              time[5]
+            ).toLocaleString()
+          : "-",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "center",
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Download">
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              size="small"
+              onClick={() => handleDownload(record.employeeID, record.fileName)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title={`Delete "${record.fileName}"?`}
+            description="Are you sure you want to delete this file?"
+            okText="Yes"
+            cancelText="No"
+            onConfirm={() => handleDelete(record.employeeID, record.fileName)}
+          >
+            <Tooltip title="Delete">
+              <Button type="danger" icon={<DeleteOutlined />} size="small" />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Employee Files</h2>
-      <form onSubmit={handleSearch} className="mb-4 flex gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by file name, employee name, or ID"
-          className="border px-3 py-2 rounded-lg w-1/3"
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Search
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setSearch("");
-            setLoading(true);
-            fetchFiles();
+    <div className="p-6">
+      <Card
+        className="shadow-lg rounded-2xl"
+        title={
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} sm={12} md={8}>
+              <Space>
+                <FileTextOutlined style={{ fontSize: 26, color: "#1677ff" }} />
+                <Title level={4} style={{ margin: 0 }}>
+                  Employee Files
+                </Title>
+              </Space>
+            </Col>
+            
+            <Col xs={24} sm={12} md={16}>
+              <Row gutter={[8, 8]} justify="end" align="middle">
+                <Col xs={24} sm={16} md={12} lg={14}>
+                  <Input
+                    placeholder="Search by file name, employee name, or ID"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    allowClear
+                    prefix={<SearchOutlined />}
+                    onPressEnter={handleSearch}
+                    size="large"
+                  />
+                </Col>
+                <Col xs={24} sm={8} md={12} lg={10}>
+                  <Space wrap style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Button 
+                      icon={<ReloadOutlined />} 
+                      onClick={handleReset}
+                      size="large"
+                    >
+                      Reset
+                    </Button>
+                    <Button 
+                      type="primary" 
+                      icon={<SearchOutlined />} 
+                      onClick={handleSearch}
+                      size="large"
+                    >
+                      Search
+                    </Button>
+                  </Space>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        }
+      >
+        <Table
+          columns={columns}
+          dataSource={filteredFiles}
+          rowKey={(record) => `${record.employeeID}-${record.fileName}`}
+          loading={loading}
+          pagination={{ 
+            pageSize: 10, 
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => 
+              `${range[0]}-${range[1]} of ${total} items`
           }}
-          className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-        >
-          Reset
-        </button>
-      </form>
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300 rounded-lg shadow">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="px-4 py-2 text-left">File Name</th>
-              <th className="px-4 py-2 text-left">Uploaded By</th>
-              <th className="px-4 py-2 text-left">Uploaded Date & Time</th>
-              <th className="px-4 py-2 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {files.length > 0 ? (
-              files.map((file, index) => (
-                <tr
-                  key={index}
-                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
-                  <td className="px-4 py-2">{file.fileName}</td>
-                  <td className="px-4 py-2">{file.uploadedBy}</td>
-                  <td className="px-4 py-2">
-                    {new Date(
-                      file.uploadTime[0],
-                      file.uploadTime[1] - 1,
-                      file.uploadTime[2],
-                      file.uploadTime[3],
-                      file.uploadTime[4],
-                      file.uploadTime[5]
-                    ).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2 flex gap-2">
-                    <button
-                      onClick={() =>
-                        handleDownload(file.employeeID, file.fileName)
-                      }
-                      className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
-                    >
-                      Download
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleDelete(file.employeeID, file.fileName)
-                      }
-                      className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="px-4 py-2 text-center">
-                  No files found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          locale={{ emptyText: <Empty description="No files found" /> }}
+        />
+      </Card>
     </div>
   );
 }

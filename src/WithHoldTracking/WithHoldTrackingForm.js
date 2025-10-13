@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "antd";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Button,
+  Row,
+  Col,
+  Modal,
+  Typography,
+  Space,
+  message,
+} from "antd";
+import { useNavigate, useParams } from "react-router-dom";
+import FroalaEditor from "react-froala-wysiwyg";
 import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/js/plugins.pkgd.min.js";
-import FroalaEditor from "react-froala-wysiwyg";
+
 import {
   createTracking,
   fetchEmployeeDetails,
@@ -12,463 +25,276 @@ import {
   updateTracking,
 } from "../SharedComponents/services/WithHoldService";
 
+const { Title } = Typography;
+const { Option } = Select;
+
 export default function WithHoldTrackingForm({ mode }) {
-  let navigate = useNavigate();
-  let { trackingId, employeeId } = useParams();
+  const navigate = useNavigate();
+  const { trackingId, employeeId } = useParams();
 
+  const [form] = Form.useForm();
   const [editorHtml, setEditorHtml] = useState("");
-  const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [employeeDetails, setEmployeeDetails] = useState({
-    firstName: "",
-    lastName: "",
-  });
-
-  const [tracking, setTracking] = useState({
-    firstName: "",
-    lastName: "",
-    month: "",
-    year: "",
-    projectName: "",
-    actualHours: "",
-    actualRate: "",
-    actualAmt: "",
-    paidHours: "",
-    paidRate: "",
-    paidAmt: "",
-    balance: "",
-    excelData: "",
-    type: "",
-    status: "",
-    billRate: "",
-  });
-
-  const {
-    month,
-    year,
-    projectName,
-    actualHours,
-    actualRate,
-    paidHours,
-    paidRate,
-    excelData,
-    type,
-    status,
-    billRate,
-  } = tracking;
-
-  const typeOptions = ["revenue", "payment", "expense", "tax", "deuctions"];
-  const statusOptions = ["pending", "received", "paid"];
+  const [employeeDetails, setEmployeeDetails] = useState({});
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProjectName, setSelectedProjectName] = useState("");
 
   const monthOptions = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
   ];
+  const typeOptions = ["revenue", "payment", "expense", "tax", "deductions"];
+  const statusOptions = ["pending", "received", "paid"];
+  const yearOptions = Array.from({ length: 110 }, (_, i) => 1990 + i);
 
-  const startYear = 1990;
-  const endYear = 2099;
-  const yearOptions = [];
-  for (let year = startYear; year <= endYear; year++) {
-    yearOptions.push(year);
-  }
+  const isEditMode = mode === "edit";
 
-  // calculate amounts when hours/rates change
-  useEffect(() => {
-    const actualAmtValue =
-      (tracking.actualHours || 0) * (tracking.actualRate || 0);
-    const paidAmtValue = (tracking.paidHours || 0) * (tracking.paidRate || 0);
-    const balanceValue = actualAmtValue - paidAmtValue;
+  // ✅ Watch values for dynamic calculation
+  const actualHours = Form.useWatch("actualHours", form) ?? 0;
+  const actualRate  = Form.useWatch("actualRate",  form) ?? 0;
+  const paidHours   = Form.useWatch("paidHours",   form) ?? 0;
+  const paidRate    = Form.useWatch("paidRate",    form) ?? 0;
 
-    setTracking((prevTracking) => ({
-      ...prevTracking,
-      actualAmt: actualAmtValue,
-      paidAmt: paidAmtValue,
-      balance: balanceValue,
-    }));
-  }, [
-    tracking.actualHours,
-    tracking.actualRate,
-    tracking.paidHours,
-    tracking.paidRate,
-  ]);
+  const actualAmt = Number(((actualHours || 0) * (actualRate || 0)).toFixed(2));
+  const paidAmt   = Number(((paidHours   || 0) * (paidRate   || 0)).toFixed(2));
+  const balance   = Number((actualAmt - paidAmt).toFixed(2));
 
-  // fetch employee + project + tracking details
+  // ✅ Fetch employee and tracking data
   useEffect(() => {
     const fetchData = async () => {
-      if (mode === "add" || (mode === "edit" && employeeId)) {
-        try {
-          const employeeResponse = await fetchEmployeeDetails(employeeId);
-          if (employeeResponse) {
-            setEmployeeDetails(employeeResponse);
-          }
+      try {
+        const empResponse = await fetchEmployeeDetails(employeeId);
+        if (empResponse) setEmployeeDetails(empResponse);
 
-          const projectNamesResponse = await fetchProjectNames(employeeId);
-          if (projectNamesResponse.length > 0) {
-            const projectNamesList = projectNamesResponse.map((project) => {
-              return `${project.subVendorOne || ""} / ${
-                project.subVendorTwo || ""
-              }`;
-            });
-            setProjectNames(projectNamesList);
-          }
-
-          if (mode === "edit") {
-            const trackingResponse = await fetchTrackingDetails(trackingId);
-            if (trackingResponse) {
-              setTracking(trackingResponse);
-              setSelectedProjectName(trackingResponse.projectName || "");
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
+        const projResponse = await fetchProjectNames(employeeId);
+        if (projResponse?.length > 0) {
+          const list = projResponse.map(
+            (p) => `${p.subVendorOne || ""} / ${p.subVendorTwo || ""}`
+          );
+          setProjectNames(list);
         }
+
+        if (isEditMode) {
+          const trackingResponse = await fetchTrackingDetails(trackingId);
+          if (trackingResponse) {
+            form.setFieldsValue(trackingResponse);
+            setSelectedProjectName(trackingResponse.projectName || "");
+            setEditorHtml(trackingResponse.excelData || "");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        message.error("Failed to load form data");
       }
     };
     fetchData();
-  }, [mode, employeeId, trackingId]);
+  }, [employeeId, trackingId, mode, form, isEditMode]);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
-    const updatedTracking = {
-      ...tracking,
-      projectName: selectedProjectName,
-    };
-
+  // ✅ Handle form submit
+  const handleSubmit = async (values) => {
     try {
-      const success =
-        mode === "edit"
-          ? await updateTracking(trackingId, updatedTracking)
-          : await createTracking(employeeId, updatedTracking);
+      const payload = {
+        ...values,
+        projectName: selectedProjectName,
+        excelData: editorHtml,
+        actualAmt,
+        paidAmt,
+        balance,
+      };
+
+      const success = isEditMode
+        ? await updateTracking(trackingId, payload)
+        : await createTracking(employeeId, payload);
 
       if (success) {
-        showModal();
+        setIsModalOpen(true);
       }
     } catch (error) {
-      console.error(
-        `Error ${mode === "edit" ? "updating" : "adding"} project:`,
-        error
-      );
+      console.error("Error submitting form:", error);
+      message.error("Something went wrong while saving data");
     }
-  };
-
-  const onProjectNameChange = (e) => {
-    setSelectedProjectName(e.target.value);
-  };
-
-  const handleNavigate = (employeeId) => {
-    navigate(`/tracking/${employeeId}`);
-  };
-
-  const showModal = () => {
-    setIsModalOpen(true);
   };
 
   const handleOk = () => {
     setIsModalOpen(false);
-    handleNavigate(employeeId);
+    navigate(`/tracking/${employeeId}`);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    handleNavigate(employeeId);
+    navigate(`/tracking/${employeeId}`);
   };
-
-  const onInputChange = (e) => {
-    const { name, value } = e.target;
-    setTracking({
-      ...tracking,
-      [name]: value,
-    });
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData("text");
-    const rows = pasteData.split("\n");
-    const parsedData = rows.map((row) => row.split("\t"));
-    setTableData(parsedData);
-  };
-
-  const handleEditorChange = (html) => {
-    setEditorHtml(html);
-    setTracking({ ...tracking, excelData: html });
-  };
-
-  const isEditMode = mode === "edit";
 
   return (
-    <div>
-      <div className="form-container">
-        <h2 className="text-center m-4">
-          {isEditMode ? "Edit" : "Add"} Withhold Details
-        </h2>
-        <form onSubmit={onSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="firstName">First Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="First Name"
-                name="firstName"
-                value={employeeDetails.firstName || ""}
-                disabled
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="lastName">Last Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Last Name"
-                name="lastName"
-                value={employeeDetails.lastName || ""}
-                disabled
-              />
-            </div>
-          </div>
+    <div style={{ maxWidth: 900, margin: "auto", padding: "2rem" }}>
+      <Title level={3} style={{ textAlign: "center", marginBottom: 32 }}>
+        {isEditMode ? "Edit WithHold Details" : "Add WithHold Details"}
+      </Title>
 
-          {/* Month & Year */}
-          <div className="form-group row">
-            <div className="col">
-              <label>Month:</label>
-              <select
-                className="form-control"
-                name="month"
-                value={tracking.month}
-                onChange={onInputChange}
-              >
-                <option value="" disabled>
-                  Select month
-                </option>
-                {monthOptions.map((month) => (
-                  <option key={month} value={month}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col">
-              <label>Year:</label>
-              <select
-                className="form-control"
-                name="year"
-                value={tracking.year}
-                onChange={onInputChange}
-              >
-                <option value="" disabled>
-                  Select year
-                </option>
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      <Form
+        layout="vertical"
+        form={form}
+        onFinish={handleSubmit}
+        autoComplete="off"
+      >
+{/*         
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="First Name">
+              <Input value={employeeDetails.firstName || ""} disabled />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Last Name">
+              <Input value={employeeDetails.lastName || ""} disabled />
+            </Form.Item>
+          </Col>
+        </Row>
 
-          {/* Project Name & Status */}
-          <div className="form-group row">
-            <div className="col">
-              <label htmlFor="projectName">Project Name:</label>
-              <select
-                className="form-control"
-                name="projectName"
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="month" label="Month" rules={[{ required: true }]}>
+              <Select placeholder="Select Month">
+                {monthOptions.map((m) => (
+                  <Option key={m} value={m}>
+                    {m}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="year" label="Year" rules={[{ required: true }]}>
+              <Select placeholder="Select Year">
+                {yearOptions.map((y) => (
+                  <Option key={y} value={y}>
+                    {y}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Project Name" required>
+              <Select
+                placeholder="Select Project"
                 value={selectedProjectName}
-                onChange={onProjectNameChange}
+                onChange={setSelectedProjectName}
               >
-                <option value="" disabled>
-                  Select project name
-                </option>
                 {projectNames.map((name) => (
-                  <option key={name} value={name}>
+                  <Option key={name} value={name}>
                     {name}
-                  </option>
+                  </Option>
                 ))}
-              </select>
-            </div>
-            <div className="col">
-              <label>Type:</label>
-              <select
-                className="form-control"
-                name="type"
-                value={type}
-                onChange={onInputChange}
-              >
-                <option value="" disabled>
-                  Select type
-                </option>
-                {typeOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="type" label="Type" rules={[{ required: true }]}>
+              <Select placeholder="Select Type">
+                {typeOptions.map((t) => (
+                  <Option key={t} value={t}>
+                    {t}
+                  </Option>
                 ))}
-              </select>
-            </div>
-          </div>
-          {/* Actual Hours & Actual Rate */}
-          <div className="form-group row">
-            <div className="col">
-              <label>Actual Hours:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="actualHours"
-                value={actualHours}
-                onChange={onInputChange}
-              />
-            </div>
-            <div className="col">
-              <label>Actual Rate:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="actualRate"
-                value={actualRate}
-                onChange={onInputChange}
-              />
-            </div>
-          </div>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
-          {/* Paid Hours & Paid Rate */}
-          <div className="form-group row">
-            <div className="col">
-              <label>Paid Hours:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="paidHours"
-                value={paidHours}
-                onChange={onInputChange}
-              />
-            </div>
-            <div className="col">
-              <label>Paid Rate:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="paidRate"
-                value={paidRate}
-                onChange={onInputChange}
-              />
-            </div>
-          </div>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="actualHours" label="Actual Hours">
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="actualRate" label="Actual Rate">
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
 
-          {/* Actual Amount, Paid Amount, Balance */}
-          <div className="form-group row">
-            <div className="col">
-              <label>Actual Amount:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="actualAmt"
-                value={tracking.actualAmt}
-                readOnly
-              />
-            </div>
-            <div className="col">
-              <label>Paid Amount:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="paidAmt"
-                value={tracking.paidAmt}
-                readOnly
-              />
-            </div>
-            <div className="col">
-              <label>Balance:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="balance"
-                value={tracking.balance}
-                readOnly
-              />
-            </div>
-          </div>
-          <div className="form-group row">
-            <div className="col">
-              <label>Status:</label>
-              <select
-                className="form-control"
-                name="status"
-                value={status}
-                onChange={onInputChange}
-              >
-                <option value="" disabled>
-                  Select status
-                </option>
-                {statusOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="paidHours" label="Paid Hours">
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="paidRate" label="Paid Rate">
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item label="Actual Amount">
+              <InputNumber disabled value={actualAmt} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Paid Amount">
+              <InputNumber disabled value={paidAmt} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Balance">
+              <InputNumber disabled value={balance} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="status" label="Status">
+              <Select placeholder="Select Status">
+                {statusOptions.map((s) => (
+                  <Option key={s} value={s}>
+                    {s}
+                  </Option>
                 ))}
-              </select>
-            </div>
-            <div className="col">
-              <label>Bill Rate:</label>
-              <input
-                type="number"
-                className="form-control"
-                name="billRate"
-                value={billRate}
-                onChange={onInputChange}
-              />
-            </div>
-          </div>
-          <div
-            className="mt-3 d-flex justify-content-end align-items-center"
-            style={{ gap: 12 }}
-          >
-            <button
-              type="submit"
-              className="btn btn-outline-primary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                height: 40,
-                padding: "0 16px",
-              }}
-            >
-              {isEditMode ? "Update" : "Submit"}
-            </button>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="billRate" label="Bill Rate">
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row> */}
 
-            {/* Cancel is a real button, not a Link */}
-            <button
-              type="button"
-              className="btn btn-outline-danger"
-              onClick={() => handleNavigate(employeeId)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                height: 40,
-                padding: "0 16px",
-              }}
-            >
+        {/* Froala Editor */}
+        <Form.Item label="Excel Data">
+          <FroalaEditor model={editorHtml} onModelChange={setEditorHtml} />
+        </Form.Item>
+
+        {/* Buttons */}
+        <Form.Item>
+          <Space style={{ float: "right" }}>
+            <Button onClick={() => navigate(`/tracking/${employeeId}`)}>
               Cancel
-            </button>
-          </div>
+            </Button>
+            <Button type="primary" htmlType="submit">
+              {isEditMode ? "Update" : "Submit"}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
 
-          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-            <p>WithHold {isEditMode ? "Updated" : "Added"} successfully</p>
-          </Modal>
-        </form>
-      </div>
+      {/* Success Modal */}
+      <Modal
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        centered
+      >
+        <p>WithHold {isEditMode ? "Updated" : "Added"} successfully</p>
+      </Modal>
     </div>
   );
 }
