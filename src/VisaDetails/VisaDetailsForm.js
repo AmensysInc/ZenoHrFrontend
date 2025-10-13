@@ -1,60 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { DatePicker, Modal } from "antd";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Row,
+  Col,
+  Modal,
+  message,
+  Card,
+} from "antd";
 import dayjs from "dayjs";
 import {
   createVisa,
-  fetchEmployeeDetails,
-  fetchVisaDetails,
   updateVisa,
+  fetchVisaDetails,
+  fetchEmployeeDetails,
 } from "../SharedComponents/services/VisaDetailsService";
+
+const { TextArea } = Input;
+const { Option } = Select;
 
 export default function VisaDetailsForm({ mode }) {
   const navigate = useNavigate();
   const { visaId, employeeId } = useParams();
 
-  const [validationError, setValidationError] = useState("");
-  const [startDateValidationError, setStartDateValidationError] = useState("");
+  const [form] = Form.useForm();
+  const [employeeDetails, setEmployeeDetails] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [employeeDetails, setEmployeeDetails] = useState({
-    firstName: "",
-    lastName: "",
-  });
-
-  const [details, setDetails] = useState({
-    visaType: "",
-    visaStartDate: "",
-    visaExpiryDate: "",
-    visaNumber: "",
-    i94Number: "",
-    visaIssuedBy: "",
-    issuedDate: "",
-    i94Date: "",
-    clientVendorName: "",
-    lcaAddress: "",
-    lcaNumber: "",
-    lcaWage: "",
-    jobTitle: "",
-    i140Status: "",
-  });
-
-  const {
-    visaType,
-    visaStartDate,
-    visaExpiryDate,
-    visaNumber,
-    i94Number,
-    visaIssuedBy,
-    issuedDate,
-    i94Date,
-    clientVendorName,
-    lcaAddress,
-    lcaNumber,
-    lcaWage,
-    jobTitle,
-    i140Status,
-  } = details;
+  const isEditMode = mode === "edit";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,9 +40,19 @@ export default function VisaDetailsForm({ mode }) {
           setEmployeeDetails(employeeResponse);
         }
 
-        if (mode === "edit") {
+        if (isEditMode) {
           const response = await fetchVisaDetails(visaId);
-          setDetails(response);
+          const formattedData = {
+            ...response,
+            visaStartDate: response.visaStartDate
+              ? dayjs(response.visaStartDate)
+              : null,
+            visaExpiryDate: response.visaExpiryDate
+              ? dayjs(response.visaExpiryDate)
+              : null,
+            i94Date: response.i94Date ? dayjs(response.i94Date) : null,
+          };
+          form.setFieldsValue(formattedData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -74,237 +60,208 @@ export default function VisaDetailsForm({ mode }) {
     };
 
     fetchData();
-  }, [mode, employeeId, visaId]);
+  }, [isEditMode, employeeId, visaId, form]);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
-    const startDate = new Date(visaStartDate);
-    const expiryDate = new Date(visaExpiryDate);
-
-    if (startDate >= expiryDate) {
-      setStartDateValidationError("Please Enter Valid Dates.");
-      setValidationError("");
-      return;
-    }
-
-    try {
-      const success =
-        mode === "edit"
-          ? await updateVisa(visaId, details)
-          : await createVisa(employeeId, details);
-
-      if (success) {
-        showModal();
-      }
-    } catch (error) {
-      console.error(`Error ${mode === "edit" ? "updating" : "adding"} visa:`, error);
-    }
-  };
-
-  const handleNavigate = (employeeId) => {
+  const handleNavigate = () => {
     navigate(`/editemployee/${employeeId}/visa-details`);
   };
 
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
+  const handleSubmit = async (values) => {
+    const start = new Date(values.visaStartDate);
+    const expiry = new Date(values.visaExpiryDate);
 
-  const handleOk = () => {
-    setIsModalOpen(false);
-    handleNavigate(employeeId);
-  };
+    if (start >= expiry) {
+      message.error("Visa Expiry Date must be after Start Date");
+      return;
+    }
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    handleNavigate(employeeId);
-  };
+    const payload = {
+      ...values,
+      visaStartDate: values.visaStartDate
+        ? values.visaStartDate.format("YYYY-MM-DD")
+        : null,
+      visaExpiryDate: values.visaExpiryDate
+        ? values.visaExpiryDate.format("YYYY-MM-DD")
+        : null,
+      i94Date: values.i94Date ? values.i94Date.format("YYYY-MM-DD") : null,
+    };
 
-  const onInputChange = (e) => {
-    const { name, value } = e.target;
-    setDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const onInputChangeDate = (date, name) => {
-    if (date) {
-      setDetails((prev) => ({
-        ...prev,
-        [name]: date.format("YYYY-MM-DD"),
-      }));
+    try {
+      if (isEditMode) {
+        await updateVisa(visaId, payload);
+      } else {
+        await createVisa(employeeId, payload);
+      }
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error saving visa details:", error);
+      message.error("Failed to save visa details");
     }
   };
 
-  const isEditMode = mode === "edit";
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    handleNavigate();
+  };
 
   return (
-    <div className="form-container">
-      <h2 className="text-center m-4">
-        {isEditMode ? "Edit" : "Add"} Visa Details
-      </h2>
+    <div className="p-4">
+      <Card bordered className="shadow-sm">
+        <h2 className="text-center mb-4">
+          {isEditMode ? "Edit Visa Details" : "Add Visa Details"}
+        </h2>
 
-      {startDateValidationError && (
-        <p className="text-danger">{startDateValidationError}</p>
-      )}
-      {validationError && <p className="text-danger">{validationError}</p>}
+        <Form
+          layout="vertical"
+          form={form}
+          onFinish={handleSubmit}
+          autoComplete="off"
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="First Name">
+                <Input value={employeeDetails.firstName} disabled />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Last Name">
+                <Input value={employeeDetails.lastName} disabled />
+              </Form.Item>
+            </Col>
 
-      <form onSubmit={onSubmit}>
-        <div className="form-row">
-          <div className="form-group">
-            <label>First Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={employeeDetails.firstName || ""}
-              disabled
-            />
-          </div>
-          <div className="form-group">
-            <label>Last Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={employeeDetails.lastName || ""}
-              disabled
-            />
-          </div>
-        </div>
+            <Col span={12}>
+              <Form.Item
+                label="Visa Start Date"
+                name="visaStartDate"
+                rules={[{ required: true, message: "Please select start date" }]}
+              >
+                <DatePicker className="w-100" />
+              </Form.Item>
+            </Col>
 
-        <div className="form-row">
-          <div className="form-group col-md-6">
-            <label>Visa Start Date</label>
-            <DatePicker
-              className="form-control"
-              value={visaStartDate ? dayjs(visaStartDate) : null}
-              onChange={(date) => onInputChangeDate(date, "visaStartDate")}
-              required
-            />
-          </div>
-          <div className="form-group col-md-6">
-            <label>Visa Expiry Date</label>
-            <DatePicker
-              className="form-control"
-              value={visaExpiryDate ? dayjs(visaExpiryDate) : null}
-              onChange={(date) => onInputChangeDate(date, "visaExpiryDate")}
-              required
-            />
-          </div>
-        </div>
+            <Col span={12}>
+              <Form.Item
+                label="Visa Expiry Date"
+                name="visaExpiryDate"
+                rules={[{ required: true, message: "Please select expiry date" }]}
+              >
+                <DatePicker className="w-100" />
+              </Form.Item>
+            </Col>
 
-        <div className="form-group">
-          <label>Visa Type</label>
-          <select
-            className="form-control"
-            name="visaType"
-            value={visaType}
-            onChange={onInputChange}
-            required
+            <Col span={12}>
+              <Form.Item
+                label="Visa Type"
+                name="visaType"
+                rules={[{ required: true, message: "Please select visa type" }]}
+              >
+                <Select placeholder="Select Visa Type">
+                  <Option value="H1B">H1B</Option>
+                  <Option value="OPT">OPT</Option>
+                  <Option value="GREENCARD">Green Card</Option>
+                  <Option value="H4AD">H4AD</Option>
+                  <Option value="CPT">CPT</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="I-94 Date" name="i94Date">
+                <DatePicker className="w-100" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="LCA Number" name="lcaNumber">
+                <Input placeholder="Enter LCA Number" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="LCA Wage" name="lcaWage">
+                <Input placeholder="Enter LCA Wage" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="Job Title" name="jobTitle">
+                <Input placeholder="Enter Job Title" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="I140 Status" name="i140Status">
+                <Select placeholder="Select I140 Status">
+                  <Option value="Pending">Pending</Option>
+                  <Option value="Approved">Approved</Option>
+                  <Option value="Denied">Denied</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="GC Status" name="gcStatus">
+                <Select placeholder="Select GC Status">
+                  <Option value="Not Applied">Not Applied</Option>
+                  <Option value="In Process">In Process</Option>
+                  <Option value="Approved">Approved</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="Attorney" name="attorney">
+                <Input placeholder="Enter Attorney Name" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item label="Receipt" name="receipt">
+                <Input placeholder="Enter Receipt Number" />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label="Residential Address"
+                name="residentialAddress"
+              >
+                <Input placeholder="Enter Residential Address" />
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item label="Comments" name="comments">
+                <TextArea rows={3} placeholder="Enter any comments..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div
+            className="d-flex justify-content-end"
+            style={{ gap: 12, marginTop: 16 }}
           >
-            <option value="">Select Visa Type</option>
-            <option value="H1B">H1B</option>
-            <option value="OPT">OPT</option>
-            <option value="GREENCARD">Green Card</option>
-            <option value="H4AD">H4AD</option>
-            <option value="CPT">CPT</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>I-94 Date</label>
-          <DatePicker
-            className="form-control"
-            value={i94Date ? dayjs(i94Date) : null}
-            onChange={(date) => onInputChangeDate(date, "i94Date")}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>LCA Address</label>
-          <input
-            type="text"
-            className="form-control"
-            name="lcaAddress"
-            value={lcaAddress}
-            onChange={onInputChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>LCA Number</label>
-          <input
-            type="text"
-            className="form-control"
-            name="lcaNumber"
-            value={lcaNumber}
-            onChange={onInputChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>LCA Wage</label>
-          <input
-            type="text"
-            className="form-control"
-            name="lcaWage"
-            value={lcaWage}
-            onChange={onInputChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Job Title</label>
-          <input
-            type="text"
-            className="form-control"
-            name="jobTitle"
-            value={jobTitle}
-            onChange={onInputChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>I-140 Status</label>
-          <select
-            className="form-control"
-            name="i140Status"
-            value={i140Status}
-            onChange={onInputChange}
-          >
-            <option value="">Select Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Denied">Denied</option>
-          </select>
-        </div>
-
-       <div
-            className="mt-3 d-flex justify-content-end align-items-center"
-            style={{ gap: 12 }}
-          >
-            <button
-              type="submit"
-              className="btn btn-outline-primary"
-              style={{ display: "inline-flex", alignItems: "center", height: 40, padding: "0 16px" }}
-            >
+            <Button type="primary" htmlType="submit">
               {isEditMode ? "Update" : "Submit"}
-            </button>
-
-            {/* Cancel is a real button, not a Link */}
-            <button
-              type="button"
-              className="btn btn-outline-danger"
-              onClick={handleNavigate}
-              style={{ display: "inline-flex", alignItems: "center", height: 40, padding: "0 16px" }}
-            >
+            </Button>
+            <Button danger onClick={handleNavigate}>
               Cancel
-            </button>
+            </Button>
           </div>
+        </Form>
+      </Card>
 
-        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-          <p>Visa Details {isEditMode ? "Updated" : "Added"} Successfully</p>
-        </Modal>
-      </form>
+      <Modal
+        open={isModalOpen}
+        onOk={handleModalClose}
+        onCancel={handleModalClose}
+        title="Success"
+      >
+        <p>
+          Visa details {isEditMode ? "updated" : "added"} successfully for{" "}
+          {employeeDetails.firstName} {employeeDetails.lastName}.
+        </p>
+      </Modal>
     </div>
   );
 }

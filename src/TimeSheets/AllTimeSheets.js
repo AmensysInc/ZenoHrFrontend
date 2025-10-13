@@ -1,64 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { get, post } from "../SharedComponents/httpClient ";
-import Pagination from "../SharedComponents/Pagination";
+import { Table, Select, Checkbox, Button, Modal, Input, Tag } from "antd";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { TbNotes } from "react-icons/tb";
 import { IoNotifications } from "react-icons/io5";
 
+const { Option } = Select;
+const { TextArea } = Input;
+
 const AllTimeSheets = () => {
   const [employees, setEmployees] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
   const [timeSheets, setTimeSheets] = useState([]);
-  const [editingRow, setEditingRow] = useState(null);
-  const [editedRegularHours, setEditedRegularHours] = useState({});
-  const [editedprojectId, setEditedprojectId] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [showAllProjects, setShowAllProjects] = useState(false);
+
   const [uploadedDocs, setUploadedDocs] = useState([]);
-  const [showDocsModal, setShowDocsModal] = useState(false);
-  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [docsModalVisible, setDocsModalVisible] = useState(false);
+
+  const [notesModalVisible, setNotesModalVisible] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [noteEmployeeId, setNoteEmployeeId] = useState(null);
   const [noteProjectId, setNoteProjectId] = useState(null);
 
-  // Reminder state
-  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderModalVisible, setReminderModalVisible] = useState(false);
   const [reminderEmployee, setReminderEmployee] = useState(null);
   const [reminderText, setReminderText] = useState("");
 
-  const fetchUploadedFiles = async (employeeId, projectId) => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const monthName = new Date(selectedYear, selectedMonth - 1, 1).toLocaleString("default", {
-        month: "long",
-      });
-      const response = await get(
-        `/timeSheets/getUploadedFiles/${employeeId}/${projectId}/${selectedYear}/${monthName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setUploadedDocs(response.data);
-      setShowDocsModal(true);
-    } catch (error) {
-      console.error("Error fetching uploaded files:", error);
-      alert("Failed to fetch uploaded documents.");
-    }
-  };
-
+  // Fetch companies
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await get(`/companies?page=0&size=100`);
+        const response = await get("/companies?page=0&size=100");
         if (response.data && response.data.content) {
           setCompanies(response.data.content);
         }
@@ -69,666 +49,418 @@ const AllTimeSheets = () => {
     fetchCompanies();
   }, []);
 
-  const handleCompanyChange = (e) => {
-    const companyId = e.target.value;
-    setSelectedCompanyId(companyId);
-    setCurrentPage(0);
-  };
-
+  // Fetch employees and projects
   useEffect(() => {
     const fetchAllEmployees = async () => {
       setLoading(true);
       try {
-        const response = await get(`/employees?page=0&size=1000`);
+        const response = await get("/employees?page=0&size=1000");
         if (!response.data.content) {
           setLoading(false);
           return;
         }
+
         const employeesWithProjects = await Promise.all(
           response.data.content.map(async (employee) => {
             try {
               const projectResponse = await get(`/employees/${employee.employeeID}/projects`);
               let filteredProjects = projectResponse.data.content || [];
               if (!showAllProjects) {
-                filteredProjects = filteredProjects.filter((project) => project.projectStatus === "Active");
+                filteredProjects = filteredProjects.filter((p) => p.projectStatus === "Active");
               }
-              const projectsWithEndDate = filteredProjects.map((project) => {
-                const projectEndDate = new Date(project.projectEndDate);
-                return { ...project, projectEndDate };
-              });
-              return { ...employee, projects: projectsWithEndDate };
-            } catch (error) {
-              console.error(`Error fetching projects for employee ${employee.employeeID}:`, error);
+              filteredProjects = filteredProjects.map((project) => ({
+                ...project,
+                projectEndDate: new Date(project.projectEndDate),
+              }));
+              return { ...employee, projects: filteredProjects };
+            } catch (err) {
               return { ...employee, projects: [] };
             }
           })
         );
+
         setAllEmployees(employeesWithProjects);
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
+      } catch (err) {
+        console.error(err);
         setLoading(false);
       }
     };
     fetchAllEmployees();
   }, [showAllProjects]);
 
+  // Filter employees by company and paginate
   useEffect(() => {
-    let filteredEmployees = allEmployees;
+    let filtered = allEmployees;
     if (selectedCompanyId) {
-      filteredEmployees = allEmployees.filter((employee) => {
-        const employeeCompanyId =
-          employee.company?.companyId || employee.company?.companyID || employee.companyId || employee.companyID;
-        return employeeCompanyId && employeeCompanyId.toString() === selectedCompanyId.toString();
+      filtered = allEmployees.filter((emp) => {
+        const companyId =
+          emp.company?.companyId || emp.company?.companyID || emp.companyId || emp.companyID;
+        return companyId?.toString() === selectedCompanyId.toString();
       });
     }
-    const startIndex = currentPage * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
-    setEmployees(paginatedEmployees);
-    setTotalPages(Math.ceil(filteredEmployees.length / pageSize));
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginated = filtered.slice(startIndex, startIndex + pageSize);
+    setEmployees(paginated);
+    setTotalPages(Math.ceil(filtered.length / pageSize));
   }, [allEmployees, selectedCompanyId, currentPage, pageSize]);
 
-  const fetchTimeSheets = async () => {
-    try {
-      const response = await post("/timeSheets/getAllTimeSheetsByMonthYear", {
-        month: selectedMonth,
-        year: selectedYear,
-      });
-      setTimeSheets(response.data);
-    } catch (error) {
-      console.error("Error fetching time sheets:", error);
-    }
-  };
-
+  // Fetch timesheets
   useEffect(() => {
-    if (selectedMonth !== null && selectedYear !== null) {
-      fetchTimeSheets();
-    }
+    const fetchTimeSheets = async () => {
+      if (selectedMonth && selectedYear) {
+        try {
+          const response = await post("/timeSheets/getAllTimeSheetsByMonthYear", {
+            month: selectedMonth,
+            year: selectedYear,
+          });
+          setTimeSheets(response.data);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+    fetchTimeSheets();
   }, [selectedMonth, selectedYear]);
 
   const findRegularHours = (empId, projectId, date) => {
-    const timeSheet = timeSheets.find(
-      (sheet) => sheet.empId === empId && sheet.projectId === projectId && new Date(sheet.date).getDate() === date
+    const sheet = timeSheets.find(
+      (ts) =>
+        ts.empId === empId &&
+        ts.projectId === projectId &&
+        new Date(ts.date).getDate() === date
     );
-    return timeSheet ? timeSheet.regularHours : 0;
-  };
-
-  const daysInMonth = (month, year) => {
-    return new Date(year, month, 0).getDate();
+    return sheet?.regularHours || 0;
   };
 
   const renderDates = () => {
-    if (selectedMonth === null || selectedYear === null) return [];
-    const numDays = daysInMonth(selectedMonth, selectedYear);
-    const dates = [];
-    for (let i = 1; i <= numDays; i++) {
-      const date = new Date(selectedYear, selectedMonth - 1, i);
-      dates.push({
-        date: date.toLocaleDateString("en-US"),
-        isWeekend: date.getDay() === 0 || date.getDay() === 6,
-      });
-    }
-    return dates;
-  };
-
-  const handleMonthChange = (e) => {
-    setSelectedMonth(parseInt(e.target.value));
-  };
-
-  const handleYearChange = (e) => {
-    setSelectedYear(parseInt(e.target.value));
-  };
-
-  const toggleEditMode = (empId, projectId) => {
-    setEditingRow(empId);
-    setEditedprojectId(projectId);
-    setEditedRegularHours({});
-    const editedRegularHoursObj = {};
-    renderDates().forEach((dateObj) => {
-      const date = new Date(dateObj.date);
-      const regularHours = findRegularHours(empId, projectId, date.getDate());
-      if (regularHours !== undefined) {
-        editedRegularHoursObj[`${empId}-${projectId}-${date.getDate()}`] = regularHours;
-      }
-    });
-    setEditedRegularHours(editedRegularHoursObj);
-  };
-
-  const handleEditChange = (e, empId, projectId, date) => {
-    const value = e.target.value;
-    setEditedRegularHours({
-      ...editedRegularHours,
-      [`${empId}-${projectId}-${date}`]: value,
+    if (!selectedMonth || !selectedYear) return [];
+    const numDays = new Date(selectedYear, selectedMonth, 0).getDate();
+    return Array.from({ length: numDays }, (_, i) => {
+      const date = new Date(selectedYear, selectedMonth - 1, i + 1);
+      return { date, isWeekend: [0, 6].includes(date.getDay()) };
     });
   };
 
-  const handleSave = async () => {
+  const handleApprove = async (employee, project) => {
+    const updated = timeSheets.map((ts) =>
+      ts.empId === employee.employeeID &&
+      ts.projectId === project.projectId &&
+      new Date(ts.date).getMonth() + 1 === selectedMonth &&
+      new Date(ts.date).getFullYear() === selectedYear
+        ? { ...ts, status: "APPROVED" }
+        : ts
+    );
+    setTimeSheets(updated);
+    const payload = updated.filter((ts) => ts.status === "APPROVED").map((ts) => ({
+      ...ts,
+      date: new Date(ts.date).toISOString(),
+    }));
+    await post("/timeSheets/createTimeSheet", payload);
+  };
+
+  const handleReject = async (employee, project) => {
+    const updated = timeSheets.map((ts) =>
+      ts.empId === employee.employeeID &&
+      ts.projectId === project.projectId &&
+      new Date(ts.date).getMonth() + 1 === selectedMonth &&
+      new Date(ts.date).getFullYear() === selectedYear
+        ? { ...ts, status: "REJECTED" }
+        : ts
+    );
+    setTimeSheets(updated);
+    const payload = updated.filter((ts) => ts.status === "REJECTED").map((ts) => ({
+      ...ts,
+      date: new Date(ts.date).toISOString(),
+    }));
+    await post("/timeSheets/createTimeSheet", payload);
+  };
+
+  const fetchUploadedFiles = async (employeeId, projectId) => {
     try {
-      const updatedTimeSheets = [];
-      employees.forEach((employee) => {
-        employee.projects.forEach((project) => {
-          renderDates().forEach((dateObj) => {
-            const date = new Date(dateObj.date);
-            const editedValue = editedRegularHours[`${employee.employeeID}-${project.projectId}-${date.getDate()}`];
-            if (editedValue !== undefined) {
-              const originalValue = findRegularHours(employee.employeeID, project.projectId, date.getDate());
-              if (parseFloat(editedValue) !== originalValue) {
-                updatedTimeSheets.push({
-                  empId: employee.employeeID,
-                  projectId: project.projectId,
-                  date: date.toISOString(),
-                  regularHours: parseFloat(editedValue),
-                  sheetId: getTimeSheetId(employee.employeeID, project.projectId, date.getDate()),
-                });
-              }
-            }
-          });
-        });
+      const token = sessionStorage.getItem("token");
+      const monthName = new Date(selectedYear, selectedMonth - 1, 1).toLocaleString("default", {
+        month: "long",
       });
-      if (updatedTimeSheets.length > 0) {
-        await updateTimesheet(updatedTimeSheets);
-      }
-      await fetchTimeSheets();
-      setEditingRow(null);
-    } catch (error) {
-      console.error("Error saving edited value:", error);
+      const response = await get(
+        `/timeSheets/getUploadedFiles/${employeeId}/${projectId}/${selectedYear}/${monthName}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUploadedDocs(response.data);
+      setDocsModalVisible(true);
+    } catch (err) {
+      console.error(err);
+      Modal.error({ title: "Failed to fetch uploaded documents" });
     }
-  };
-
-  const updateTimesheet = async (updatedTimeSheets) => {
-    try {
-      const requestBody = updatedTimeSheets.map((updatedTimeSheet) => ({
-        month: selectedMonth,
-        year: selectedYear,
-        employeeId: updatedTimeSheet.empId,
-        projectId: updatedTimeSheet.projectId,
-        sheetId: updatedTimeSheet.sheetId,
-        regularHours: updatedTimeSheet.regularHours,
-        date: updatedTimeSheet.date,
-      }));
-      await post("/timeSheets/createSheet", requestBody);
-    } catch (error) {
-      console.error("Error updating timesheets:", error);
-    }
-  };
-
-  const getTimeSheetId = (empId, projectId, date) => {
-    const timeSheet = timeSheets.find(
-      (sheet) => sheet.empId === empId && sheet.projectId === projectId && new Date(sheet.date).getDate() === date
-    );
-    return timeSheet ? timeSheet.sheetId : null;
-  };
-
-  const handleApprove = (employee, project) => {
-    const timeSheetData = timeSheets
-      .filter(
-        (sheet) =>
-          sheet.empId === employee.employeeID &&
-          sheet.projectId === project.projectId &&
-          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
-          new Date(sheet.date).getFullYear() === selectedYear
-      )
-      .map((sheet) => ({
-        month: selectedMonth,
-        year: selectedYear,
-        employeeId: employee.employeeID,
-        projectId: project.projectId,
-        sheetId: sheet.sheetId,
-        regularHours: sheet.regularHours,
-        overTimeHours: sheet.overTimeHours,
-        date: new Date(sheet.date).toISOString(),
-        status: "APPROVED",
-      }));
-
-    const updatedTimeSheets = timeSheets.map((t) =>
-      timeSheetData.some((s) => s.sheetId === t.sheetId) ? { ...t, status: "APPROVED" } : t
-    );
-
-    setTimeSheets(updatedTimeSheets);
-
-    post("/timeSheets/createTimeSheet", timeSheetData).catch((error) => {
-      console.error("Error approving time sheets:", error);
-    });
-  };
-
-  const handleReject = (employee, project) => {
-    const timeSheetData = timeSheets
-      .filter(
-        (sheet) =>
-          sheet.empId === employee.employeeID &&
-          sheet.projectId === project.projectId &&
-          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
-          new Date(sheet.date).getFullYear() === selectedYear
-      )
-      .map((sheet) => ({
-        month: selectedMonth,
-        year: selectedYear,
-        employeeId: employee.employeeID,
-        projectId: project.projectId,
-        sheetId: sheet.sheetId,
-        regularHours: sheet.regularHours,
-        overTimeHours: sheet.overTimeHours,
-        date: new Date(sheet.date).toISOString(),
-        status: "REJECTED",
-      }));
-
-    const updatedTimeSheets = timeSheets.map((t) =>
-      timeSheetData.some((s) => s.sheetId === t.sheetId) ? { ...t, status: "REJECTED" } : t
-    );
-
-    setTimeSheets(updatedTimeSheets);
-
-    post("/timeSheets/createTimeSheet", timeSheetData).catch((error) => {
-      console.error("Error rejecting time sheets:", error);
-    });
   };
 
   const handleOpenNotes = async (employeeId, projectId) => {
     try {
-      const requestBody = {
+      const response = await post("/timeSheets/getAllTimeSheets", {
         month: selectedMonth,
         year: selectedYear,
         employeeId,
         projectId,
-      };
-      const response = await post("/timeSheets/getAllTimeSheets", requestBody);
-      const note = response.data.find((sheet) => sheet.notes)?.notes;
+      });
+      const note = response.data.find((sheet) => sheet.notes)?.notes || "";
       setNoteEmployeeId(employeeId);
       setNoteProjectId(projectId);
-      setNoteText(note || "");
-      setShowNotesModal(true);
-    } catch (error) {
-      console.error("Error fetching notes:", error);
+      setNoteText(note);
+      setNotesModalVisible(true);
+    } catch (err) {
+      console.error(err);
       setNoteText("");
-      setShowNotesModal(true);
+      setNotesModalVisible(true);
     }
   };
 
   const handleSaveNote = async () => {
-    try {
-      const existingSheet = timeSheets.find(
-        (sheet) =>
-          sheet.empId === noteEmployeeId &&
-          sheet.projectId === noteProjectId &&
-          new Date(sheet.date).getMonth() + 1 === selectedMonth &&
-          new Date(sheet.date).getFullYear() === selectedYear
-      );
+    const existingSheet = timeSheets.find(
+      (sheet) =>
+        sheet.empId === noteEmployeeId &&
+        sheet.projectId === noteProjectId &&
+        new Date(sheet.date).getMonth() + 1 === selectedMonth &&
+        new Date(sheet.date).getFullYear() === selectedYear
+    );
+    const sheetId = existingSheet?.sheetId || null;
 
-      const sheetId = existingSheet?.sheetId || null;
-
-      const requestBody = [
-        {
-          month: selectedMonth,
-          year: selectedYear,
-          employeeId: noteEmployeeId,
-          projectId: noteProjectId,
-          sheetId: sheetId,
-          date: new Date(selectedYear, selectedMonth - 1, 1),
-          notes: noteText,
-        },
-      ];
-
-      await post("/timeSheets/createTimeSheet", requestBody);
-      alert("Note saved successfully!");
-      setShowNotesModal(false);
-    } catch (error) {
-      console.error("Error saving note:", error);
-      alert("Failed to save note.");
-    }
+    const payload = [
+      {
+        month: selectedMonth,
+        year: selectedYear,
+        employeeId: noteEmployeeId,
+        projectId: noteProjectId,
+        sheetId,
+        date: new Date(selectedYear, selectedMonth - 1, 1),
+        notes: noteText,
+      },
+    ];
+    await post("/timeSheets/createTimeSheet", payload);
+    Modal.success({ title: "Note saved successfully" });
+    setNotesModalVisible(false);
   };
 
-  // ✅ Reminder functions
   const handleOpenReminder = (employee) => {
     setReminderEmployee(employee);
     setReminderText("");
-    setShowReminderModal(true);
+    setReminderModalVisible(true);
   };
 
-const handleSendReminder = async () => {
-  if (!reminderText.trim()) {
-    alert("Please type a reminder message before sending.");
-    return;
-  }
-  try {
-    console.log("Reminder employee full object:", reminderEmployee);
-
-    const token = sessionStorage.getItem("token");
-    const fromEmail = "nanisainathchowdary@gmail.com"; // Your sender email
-
-    // Correct field is emailID
-    const employeeEmail = reminderEmployee.emailID;
-
-    if (!employeeEmail) {
-      alert("Employee email is missing.");
+  const handleSendReminder = async () => {
+    if (!reminderText.trim()) {
+      Modal.warning({ title: "Reminder message cannot be empty" });
       return;
     }
+    try {
+      const token = sessionStorage.getItem("token");
+      const fromEmail = "nanisainathchowdary@gmail.com";
+      const employeeEmail = reminderEmployee.emailID;
+      if (!employeeEmail) {
+        Modal.warning({ title: "Employee email missing" });
+        return;
+      }
 
-    const toList = [employeeEmail];
-    const ccList = [];
-    const bccList = [];
+      const formData = new FormData();
+      formData.append("fromEmail", fromEmail);
+      formData.append("subject", "Reminder Notification");
+      formData.append("body", reminderText);
+      formData.append("toList", employeeEmail);
 
-    const formData = new FormData();
-    formData.append("fromEmail", fromEmail);
-    formData.append("subject", "Reminder Notification");
-    formData.append("body", reminderText);
+      await post("/email/send", formData, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
 
-    toList.forEach(email => formData.append("toList", email));
-    ccList.forEach(email => formData.append("ccList", email));
-    bccList.forEach(email => formData.append("bccList", email));
+      Modal.success({ title: "Reminder sent successfully" });
+      setReminderModalVisible(false);
+    } catch (err) {
+      console.error(err);
+      Modal.error({ title: "Failed to send reminder" });
+    }
+  };
 
-    const config = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    await post("/email/send", formData, config);
-
-    alert("Reminder sent successfully!");
-    setShowReminderModal(false);
-  } catch (error) {
-    console.error("Error sending reminder:", error);
-    alert("Failed to send reminder.");
-  }
-};
-
-
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // Table columns
+  const columns = [
+    { title: "First Name", dataIndex: ["firstName"], key: "firstName" },
+    { title: "Last Name", dataIndex: ["lastName"], key: "lastName" },
+    { title: "Company", dataIndex: ["company", "companyName"], key: "companyName" },
+    {
+      title: "Projects",
+      key: "projects",
+      render: (_, record) =>
+        record.projects.map((project) => (
+          <div key={project.projectId}>
+            <Tag color={project.projectEndDate < new Date() ? "red" : "blue"}>
+              {project.subVendorOne}/{project.subVendorTwo}
+            </Tag>
+          </div>
+        )),
+    },
+    ...renderDates().map((dateObj) => ({
+      title: dateObj.date,
+      key: dateObj.date,
+      render: (_, record) =>
+        record.projects.map((project) => (
+          <div key={`${record.employeeID}-${project.projectId}-${dateObj.date}`}>
+            {findRegularHours(record.employeeID, project.projectId, dateObj.date.getDate())}
+          </div>
+        )),
+    })),
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) =>
+        record.projects.map((project) => (
+          <div key={`${record.employeeID}-${project.projectId}-actions`}>
+            <FaCheck
+              onClick={() => handleApprove(record, project)}
+              style={{ color: "green", cursor: "pointer", marginRight: "8px" }}
+            />
+            <FaTimes
+              onClick={() => handleReject(record, project)}
+              style={{ color: "red", cursor: "pointer", marginRight: "8px" }}
+            />
+            <TbNotes
+              onClick={() => handleOpenNotes(record.employeeID, project.projectId)}
+              style={{ color: "#007bff", cursor: "pointer", marginRight: "8px" }}
+            />
+            <Button
+              size="small"
+              onClick={() => fetchUploadedFiles(record.employeeID, project.projectId)}
+              style={{ marginRight: "8px" }}
+            >
+              View Docs
+            </Button>
+            <IoNotifications
+              onClick={() => handleOpenReminder(record)}
+              style={{ color: "#f39c12", cursor: "pointer" }}
+            />
+          </div>
+        )),
+    },
+  ];
 
   return (
-    <div className="container">
+    <div>
       <h2>All Employee Time Sheets</h2>
 
-      <div style={{ marginBottom: "20px" }}>
-        <label htmlFor="month" style={{ marginRight: "10px" }}>Month:</label>
-        <select id="month" value={selectedMonth || ""} onChange={handleMonthChange} style={{ marginRight: "20px" }}>
-          <option value="">Select Month</option>
+      <div style={{ marginBottom: 20, display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <Select
+          placeholder="Select Month"
+          style={{ width: 140 }}
+          value={selectedMonth}
+          onChange={(value) => setSelectedMonth(value)}
+        >
           {Array.from({ length: 12 }, (_, i) => (
-            <option key={i + 1} value={i + 1}>
+            <Option key={i + 1} value={i + 1}>
               {new Date(2020, i, 1).toLocaleString("default", { month: "long" })}
-            </option>
+            </Option>
           ))}
-        </select>
+        </Select>
 
-        <label htmlFor="year" style={{ marginRight: "10px" }}>Year:</label>
-        <select id="year" value={selectedYear || ""} onChange={handleYearChange} style={{ marginRight: "20px" }}>
-          <option value="">Select Year</option>
-          {(() => {
-            const currentYear = new Date().getFullYear();
-            const years = [];
-            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
-              years.push(
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              );
-            }
-            return years;
-          })()}
-        </select>
+        <Select
+          placeholder="Select Year"
+          style={{ width: 100 }}
+          value={selectedYear}
+          onChange={(value) => setSelectedYear(value)}
+        >
+          {Array.from({ length: 11 }, (_, i) => {
+            const year = new Date().getFullYear() - 5 + i;
+            return (
+              <Option key={year} value={year}>
+                {year}
+              </Option>
+            );
+          })}
+        </Select>
 
-        <label htmlFor="company" style={{ marginRight: "10px" }}>Company:</label>
-        <select id="company" value={selectedCompanyId} onChange={handleCompanyChange} style={{ marginRight: "20px" }}>
-          <option value="">All Companies</option>
+        <Select
+          placeholder="Select Company"
+          style={{ width: 180 }}
+          value={selectedCompanyId}
+          onChange={(value) => setSelectedCompanyId(value)}
+        >
+          <Option value="">All Companies</Option>
           {companies.map((company) => (
-            <option key={company.companyId} value={company.companyId}>
+            <Option key={company.companyId} value={company.companyId}>
               {company.companyName}
-            </option>
+            </Option>
           ))}
-        </select>
+        </Select>
 
-        <label style={{ marginRight: "10px" }}>
-          <input
-            type="checkbox"
-            checked={showAllProjects}
-            onChange={() => setShowAllProjects(!showAllProjects)}
-            style={{ marginRight: "5px" }}
-          />
+        <Checkbox checked={showAllProjects} onChange={(e) => setShowAllProjects(e.target.checked)}>
           Show All Projects
-        </label>
+        </Checkbox>
       </div>
 
-      {selectedMonth !== null && selectedYear !== null && (
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>FirstName</th>
-                <th>LastName</th>
-                <th>Company</th>
-                <th>Projects</th>
-                {renderDates().map((dateObj, index) => (
-                  <th key={index} style={{ color: dateObj.isWeekend ? "red" : "black" }}>{dateObj.date}</th>
-                ))}
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.length > 0 ? (
-                employees.map((employee) => (
-                  <React.Fragment key={employee.employeeID}>
-                    {employee.projects.length > 0 ? (
-                      employee.projects.map((project, index) => (
-                        <tr key={`${employee.employeeID}-${project.projectId}-${index}`}>
-                          {index === 0 && (
-                            <>
-                              <td rowSpan={employee.projects.length}>{employee.firstName}</td>
-                              <td rowSpan={employee.projects.length}>{employee.lastName}</td>
-                              <td rowSpan={employee.projects.length}>{employee.company?.companyName}</td>
-                            </>
-                          )}
-                          <td style={{ color: project.projectEndDate < new Date() ? "red" : "black" }}>
-                            {`${project.subVendorOne}/${project.subVendorTwo}`}
-                          </td>
-                          {renderDates().map((dateObj, idx) => (
-                            <td key={idx} style={{ color: dateObj.isWeekend ? "red" : "black" }}>
-                              {findRegularHours(employee.employeeID, project.projectId, new Date(dateObj.date).getDate())}
-                            </td>
-                          ))}
-                          <td>
-                            <FaCheck
-                              size={20}
-                              title="Approve"
-                              onClick={() => handleApprove(employee, project)}
-                              style={{ color: "green", cursor: "pointer", marginRight: "10px" }}
-                            />
-                            <FaTimes
-                              size={20}
-                              title="Reject"
-                              onClick={() => handleReject(employee, project)}
-                              style={{ color: "red", cursor: "pointer", marginRight: "10px" }}
-                            />
-                            <TbNotes
-                              size={20}
-                              title="Notes"
-                              onClick={() => handleOpenNotes(employee.employeeID, project.projectId)}
-                              style={{ color: "#007bff", cursor: "pointer", marginRight: "10px" }}
-                            />
-                            <button
-                              onClick={() => fetchUploadedFiles(employee.employeeID, project.projectId)}
-                              style={{ padding: "2px 6px", fontSize: "12px", marginRight: "10px" }}
-                            >
-                              View Docs
-                            </button>
-                            <IoNotifications
-                              size={22}
-                              title="Send Reminder"
-                              onClick={() => handleOpenReminder(employee)}
-                              style={{ color: "#f39c12", cursor: "pointer" }}
-                            />
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr key={employee.employeeID}>
-                        <td>{employee.firstName}</td>
-                        <td>{employee.lastName}</td>
-                        <td>{employee.company?.companyName}</td>
-                        <td colSpan={renderDates().length + 1}>No Projects</td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={renderDates().length + 4} style={{ textAlign: "center" }}>
-                    {selectedCompanyId ? "No employees found for selected company" : "No employees found"}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage} />
+      <Table
+        columns={columns}
+        dataSource={employees}
+        loading={loading}
+        rowKey="employeeID"
+        pagination={{
+          current: currentPage,
+          pageSize,
+          total: totalPages * pageSize,
+          onChange: (page) => setCurrentPage(page),
+        }}
+        scroll={{ x: "max-content" }}
+      />
 
       {/* Notes Modal */}
-      {showNotesModal && (
-        <>
-          <div
-            onClick={() => setShowNotesModal(false)}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              zIndex: 999,
-            }}
-          />
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              zIndex: 1000,
-              width: "400px",
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-            }}
-          >
-            <h5>Notes</h5>
-            <textarea
-              rows={5}
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              style={{ width: "100%" }}
-              placeholder="Type notes here..."
-            />
-            <div style={{ marginTop: "10px", display: "flex", justifyContent: "space-between" }}>
-              <button onClick={handleSaveNote}>Save</button>
-              <button onClick={() => setShowNotesModal(false)}>Close</button>
-            </div>
-          </div>
-        </>
-      )}
+      <Modal
+        title="Notes"
+        open={notesModalVisible}
+        onOk={handleSaveNote}
+        onCancel={() => setNotesModalVisible(false)}
+      >
+        <TextArea
+          rows={5}
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="Type notes here..."
+        />
+      </Modal>
 
       {/* Docs Modal */}
-      {showDocsModal && (
-        <>
-          <div
-            onClick={() => setShowDocsModal(false)}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              zIndex: 999,
-            }}
-          />
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              zIndex: 1000,
-              width: "400px",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-            }}
-          >
-            <h5>Uploaded Documents</h5>
-            {uploadedDocs.length > 0 ? (
-              <ul>
-                {uploadedDocs.map((doc, idx) => (
-                  <li key={idx}>
-                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                      {doc.fileName}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No documents uploaded.</p>
-            )}
-            <div style={{ marginTop: "10px", textAlign: "right" }}>
-              <button onClick={() => setShowDocsModal(false)}>Close</button>
-            </div>
-          </div>
-        </>
-      )}
+      <Modal
+        title="Uploaded Documents"
+        open={docsModalVisible}
+        onCancel={() => setDocsModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDocsModalVisible(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+        {uploadedDocs.length > 0 ? (
+          <ul>
+            {uploadedDocs.map((doc, idx) => (
+              <li key={idx}>
+                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                  {doc.fileName}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No documents uploaded.</p>
+        )}
+      </Modal>
 
-      {/* ✅ Reminder Modal */}
-      {showReminderModal && (
-        <>
-          <div
-            onClick={() => setShowReminderModal(false)}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              zIndex: 999,
-            }}
-          />
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              zIndex: 1000,
-              width: "400px",
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-            }}
-          >
-            <h5>Send Reminder to {reminderEmployee?.firstName} {reminderEmployee?.lastName}</h5>
-            <textarea
-              rows={5}
-              value={reminderText}
-              onChange={(e) => setReminderText(e.target.value)}
-              style={{ width: "100%" }}
-              placeholder="Type your reminder message here..."
-            />
-            <div style={{ marginTop: "10px", display: "flex", justifyContent: "space-between" }}>
-              <button onClick={handleSendReminder}>Send</button>
-              <button onClick={() => setShowReminderModal(false)}>Close</button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* Reminder Modal */}
+      <Modal
+        title={`Send Reminder to ${reminderEmployee?.firstName} ${reminderEmployee?.lastName}`}
+        open={reminderModalVisible}
+        onOk={handleSendReminder}
+        onCancel={() => setReminderModalVisible(false)}
+      >
+        <TextArea
+          rows={5}
+          value={reminderText}
+          onChange={(e) => setReminderText(e.target.value)}
+          placeholder="Type your reminder message here..."
+        />
+      </Modal>
     </div>
   );
 };

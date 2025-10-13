@@ -1,115 +1,114 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { BiDollar } from "react-icons/bi";
+import {
+  Table,
+  Card,
+  Typography,
+  Space,
+  Button,
+  Modal,
+  List,
+  message,
+  Popconfirm,
+} from "antd";
+import {
+  BiDollar
+} from "react-icons/bi";
 import { IoIosPause } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
-import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
+import {
+  AiFillDelete,
+  AiOutlineUsergroupAdd,
+} from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { MdFileDownload } from "react-icons/md";
 import { GiTakeMyMoney } from "react-icons/gi";
-import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button, Modal, List, Space } from "antd";
-import "../Employee/Employee.css";
 import {
   deleteEmployee,
   fetchEmployees,
 } from "../SharedComponents/services/EmployeeServices";
 
+const { Title } = Typography;
+
 export default function Employee() {
   const [users, setUsers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
+  const [total, setTotal] = useState(0);
   const [fileList, setFileList] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [fileModalVisible, setFileModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
   const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    fetchData();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+    fetchData(1, 10);
+  }, []);
 
-  const fetchData = async () => {
-    const { content, totalPages } = await fetchEmployees(
-      currentPage,
-      pageSize,
-      searchQuery,
-      searchField
-    );
-
-    const loggedInUserId = sessionStorage.getItem("id");
-
-    if (loggedInUserId === "admin_id") {
-      setUsers(content);
-    } else {
-      const filteredContent = content.filter(
-        (employee) =>
-          employee.company && employee.company.companyId === defaultCompanyId
+  const fetchData = async (page, pageSize) => {
+    setLoading(true);
+    try {
+      const { content, totalPages } = await fetchEmployees(
+        page - 1,
+        pageSize
       );
-      setUsers(filteredContent);
-    }
 
-    setTotalPages(totalPages);
+      const loggedInUserId = sessionStorage.getItem("id");
+      let filtered = content;
+
+      if (loggedInUserId !== "admin_id") {
+        filtered = content.filter(
+          (employee) =>
+            employee.company && employee.company.companyId === defaultCompanyId
+        );
+      }
+
+      setUsers(
+        filtered.map((e, i) => ({
+          key: e.employeeID,
+          ...e,
+        }))
+      );
+      setTotal(totalPages * pageSize);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteEmployee = async (employeeId) => {
     const success = await deleteEmployee(employeeId);
     if (success) {
-      fetchData();
+      message.success("Employee deleted successfully");
+      fetchData(1, 10);
+    } else {
+      message.error("Failed to delete employee");
     }
   };
 
-  const handleProfitAndLoss = (employeeId) => {
-    navigate(`/profit-loss/${employeeId}`);
-  };
-
-  const handleViewTracking = (employeeId) => {
-    navigate(`/tracking/${employeeId}`);
-  };
-
-  const handleEditEmployee = (employeeId) => {
-    navigate(`/editemployee/${employeeId}`);
-  };
-
-  const handleAddLeaveBalance = (employeeId) => {
-    navigate(`/addleavebalance/${employeeId}`);
-  };
-
-  const handleSearch = () => {
-    fetchData();
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setSearchField("");
-    fetchData();
-  };
+  const handleProfitAndLoss = (id) => navigate(`/profit-loss/${id}`);
+  const handleViewTracking = (id) => navigate(`/tracking/${id}`);
+  const handleEditEmployee = (id) => navigate(`/editemployee/${id}`);
+  const handleAddLeaveBalance = (id) => navigate(`/addleavebalance/${id}`);
 
   const handleDownloadFiles = async (employeeId) => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(
-        `${apiUrl}/employees/prospectFiles/${employeeId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${apiUrl}/employees/prospectFiles/${employeeId}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!res.ok) throw new Error("Failed to fetch files");
-
       const files = await res.json();
       setFileList(files);
       setSelectedEmployeeId(employeeId);
       setFileModalVisible(true);
     } catch (error) {
       console.error("Error fetching files:", error);
+      message.error("Could not fetch files");
     }
   };
 
@@ -120,9 +119,7 @@ export default function Employee() {
         `${apiUrl}/employees/prospectFiles/${selectedEmployeeId}/${fileName}`,
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -136,157 +133,134 @@ export default function Employee() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+      message.success("File downloaded");
     } catch (error) {
       console.error("Error downloading file:", error);
+      message.error("File download failed");
     }
   };
 
-  return (
-    <>
-      <h4 className="text-center">Employee details</h4>
-      <div
-        className="search-container"
-        style={{ display: "flex", justifyContent: "space-between" }}
-      >
-        <div className="search-container">
-          <Space.Compact className="search-bar" size="large">
-            <Select
-              value={searchField}
-              onChange={setSearchField}
-              style={{ width: 150 }}
-              placeholder="Select Field"
-            >
-              <Select.Option value="">Select Field</Select.Option>
-              <Select.Option value="firstName">First Name</Select.Option>
-              <Select.Option value="lastName">Last Name</Select.Option>
-              <Select.Option value="emailID">Email Id</Select.Option>
-              <Select.Option value="company">Company</Select.Option>
-              <Select.Option value="phoneNo">Phone No</Select.Option>
-              <Select.Option value="onBench">Working Status</Select.Option>
-            </Select>
-
-            <Input.Search
-              placeholder="Search..."
-              allowClear
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onSearch={handleSearch}
-              enterButton
-            />
-
-            <Button onClick={handleClearSearch}>Clear</Button>
-          </Space.Compact>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Link
-            className="add-user-link"
-            to="/adduser"
-            style={{ marginRight: "10px" }}
+  const columns = [
+    {
+      title: "First Name",
+      dataIndex: "firstName",
+      sorter: (a, b) => a.firstName.localeCompare(b.firstName),
+    },
+    {
+      title: "Last Name",
+      dataIndex: "lastName",
+      sorter: (a, b) => a.lastName.localeCompare(b.lastName),
+    },
+    {
+      title: "Email ID",
+      dataIndex: "emailID",
+      sorter: (a, b) => a.emailID.localeCompare(b.emailID),
+    },
+    {
+      title: "Company",
+      render: (record) => (record.company ? record.company.companyName : "N/A"),
+      filters: [
+        ...new Set(users.map((u) => u.company?.companyName).filter(Boolean)),
+      ].map((c) => ({ text: c, value: c })),
+      onFilter: (value, record) => record.company?.companyName === value,
+    },
+    {
+      title: "Phone No",
+      dataIndex: "phoneNo",
+    },
+    {
+      title: "Working Status",
+      dataIndex: "onBench",
+      filters: [
+        { text: "Working", value: "Working" },
+        { text: "On Bench", value: "On Bench" },
+      ],
+      onFilter: (value, record) => record.onBench === value,
+    },
+    {
+      title: "Actions",
+      render: (record) => (
+        <Space size="middle">
+          <FiEdit2
+            onClick={() => handleEditEmployee(record.employeeID)}
+            title="Edit"
+            style={{ cursor: "pointer" }}
+          />
+          <IoIosPause
+            onClick={() => handleAddLeaveBalance(record.employeeID)}
+            title="Add Leave Balance"
+            style={{ cursor: "pointer" }}
+          />
+          <BiDollar
+            onClick={() => handleViewTracking(record.employeeID)}
+            title="WithHold Tracking"
+            style={{ cursor: "pointer" }}
+          />
+          <MdFileDownload
+            onClick={() => handleDownloadFiles(record.employeeID)}
+            title="Download Files"
+            style={{ cursor: "pointer" }}
+          />
+          <GiTakeMyMoney
+            onClick={() => handleProfitAndLoss(record.employeeID)}
+            title="Profit & Loss"
+            style={{ cursor: "pointer" }}
+          />
+          <Popconfirm
+            title="Delete this employee?"
+            onConfirm={() => handleDeleteEmployee(record.employeeID)}
           >
-            <BsFillPersonPlusFill size={25} title="Add Employee" />
-          </Link>
-          <Link className="add-pro-link" to="/addprospect">
-            <AiOutlineUsergroupAdd size={25} title="Prospect Employee" />
-          </Link>
-        </div>
+            <AiFillDelete
+              title="Delete"
+              style={{ cursor: "pointer", color: "red" }}
+            />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const onChange = (pagination, filters, sorter, extra) => {
+    console.log("params", pagination, filters, sorter, extra);
+    fetchData(pagination.current, pagination.pageSize);
+  };
+
+  return (
+    <Card>
+      <Title level={4} style={{ textAlign: "center" }}>
+        Employee Details
+      </Title>
+
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 10,
+        }}
+      >
+        <Link to="/adduser">
+          <Button type="primary" icon={<BsFillPersonPlusFill />}>
+            Add Employee
+          </Button>
+        </Link>
+        <Link to="/addprospect">
+          <Button type="dashed" icon={<AiOutlineUsergroupAdd />}>
+            Prospect Employee
+          </Button>
+        </Link>
       </div>
 
-      <div>
-        <table className="table table-striped border shadow">
-          <thead>
-            <tr>
-              <th scope="col">S.No</th>
-              <th scope="col">First Name</th>
-              <th scope="col">Last Name</th>
-              <th scope="col">Email ID</th>
-              <th scope="col">Company</th>
-              <th scope="col">Phone No</th>
-              <th scope="col">Working Status</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users && users.length > 0 ? (
-              users.map((employee, index) => {
-                const userIndex = index + currentPage * pageSize;
-                return (
-                  <tr key={userIndex}>
-                    <th scope="row">{userIndex + 1}</th>
-                    <td>{employee.firstName}</td>
-                    <td>{employee.lastName}</td>
-                    <td>{employee.emailID}</td>
-                    <td>
-                      {employee.company ? employee.company.companyName : "N/A"}
-                    </td>
-                    <td>{employee.phoneNo}</td>
-                    <td>{employee.onBench}</td>
-                    <td>
-                      <div className="icon-container">
-                        <FiEdit2
-                          onClick={() =>
-                            handleEditEmployee(employee.employeeID)
-                          }
-                          size={20}
-                          title="Edit Employee"
-                        />
-                        <IoIosPause
-                          onClick={() =>
-                            handleAddLeaveBalance(employee.employeeID)
-                          }
-                          size={20}
-                          title="Add Leave Balance"
-                          style={{ cursor: "pointer", color: "black" }}
-                        />
-                        <BiDollar
-                          onClick={() =>
-                            handleViewTracking(employee.employeeID)
-                          }
-                          size={20}
-                          title="WithHold Tracking"
-                        />
-                        <MdFileDownload
-                          onClick={() =>
-                            handleDownloadFiles(employee.employeeID)
-                          }
-                          size={20}
-                          title="Download Files"
-                          style={{ cursor: "pointer", color: "black" }}
-                        />
-                        <GiTakeMyMoney
-                          onClick={() =>
-                            handleProfitAndLoss(employee.employeeID)
-                          }
-                          size={20}
-                          title="Profit & Loss"
-                          style={{ cursor: "pointer" }}
-                        />
-                        <AiFillDelete
-                          onClick={() =>
-                            handleDeleteEmployee(employee.employeeID)
-                          }
-                          size={20}
-                          className="delete-icon"
-                          title="Delete"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="8">No users found</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
+      <Table
+        columns={columns}
+        dataSource={users}
+        loading={loading}
+        onChange={onChange}
+        pagination={{
+          total,
+          showSizeChanger: true,
+        }}
+        bordered
       />
 
       <Modal
@@ -314,6 +288,6 @@ export default function Employee() {
           <p>No files found.</p>
         )}
       </Modal>
-    </>
+    </Card>
   );
 }

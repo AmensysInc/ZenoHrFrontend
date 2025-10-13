@@ -1,63 +1,54 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { DatePicker } from "antd";
-import { Modal } from 'antd';
+import { useNavigate } from "react-router-dom";
+import {
+  Form,
+  Input,
+  Button,
+  Select,
+  DatePicker,
+  Modal,
+  Typography,
+  Row,
+  Col,
+  message,
+} from "antd";
+import dayjs from "dayjs";
+
+const { Title } = Typography;
+const { Option } = Select;
 
 export default function AddProspectEmployee() {
   const apiUrl = process.env.REACT_APP_API_URL;
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    emailID: "",
-    dob: "",
-    clgOfGrad: "",
-    phoneNo:"",
-    onBench: "",
-    email: "",
-    password: "",
-  });
+  const [form] = Form.useForm();
 
-  const {
-    firstName,
-    lastName,
-    emailID,
-    dob,
-    clgOfGrad,
-    phoneNo,
-    onBench,
-    email,
-    password,
-  } = user;
-
-  const onInputChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onFinish = async (values) => {
     try {
-      const requestOptions = {
+      const payload = {
+        ...values,
+        dob: values.dob ? values.dob.format("YYYY-MM-DD") : null,
+      };
+
+      const response = await fetch(`${apiUrl}/employees/prospect`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
-        body: JSON.stringify(user),
-      };
+        body: JSON.stringify(payload),
+      });
 
-      const response = await fetch(`${apiUrl}/employees/prospect`, requestOptions);
-      console.log(response);
-      if(response.status === 200){
-        showModal();
+      if (response.status === 200) {
+        setIsModalOpen(true);
+      } else {
+        message.error("Failed to add prospect employee");
       }
     } catch (error) {
-      console.error("Error adding employee:", error);
+      console.error(error);
+      message.error("Error adding employee");
     }
-  };
-  const showModal = () => {
-    setIsModalOpen(true);
   };
 
   const handleOk = () => {
@@ -71,113 +62,101 @@ export default function AddProspectEmployee() {
   };
 
   return (
-    <div className="form-container">
-      <h2 className="text-center m-4">Add ProspetEmployee</h2>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
+      <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
+        Add Prospect Employee
+      </Title>
 
-      <form onSubmit={(e) => onSubmit(e)}>
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="firstName">First Name</label>
-            <input
-              type={"text"}
-              className="form-control"
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{
+          onBench: "",
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="First Name"
               name="firstName"
-              value={firstName}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="lastName">Last Name</label>
-            <input
-              type={"text"}
-              className="form-control"
-              name="lastName"
-              value={lastName}
-              onChange={(e) => onInputChange(e)}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="emailID">Email Address</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="emailID"
-            value={emailID}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-        <label htmlFor="emailID">Date of Birth</label>
-        <DatePicker
-              className="form-control"
-              value={dob}
-              onChange={(date) => onInputChange({ target: { name: "dob", value: date } })}
-              required
-        />
-        </div>
-        <div className="form-group">
-          <label htmlFor="clgOfGrad">Name of the college</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="clgOfGrad"
-            value={clgOfGrad}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="clgOfGrad">Phone No</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="phoneNo"
-            value={phoneNo}
-            onChange={(e) => onInputChange(e)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="onBench">Working or Bench</label>
-          <select
-            id="onBench"
-            name="onBench"
-            value={onBench}
-            onChange={(e) => onInputChange(e)}
-            required
-          >
-            <option value="">-- Select --</option>
-            <option value="Working">onBench</option>
-            <option value="OnProject">OnProject</option>
-            <option value="OnVacation">OnVacation</option>
-            <option value="OnSick">OnSick</option>
-          </select>
-        </div>
-        {/* <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type={"text"}
-            className="form-control"
-            name="password"
-            value={password}
-            onChange={(e) => onInputChange(e)}
-          />
-        </div> */}
-        <button type="submit" className="btn btn-outline-primary">
-          Submit
-        </button>
-        <Link className="btn btn-outline-danger mx-2" to="/">
-          Cancel
-        </Link>
-      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <p>Prospect Employee added succesfully</p>
+              rules={[{ required: true, message: "Please enter first name" }]}
+            >
+              <Input placeholder="First Name" />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item label="Last Name" name="lastName">
+              <Input placeholder="Last Name" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          label="Email Address"
+          name="emailID"
+          rules={[
+            { required: true, message: "Please enter email" },
+            { type: "email", message: "Enter a valid email" },
+          ]}
+        >
+          <Input placeholder="Email Address" />
+        </Form.Item>
+
+        <Form.Item
+          label="Date of Birth"
+          name="dob"
+          rules={[{ required: true, message: "Please select date of birth" }]}
+        >
+          <DatePicker style={{ width: "100%" }} />
+        </Form.Item>
+
+        <Form.Item
+          label="Name of the College"
+          name="clgOfGrad"
+          rules={[{ required: true, message: "Please enter college name" }]}
+        >
+          <Input placeholder="College Name" />
+        </Form.Item>
+
+        <Form.Item
+          label="Phone Number"
+          name="phoneNo"
+          rules={[{ required: true, message: "Please enter phone number" }]}
+        >
+          <Input placeholder="Phone Number" />
+        </Form.Item>
+
+        <Form.Item
+          label="Working / Bench"
+          name="onBench"
+          rules={[{ required: true, message: "Please select status" }]}
+        >
+          <Select placeholder="Select Status">
+            <Option value="Working">Working</Option>
+            <Option value="OnProject">On Project</Option>
+            <Option value="OnVacation">On Vacation</Option>
+            <Option value="OnSick">On Sick</Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+          <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
+            Submit
+          </Button>
+          <Button onClick={() => navigate("/")}>Cancel</Button>
+        </Form.Item>
+      </Form>
+
+      <Modal
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="OK"
+      >
+        <p>Prospect Employee added successfully!</p>
       </Modal>
-      </form>
     </div>
   );
 }
-
-

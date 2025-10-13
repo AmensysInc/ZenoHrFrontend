@@ -1,103 +1,126 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Card, Input, Button, Typography, Form, message, Spin } from "antd";
+import { MailOutlined, LockOutlined, LoadingOutlined } from "@ant-design/icons";
+import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "./authUtils";
 
+const { Title, Text } = Typography;
+
 export default function Login({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (values) => {
+    const { email, password } = values;
     setIsLoading(true);
     const error = await loginUser(email, password, onLogin, navigate);
-    if (error) {
-      setErrorMessage(error);
-    }
+    if (error) message.error(error);
+    else message.success("Login successful!");
     setIsLoading(false);
   };
 
   return (
-    <div className="login-page" style={styles.page}>
-      <div className="login-container" style={styles.container}>
-        <div className="login-header" style={styles.header}>
-          <h2 style={styles.title}>Welcome Back</h2>
-          <p style={styles.subtitle}>Log in to your Zeno Pay & HR account</p>
-        </div>
-        
-        <form onSubmit={handleLogin} style={styles.form}>
-          <div className="form-group" style={styles.formGroup}>
-            <label htmlFor="email" style={styles.label}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              className="form-control"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-              placeholder="Enter your email"
-            />
-          </div>
-          
-          <div className="form-group" style={styles.formGroup}>
-            <label htmlFor="password" style={styles.label}>
-              Password
-            </label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={styles.input}
-              placeholder="Enter your password"
-            />
-          </div>
-          
-          <div style={styles.forgotPassword}>
-            <Link to="/forgot-password" style={styles.forgotLink}>
-              Forgot password?
-            </Link>
-          </div>
-          
-          {errorMessage && (
-            <div className="alert alert-danger" style={styles.error}>
-              {errorMessage}
-            </div>
-          )}
-          
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={styles.button}
-            disabled={isLoading}
+    <div style={styles.page}>
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <Card
+          bordered={false}
+          style={styles.card}
+          hoverable
+          className="shadow-xl"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
           >
-            {isLoading ? (
-              <>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span className="ms-2">Logging in...</span>
-              </>
-            ) : (
-              "Log In"
-            )}
-          </button>
-        </form>
-        
-        {/* <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Don't have an account?{' '}
-            <Link to="/signup" style={styles.signupLink}>
-              Sign up
-            </Link>
-          </p>
-        </div> */}
-      </div>
+            <div style={styles.header}>
+              <Title level={2} style={styles.title}>
+                Welcome Back
+              </Title>
+              <Text type="secondary">
+                Log in to your <b>Zeno HR & PAY</b> account
+              </Text>
+            </div>
+
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleLogin}
+              requiredMark={false}
+              style={{ marginTop: 30 }}
+            >
+              <Form.Item
+                name="email"
+                label="Email Address"
+                rules={[
+                  { required: true, message: "Please enter your email" },
+                  { type: "email", message: "Enter a valid email address" },
+                ]}
+              >
+                <Input
+                  size="large"
+                  prefix={<MailOutlined style={{ color: "#8b8b8b" }} />}
+                  placeholder="Enter your email"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[{ required: true, message: "Please enter your password" }]}
+              >
+                <Input.Password
+                  size="large"
+                  prefix={<LockOutlined style={{ color: "#8b8b8b" }} />}
+                  placeholder="Enter your password"
+                />
+              </Form.Item>
+
+              <div style={styles.forgot}>
+                <Link to="/forgot-password" style={styles.forgotLink}>
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                block
+                style={styles.button}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Spin
+                      indicator={<LoadingOutlined style={{ color: "white" }} spin />}
+                      size="small"
+                    />{" "}
+                    Logging in...
+                  </>
+                ) : (
+                  "Log In"
+                )}
+              </Button>
+            </Form>
+
+            {/* <div style={styles.footer}>
+              <Text type="secondary">
+                Don’t have an account?{" "}
+                <Link to="/signup" style={styles.signupLink}>
+                  Sign Up
+                </Link>
+              </Text>
+            </div> */}
+          </motion.div>
+        </Card>
+      </motion.div>
     </div>
   );
 }
@@ -108,100 +131,44 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     minHeight: "100vh",
-    backgroundImage: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    background: "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)",
     padding: "20px",
   },
-  container: {
-    backgroundColor: "white",
-    borderRadius: "12px",
-    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
-    padding: "40px",
-    width: "100%",
-    maxWidth: "450px",
+  card: {
+    width: 400,
+    borderRadius: 16,
+    background: "white",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+    padding: "30px 35px",
   },
   header: {
     textAlign: "center",
-    marginBottom: "30px",
+    marginBottom: "20px",
   },
   title: {
+    marginBottom: "4px",
     color: "#2d3748",
-    fontSize: "28px",
-    fontWeight: "700",
-    marginBottom: "8px",
   },
-  subtitle: {
-    color: "#718096",
-    fontSize: "14px",
-    margin: "0",
-  },
-  form: {
-    marginBottom: "20px",
-  },
-  formGroup: {
-    marginBottom: "20px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    color: "#4a5568",
-    fontSize: "14px",
-    fontWeight: "600",
-  },
-  input: {
-    width: "100%",
-    padding: "12px 16px",
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    fontSize: "14px",
-    transition: "border-color 0.3s",
-  },
-  inputFocus: {
-    borderColor: "#667eea",
-    outline: "none",
-  },
-  forgotPassword: {
+  forgot: {
     textAlign: "right",
     marginBottom: "20px",
   },
   forgotLink: {
     color: "#667eea",
-    fontSize: "13px",
     textDecoration: "none",
   },
-  error: {
-    marginBottom: "20px",
-    padding: "12px",
-    borderRadius: "8px",
-    fontSize: "14px",
-  },
   button: {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "8px",
-    backgroundColor: "#667eea",
+    background: "linear-gradient(90deg, #667eea, #764ba2)",
     border: "none",
-    color: "white",
-    fontSize: "16px",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "background-color 0.3s",
-  },
-  buttonHover: {
-    backgroundColor: "#5a67d8",
+    fontWeight: 600,
+    transition: "0.3s",
   },
   footer: {
     textAlign: "center",
-    paddingTop: "20px",
-    borderTop: "1px solid #edf2f7",
-  },
-  footerText: {
-    color: "#718096",
-    fontSize: "14px",
-    margin: "0",
+    marginTop: "24px",
   },
   signupLink: {
-    color: "#667eea",
-    fontWeight: "600",
-    textDecoration: "none",
+    color: "#764ba2",
+    fontWeight: 600,
   },
 };
