@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     try {
       const payload = {
         email: values.email,
-        category: "FORGOT_PASSWORD", // ✅ Fixed category
+        category: "FORGOT_PASSWORD",
       };
 
       const response = await post("/auth/resetPassword", payload);

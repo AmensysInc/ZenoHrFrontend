@@ -11,6 +11,7 @@ import {
   Typography,
   Row,
   Col,
+  Space,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -108,6 +109,15 @@ export default function EmployeeForm({ mode }) {
   const handleCancel = () => {
     setIsModalOpen(false);
     navigate("/");
+  };
+
+  // ✅ Navigation handlers
+  const handleGoToProjects = () => {
+    navigate(`/editemployee/${employeeId}/project-history`);
+  };
+
+  const handleGoToVisaDetails = () => {
+    navigate(`/editemployee/${employeeId}/visa-details`);
   };
 
   return (
@@ -242,6 +252,7 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
+        {/* ✅ Form Buttons */}
         <Form.Item style={{ textAlign: "center", marginTop: 16 }}>
           {isEditMode && (
             <Button
@@ -263,6 +274,20 @@ export default function EmployeeForm({ mode }) {
             {isEditMode ? "Update" : "Submit"}
           </Button>
         </Form.Item>
+
+        {/* ✅ New Section: Additional Actions (Only in Edit Mode) */}
+        {isEditMode && (
+          <div style={{ textAlign: "center", marginTop: 24 }}>
+            <Space>
+              <Button type="primary" onClick={handleGoToProjects}>
+                View Project History
+              </Button>
+              <Button type="primary" onClick={handleGoToVisaDetails}>
+                View Visa Details
+              </Button>
+            </Space>
+          </div>
+        )}
       </Form>
 
       <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>

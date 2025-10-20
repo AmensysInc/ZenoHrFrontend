@@ -11,9 +11,7 @@ import {
   message,
   Popconfirm,
 } from "antd";
-import {
-  BiDollar
-} from "react-icons/bi";
+import { BiDollar } from "react-icons/bi";
 import { IoIosPause } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
 import {
@@ -27,6 +25,7 @@ import {
   deleteEmployee,
   fetchEmployees,
 } from "../SharedComponents/services/EmployeeServices";
+import "./Employee.css"; // ✅ we'll create this for hover animations
 
 const { Title } = Typography;
 
@@ -49,10 +48,7 @@ export default function Employee() {
   const fetchData = async (page, pageSize) => {
     setLoading(true);
     try {
-      const { content, totalPages } = await fetchEmployees(
-        page - 1,
-        pageSize
-      );
+      const { content, totalPages } = await fetchEmployees(page - 1, pageSize);
 
       const loggedInUserId = sessionStorage.getItem("id");
       let filtered = content;
@@ -60,12 +56,13 @@ export default function Employee() {
       if (loggedInUserId !== "admin_id") {
         filtered = content.filter(
           (employee) =>
-            employee.company && employee.company.companyId === defaultCompanyId
+            employee.company &&
+            employee.company.companyId === defaultCompanyId
         );
       }
 
       setUsers(
-        filtered.map((e, i) => ({
+        filtered.map((e) => ({
           key: e.employeeID,
           ...e,
         }))
@@ -184,27 +181,27 @@ export default function Employee() {
           <FiEdit2
             onClick={() => handleEditEmployee(record.employeeID)}
             title="Edit"
-            style={{ cursor: "pointer" }}
+            className="icon-mac icon-edit"
           />
           <IoIosPause
             onClick={() => handleAddLeaveBalance(record.employeeID)}
             title="Add Leave Balance"
-            style={{ cursor: "pointer" }}
+            className="icon-mac icon-leave"
           />
           <BiDollar
             onClick={() => handleViewTracking(record.employeeID)}
             title="WithHold Tracking"
-            style={{ cursor: "pointer" }}
+            className="icon-mac icon-tracking"
           />
           <MdFileDownload
             onClick={() => handleDownloadFiles(record.employeeID)}
             title="Download Files"
-            style={{ cursor: "pointer" }}
+            className="icon-mac icon-download"
           />
           <GiTakeMyMoney
             onClick={() => handleProfitAndLoss(record.employeeID)}
             title="Profit & Loss"
-            style={{ cursor: "pointer" }}
+            className="icon-mac icon-profit"
           />
           <Popconfirm
             title="Delete this employee?"
@@ -212,7 +209,7 @@ export default function Employee() {
           >
             <AiFillDelete
               title="Delete"
-              style={{ cursor: "pointer", color: "red" }}
+              className="icon-mac icon-delete"
             />
           </Popconfirm>
         </Space>
@@ -221,13 +218,26 @@ export default function Employee() {
   ];
 
   const onChange = (pagination, filters, sorter, extra) => {
-    console.log("params", pagination, filters, sorter, extra);
     fetchData(pagination.current, pagination.pageSize);
   };
 
   return (
-    <Card>
-      <Title level={4} style={{ textAlign: "center" }}>
+    <Card
+      style={{
+        borderRadius: 12,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 16,
+      }}
+    >
+      <Title
+        level={4}
+        style={{
+          textAlign: "center",
+          color: "#4f46e5",
+          fontWeight: 700,
+          letterSpacing: 0.5,
+        }}
+      >
         Employee Details
       </Title>
 

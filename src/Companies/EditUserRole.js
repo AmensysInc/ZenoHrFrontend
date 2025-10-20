@@ -1,24 +1,33 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import {
+  Card,
+  Form,
+  Input,
+  Select,
+  Switch,
+  Button,
+  Typography,
+  message,
+  Spin,
+} from "antd";
+import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import "./EditUserRole.css";
+
+const { Title } = Typography;
+const { Option } = Select;
 
 const EditUserRole = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
+  const token = sessionStorage.getItem("token");
 
-  const [roleData, setRoleData] = useState({
-    role: "",
-    userId: "",
-    defaultCompany: false,
-    companyId: "",
-  });
-
+  const [form] = Form.useForm();
   const [userName, setUserName] = useState("");
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = sessionStorage.getItem("token");
-  const API_URL = process.env.REACT_APP_API_URL;
 
   const config = {
     headers: {
@@ -26,139 +35,142 @@ const EditUserRole = () => {
     },
   };
 
+  /** Fetch role, user, and company data **/
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch role data
-        const roleResponse = await axios.get(
-          `${API_URL}/user-company/${id}`,
-          config
+        const [roleRes, userRes, companyRes] = await Promise.all([
+          axios.get(`${API_URL}/user-company/${id}`, config),
+          axios.get(`${API_URL}/users`, config),
+          axios.get(`${API_URL}/companies`, config),
+        ]);
+
+        const roleData = roleRes.data;
+        form.setFieldsValue({
+          role: roleData.role || "",
+          companyId: roleData.companyId || "",
+          defaultCompany: roleData.defaultCompany || false,
+        });
+
+        const matchedUser = userRes.data.find(
+          (u) => u.id === roleData.userId
         );
-        setRoleData(roleResponse.data);
-
-        // Fetch users and find the matching user
-        const userResponse = await axios.get(`${API_URL}/users`, config);
-        const matchedUser = userResponse.data.find(
-          (user) => user.id === roleResponse.data.userId
+        setUserName(
+          matchedUser
+            ? `${matchedUser.firstname} ${matchedUser.lastname}`
+            : "User not found"
         );
-
-        if (matchedUser) {
-          setUserName(`${matchedUser.firstname} ${matchedUser.lastname}`);
-        } else {
-          setUserName("User not found");
-        }
-
-        // Fetch companies
-        const companyResponse = await axios.get(`${API_URL}/companies`, config);
-        setCompanies(companyResponse.data.content);
+        setCompanies(companyRes.data.content || []);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error loading data:", err);
+        message.error("Failed to fetch user role data.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, API_URL, form]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === "checkbox") {
-      setRoleData({ ...roleData, defaultCompany: value === "true" });
-    } else {
-      setRoleData({ ...roleData, [name]: value });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /** Submit Handler **/
+  const handleSubmit = async (values) => {
     try {
-      await axios.put(`${API_URL}/user-company/${id}`, roleData, config);
-      if (roleData.defaultCompany === true) {
-        sessionStorage.setItem("defaultCompanyId", roleData.companyId);
+      await axios.put(`${API_URL}/user-company/${id}`, values, config);
+      if (values.defaultCompany) {
+        sessionStorage.setItem("defaultCompanyId", values.companyId);
       }
-      alert("Role updated successfully!");
+      message.success("User role updated successfully!");
       navigate("/companyrole");
     } catch (err) {
       console.error("Error updating role:", err);
-      alert("Update failed");
+      message.error("Failed to update user role.");
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="edit-user-role-loading">
+        <Spin size="large" tip="Loading user role..." />
+      </div>
+    );
+  }
 
   return (
     <div className="edit-user-role-container">
-      <h2>Edit User Role</h2>
-      <form onSubmit={handleSubmit} className="edit-user-role-form">
-        {/* <label>
-          Role:
-          <select
-            name="role"
-            value={roleData.role}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Role</option>
-            <option value="ADMIN">ADMIN</option>
-            <option value="EMPLOYEE">EMPLOYEE</option>
-            <option value="RECRUITER">RECRUITER</option>
-            <option value="SALES">SALES</option>
-          </select>
-        </label> */}
-
-        <label>
-          User:
-          <input type="text" value={userName} readOnly />
-        </label>
-
-        <label>
-          Company:
-          <select
-            name="companyId"
-            value={roleData.companyId}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Company</option>
-            {Array.isArray(companies) &&
-              companies.map((company) => (
-                <option key={company.companyId} value={company.companyId}>
-                  {company.companyName}
-                </option>
-              ))}
-          </select>
-        </label>
-
-        <label>
-          Default Company:
-          <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-            <label>
-              <input
-                type="checkbox"
-                name="defaultCompany"
-                value="true"
-                checked={roleData.defaultCompany === true}
-                onChange={handleChange}
-              />
-              True
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                name="defaultCompany"
-                value="false"
-                checked={roleData.defaultCompany === false}
-                onChange={handleChange}
-              />
-              False
-            </label>
+      <Card
+        bordered={false}
+        className="edit-user-role-card"
+        title={
+          <div className="edit-user-role-header">
+            <Button
+              icon={<ArrowLeftOutlined />}
+              type="link"
+              onClick={() => navigate("/companyrole")}
+            >
+              Back
+            </Button>
+            <Title level={3}>Edit User Role</Title>
           </div>
-        </label>
+        }
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          autoComplete="off"
+          className="edit-user-role-form"
+        >
+          <Form.Item label="User">
+            <Input value={userName} readOnly />
+          </Form.Item>
 
-        <button type="submit">Update Role</button>
-      </form>
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: "Please select a role" }]}
+          >
+            <Select placeholder="Select a role">
+              <Option value="ADMIN">ADMIN</Option>
+              <Option value="EMPLOYEE">EMPLOYEE</Option>
+              <Option value="RECRUITER">RECRUITER</Option>
+              <Option value="SALES">SALES</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="companyId"
+            label="Company"
+            rules={[{ required: true, message: "Please select a company" }]}
+          >
+            <Select placeholder="Select company">
+              {companies.map((company) => (
+                <Option key={company.companyId} value={company.companyId}>
+                  {company.companyName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="defaultCompany"
+            label="Default Company"
+            valuePropName="checked"
+          >
+            <Switch checkedChildren="True" unCheckedChildren="False" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SaveOutlined />}
+              block
+            >
+              Update Role
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 };

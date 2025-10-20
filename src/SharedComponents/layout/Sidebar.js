@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layout, Menu, Typography } from "antd";
+import { Layout, Menu, Typography, Button } from "antd";
 import {
   ApartmentOutlined,
   TeamOutlined,
@@ -10,23 +10,34 @@ import {
   NotificationOutlined,
   FileOutlined,
   ContactsOutlined,
-  SettingOutlined,
   ThunderboltOutlined,
   ClockCircleOutlined,
   FundOutlined,
   UserSwitchOutlined,
+  PoweroffOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { logoutUser } from "../authUtils/authUtils";
 import "./Sidebar.css";
 
 const { Sider } = Layout;
 const { Text } = Typography;
 
-export default function SideBar() {
+export default function SideBar({ setIsLoggedIn, setRole }) {
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const role = roleFromSessionStorage ? roleFromSessionStorage.replace(/"/g, "") : "";
+
+  // ✅ Get user info
+  const firstName = sessionStorage.getItem("firstName")?.replace(/"/g, "") || "";
+  const lastName = sessionStorage.getItem("lastName")?.replace(/"/g, "") || "";
+
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logoutUser(setIsLoggedIn, setRole, navigate);
+  };
 
   const menuItemsByRole = {
     ADMIN: [
@@ -58,16 +69,6 @@ export default function SideBar() {
       { key: "bulkemail", label: "Campaigns", icon: <FundOutlined />, path: "/bulkemail" },
       { key: "companyrole", label: "User Role", icon: <UserSwitchOutlined />, path: "/companyrole" },
     ],
-    SALES: [
-      { key: "candidates", label: "Candidate List", icon: <TeamOutlined />, path: "/candidates" },
-      { key: "marketing", label: "Marketing List", icon: <MailOutlined />, path: "/marketing" },
-    ],
-    RECRUITER: [
-      { key: "marketing", label: "Marketing List", icon: <MailOutlined />, path: "/marketing" },
-      { key: "contacts", label: "Contacts", icon: <ContactsOutlined />, path: "/contacts" },
-      { key: "email", label: "Send Email", icon: <ThunderboltOutlined />, path: "/email" },
-      { key: "bulkemail", label: "Bulk Email", icon: <FundOutlined />, path: "/bulkemail" },
-    ],
     EMPLOYEE: [
       { key: "timeSheets", label: "Monthly Time Sheets", icon: <ClockCircleOutlined />, path: "/timeSheets" },
       { key: "weeklytimeSheets", label: "Weekly Time Sheets", icon: <ClockCircleOutlined />, path: "/weeklytimeSheets" },
@@ -93,15 +94,22 @@ export default function SideBar() {
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        style={styles.sider}
         width={230}
+        style={styles.sider}
       >
+        {/* ✅ Logo and Name */}
         <div style={styles.logo}>
           <Text style={{ color: "white", fontWeight: 600 }}>
-            {collapsed ? "ZP" : "Zeno Pay"}
+            {collapsed ? "ZP" : "Zeno HR & Pay"}
           </Text>
+          {!collapsed && (
+            <Text style={styles.userName}>
+              {firstName} {lastName}
+            </Text>
+          )}
         </div>
 
+        {/* ✅ Menu Items */}
         <Menu
           theme="dark"
           mode="inline"
@@ -113,6 +121,18 @@ export default function SideBar() {
           }))}
           style={styles.menu}
         />
+
+        {/* ✅ Logout Button */}
+        <div style={styles.logoutContainer}>
+          <Button
+            type="text"
+            icon={<PoweroffOutlined style={{ color: "#fff" }} />}
+            onClick={handleLogout}
+            style={styles.logoutBtn}
+          >
+            {!collapsed && "Logout"}
+          </Button>
+        </div>
       </Sider>
     </motion.div>
   );
@@ -120,17 +140,48 @@ export default function SideBar() {
 
 const styles = {
   sider: {
-    minHeight: "100vh",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    height: "100vh",
     background: "linear-gradient(180deg, #667eea 0%, #764ba2 100%)",
     boxShadow: "2px 0 12px rgba(0,0,0,0.1)",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
   },
   logo: {
     textAlign: "center",
-    padding: "16px 0",
+    padding: "18px 0",
     fontSize: "18px",
     letterSpacing: "0.5px",
+    background: "rgba(255,255,255,0.1)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+  },
+  userName: {
+    marginTop: 4,
+    display: "block",
+    color: "#f0f0f0",
+    fontSize: 14,
+    fontWeight: 500,
+    letterSpacing: 0.3,
   },
   menu: {
+    background: "transparent",
+    flex: 1,
+  },
+  logoutContainer: {
+    textAlign: "center",
+    padding: "15px 0",
+    borderTop: "1px solid rgba(255,255,255,0.2)",
+  },
+  logoutBtn: {
+    color: "#fff",
+    fontWeight: 600,
+    width: "100%",
+    borderRadius: 0,
+    fontSize: 15,
     background: "transparent",
   },
 };
