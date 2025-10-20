@@ -1,110 +1,153 @@
 import React, { useState, useEffect } from "react";
-import CustomGrid from "../SharedComponents/CustomGrid";
-import { BsFillPersonPlusFill } from "react-icons/bs";
+import {
+  Card,
+  Table,
+  Typography,
+  Space,
+  Button,
+  Popconfirm,
+  message,
+} from "antd";
 import { Link } from "react-router-dom";
+import { BsFillPersonPlusFill } from "react-icons/bs";
 import { AiFillDelete } from "react-icons/ai";
-import { Select, Input, Button } from "antd";
-import Pagination from "../SharedComponents/Pagination";
-import { deleteCompanies, fetchCompanies } from "../SharedComponents/services/CompaniesServies";
+import { FiEdit2 } from "react-icons/fi";
+import { fetchCompanies, deleteCompanies } from "../SharedComponents/services/CompaniesServies";
+
+const { Title } = Typography;
 
 export default function Companies() {
-  const [rowData, setRowData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetchData();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+    fetchData(1, 10);
+  }, []);
 
-  const fetchData = async () => {
-    const { content, totalPages } = await fetchCompanies(currentPage, pageSize, searchQuery, searchField);
-    setRowData(content);
-    setIsLoading(false);
-    setTotalPages(totalPages);
-  };
-  const handleSearch = () => {
-    fetchData();
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setSearchField("");
-    fetchData();
+  const fetchData = async (page, pageSize) => {
+    setLoading(true);
+    try {
+      const { content, totalPages } = await fetchCompanies(page - 1, pageSize);
+      setCompanies(content.map((c) => ({ key: c.companyId, ...c })));
+      setTotal(totalPages * pageSize);
+    } catch (error) {
+      message.error("Failed to fetch companies");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const gridColumns = [
-    { field: "companyName", label: "Company" },
-    { field: "email", label: "Email" },
-  ];
+  const handleDeleteCompany = async (companyId) => {
+    try {
+      const success = await deleteCompanies(companyId);
+      if (success) {
+        message.success("Company deleted successfully");
+        fetchData(1, 10);
+      } else {
+        message.error("Failed to delete company");
+      }
+    } catch (error) {
+      message.error("Error deleting company");
+    }
+  };
 
-  const customColumns = [
+  const handleEditCompany = (id) => {
+    // Navigate to edit screen (if exists)
+    window.location.href = `/editcompany/${id}`;
+  };
+
+  const columns = [
     {
-      label: "",
-      field: "actions",
-      render: (params) => (
-        <>
-          <AiFillDelete
-            onClick={() => handleDeleteCompany(params.data.companyId)}
-            size={20}
-            title="Delete"
-            style={{ cursor: "pointer" }}
+      title: "Company Name",
+      dataIndex: "companyName",
+      sorter: (a, b) => a.companyName.localeCompare(b.companyName),
+      filters: [
+        ...new Set(companies.map((c) => c.companyName).filter(Boolean)),
+      ].map((name) => ({ text: name, value: name })),
+      onFilter: (value, record) => record.companyName === value,
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      sorter: (a, b) => a.email.localeCompare(b.email),
+    },
+    {
+      title: "Actions",
+      align: "center",
+      render: (record) => (
+        <Space size="middle">
+          <FiEdit2
+            title="Edit"
+            className="icon-mac icon-edit"
+            onClick={() => handleEditCompany(record.companyId)}
           />
-        </>
+          <Popconfirm
+            title="Delete this company?"
+            onConfirm={() => handleDeleteCompany(record.companyId)}
+          >
+            <AiFillDelete title="Delete" className="icon-mac icon-delete" />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
 
-  const handleDeleteCompany = async (companyId) => {
-    const success = await deleteCompanies(companyId);
-    if (success) {
-      fetchData();
-    }
+  const onChange = (pagination) => {
+    fetchData(pagination.current, pagination.pageSize);
   };
 
   return (
-    <>
-      <h2>Companies List</h2>
-      <div className="search-container">
-        <div className="search-bar">
-          <Select
-            value={searchField}
-            onChange={(value) => setSearchField(value)}
-            style={{ width: 120 }}
-          >
-            <Select.Option value="">Select Field</Select.Option>
-            <Select.Option value="companyName">Company</Select.Option>
-            <Select.Option value="email">Email Id</Select.Option>
-          </Select>
-          <Input.Search
-            placeholder="Search..."
-            onSearch={handleSearch}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            enterButton
-          />
-        </div>
-        <Button onClick={handleClearSearch}>Clear</Button>
+    <Card
+      style={{
+        borderRadius: 12,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 16,
+      }}
+    >
+      {/* Header Section */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <Title
+          level={4}
+          style={{
+            color: "#4f46e5",
+            fontWeight: 700,
+            letterSpacing: 0.5,
+            marginBottom: 0,
+          }}
+        >
+          Company Details
+        </Title>
+
+        <Space>
+          <Link to="/addcompany">
+            <Button type="primary" icon={<BsFillPersonPlusFill />}>
+              Add Company
+            </Button>
+          </Link>
+        </Space>
       </div>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : rowData.length === 0 ? (
-        <p>No companies to display.</p>
-      ) : (
-        <CustomGrid
-          data={rowData}
-          columns={gridColumns}
-          customColumns={customColumns}
-        />
-      )}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
+
+      {/* Table Section */}
+      <Table
+        columns={columns}
+        dataSource={companies}
+        loading={loading}
+        onChange={onChange}
+        pagination={{
+          total,
+          showSizeChanger: true,
+        }}
+        bordered
       />
-    </>
+    </Card>
   );
 }

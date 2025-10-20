@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Table, Card, Typography, Space, Tooltip, message, Popconfirm, Button } from "antd";
+import {
+  Table,
+  Card,
+  Typography,
+  Space,
+  Tooltip,
+  message,
+  Popconfirm,
+  Button,
+  Tag,
+} from "antd";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
@@ -23,11 +33,16 @@ export default function UserRole() {
     },
   };
 
+  // ==========================
+  // 🔄 LOAD USERS & ROLES
+  // ==========================
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const roleRes = await axios.get(`${API_BASE_URL}/user-company`, config);
-        const userRes = await axios.get(`${API_BASE_URL}/users`, config);
+        const [roleRes, userRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/user-company`, config),
+          axios.get(`${API_BASE_URL}/users`, config),
+        ]);
         setRoles(roleRes.data);
         setUsers(userRes.data);
       } catch (error) {
@@ -40,9 +55,18 @@ export default function UserRole() {
     fetchData();
   }, [API_BASE_URL]);
 
+  // ==========================
+  // 🧩 HELPERS
+  // ==========================
   const getUserFullName = (userId) => {
     const user = users.find((u) => u.id === userId);
     return user ? `${user.firstname} ${user.lastname}` : "Unknown";
+  };
+
+  const getUserRole = (userId) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user || !user.role) return "—";
+    return user.role;
   };
 
   const handleEdit = (role) => {
@@ -60,12 +84,35 @@ export default function UserRole() {
     }
   };
 
+  // ==========================
+  // 📋 TABLE COLUMNS
+  // ==========================
   const columns = [
     {
       title: "User",
       dataIndex: "userId",
       key: "userId",
       render: (userId) => getUserFullName(userId),
+    },
+    {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (_, record) => {
+        const role = getUserRole(record.userId);
+        const colorMap = {
+          ADMIN: "volcano",
+          SADMIN: "magenta",
+          EMPLOYEE: "green",
+          RECRUITER: "geekblue",
+          PROSPECT: "gold",
+        };
+        return (
+          <Tag color={colorMap[role] || "default"} style={{ fontWeight: 500 }}>
+            {role || "—"}
+          </Tag>
+        );
+      },
     },
     {
       title: "Company",
@@ -98,9 +145,7 @@ export default function UserRole() {
             cancelText="No"
           >
             <Tooltip title="Delete">
-              <AiFillDelete
-                style={{ cursor: "pointer", color: "red" }}
-              />
+              <AiFillDelete style={{ cursor: "pointer", color: "red" }} />
             </Tooltip>
           </Popconfirm>
         </Space>
@@ -108,6 +153,9 @@ export default function UserRole() {
     },
   ];
 
+  // ==========================
+  // 🎨 RENDER
+  // ==========================
   return (
     <Card
       className="shadow-lg rounded-2xl"

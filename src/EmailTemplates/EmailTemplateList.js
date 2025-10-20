@@ -10,6 +10,9 @@ import {
   Typography,
   Tooltip,
   Empty,
+  Layout,
+  Row,
+  Col,
 } from "antd";
 import {
   EditOutlined,
@@ -22,6 +25,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const { Title, Text } = Typography;
+const { Content } = Layout;
 
 export default function EmailTemplateList() {
   const [templates, setTemplates] = useState([]);
@@ -47,8 +51,9 @@ export default function EmailTemplateList() {
     } catch (err) {
       console.error("Error fetching templates:", err);
       setError("Failed to load templates.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id) => {
@@ -70,19 +75,17 @@ export default function EmailTemplateList() {
     {
       title: "Name",
       dataIndex: "name",
-      key: "name",
+      sorter: (a, b) => a.name.localeCompare(b.name),
       render: (text) => (
         <Space>
           <MailOutlined style={{ color: "#1677ff" }} />
           <Text strong>{text}</Text>
         </Space>
       ),
-      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Subject",
       dataIndex: "subject",
-      key: "subject",
       ellipsis: true,
       render: (subject) => (
         <Tooltip title={subject}>
@@ -93,14 +96,12 @@ export default function EmailTemplateList() {
     {
       title: "Category",
       dataIndex: "category",
-      key: "category",
       render: (category) =>
         category ? <Tag color="blue">{category}</Tag> : <Tag>-</Tag>,
     },
     {
       title: "Active",
       dataIndex: "isActive",
-      key: "isActive",
       render: (isActive) => (
         <Tag color={isActive ? "green" : "red"}>
           {isActive ? "Yes" : "No"}
@@ -115,11 +116,12 @@ export default function EmailTemplateList() {
         <Space>
           <Tooltip title="Edit Template">
             <Button
+              icon={<EditOutlined />}
               shape="circle"
-              icon={<EditOutlined style={{ color: "#1890ff" }} />}
               onClick={() => navigate(`/email-template/edit/${record.id}`)}
             />
           </Tooltip>
+
           <Popconfirm
             title="Are you sure you want to delete this template?"
             okText="Yes"
@@ -128,8 +130,9 @@ export default function EmailTemplateList() {
           >
             <Tooltip title="Delete Template">
               <Button
+                icon={<DeleteOutlined />}
+                danger
                 shape="circle"
-                icon={<DeleteOutlined style={{ color: "red" }} />}
               />
             </Tooltip>
           </Popconfirm>
@@ -139,65 +142,79 @@ export default function EmailTemplateList() {
   ];
 
   return (
-    <div className="p-6">
-      <Card
-        className="shadow-lg rounded-2xl"
-        title={
-          <div className="flex justify-between items-center">
-            {/* Left Side - Title */}
-            <Space size="large">
-              <MailOutlined style={{ fontSize: 26, color: "#1677ff" }} />
-              <Title level={4} style={{ margin: 0 }}>
-                Email Templates
-              </Title>
-            </Space>
-
-            {/* Right Side - Buttons */}
-            <Space>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={fetchTemplates}
-                title="Refresh Templates"
-                type="default"
-                shape="round"
-              >
-                Refresh
-              </Button>
-
-              <Link to="/email-template/create">
-                <Button
-                  type="primary"
-                  icon={<PlusCircleOutlined />}
-                  shape="round"
-                  style={{
-                    backgroundColor: "#1677ff",
-                    border: "none",
-                  }}
-                >
-                  Create New
-                </Button>
-              </Link>
-            </Space>
-          </div>
-        }
-      >
-        {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <Table
-          columns={columns}
-          dataSource={filteredTemplates}
-          rowKey="id"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-          locale={{
-            emptyText: <Empty description="No email templates found" />,
+    <Layout style={{ minHeight: "100vh", background: "#f5f6fa", padding: "24px" }}>
+      <Content>
+        <Card
+          bordered={false}
+          style={{
+            borderRadius: 12,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
           }}
-        />
-      </Card>
-    </div>
+          title={
+            <Row justify="space-between" align="middle">
+              <Col>
+                <Space size="large">
+                  <MailOutlined style={{ fontSize: 26, color: "#1677ff" }} />
+                  <Title level={4} style={{ margin: 0 }}>
+                    Email Templates
+                  </Title>
+                </Space>
+              </Col>
+
+              <Col>
+                <Space>
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={fetchTemplates}
+                    type="default"
+                    shape="round"
+                  >
+                    Refresh
+                  </Button>
+
+                  <Link to="/email-template/create">
+                    <Button
+                      type="primary"
+                      icon={<PlusCircleOutlined />}
+                      shape="round"
+                    >
+                      Create New
+                    </Button>
+                  </Link>
+                </Space>
+              </Col>
+            </Row>
+          }
+        >
+          {error && (
+            <Card
+              size="small"
+              style={{
+                marginBottom: 16,
+                border: "1px solid #ffccc7",
+                background: "#fff2f0",
+              }}
+            >
+              <Text type="danger">{error}</Text>
+            </Card>
+          )}
+
+          <Table
+            bordered
+            columns={columns}
+            dataSource={filteredTemplates}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: false,
+            }}
+            locale={{
+              emptyText: <Empty description="No email templates found" />,
+            }}
+          />
+        </Card>
+      </Content>
+    </Layout>
   );
 }

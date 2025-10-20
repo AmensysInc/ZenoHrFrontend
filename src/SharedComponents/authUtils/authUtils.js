@@ -22,9 +22,11 @@ export const loginUser = async (email, password, onLogin, navigate) => {
     }
 
     const data = await response.json();
-    const { role, access_token, id, tempPassword } = data;
+    const { role, access_token, firstName, lastName, id, tempPassword } = data;
 
     sessionStorage.setItem("token", access_token);
+    sessionStorage.setItem("firstName", firstName);
+    sessionStorage.setItem("lastName", lastName);
     sessionStorage.setItem("role", role);
     sessionStorage.setItem("id", id);
     sessionStorage.setItem("tempPassword", tempPassword);

@@ -1,33 +1,53 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-import { TbCloudDownload } from "react-icons/tb";
-import { AiFillDelete } from "react-icons/ai";
-import { FaTimes } from "react-icons/fa";
+import { motion } from "framer-motion";
+import {
+  Card,
+  Typography,
+  Select,
+  DatePicker,
+  InputNumber,
+  Button,
+  Table,
+  Tag,
+  Space,
+  Upload,
+  message,
+  Spin,
+} from "antd";
+import {
+  LeftOutlined,
+  RightOutlined,
+  CloudUploadOutlined,
+  SaveOutlined,
+  FileOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 
-dayjs.extend(weekday);
-dayjs.extend(weekOfYear);
+dayjs.extend(require("dayjs/plugin/weekday"));
+dayjs.extend(require("dayjs/plugin/weekOfYear"));
 
-const WeeklyTimesheet = () => {
+const { Title, Text } = Typography;
+
+export default function WeeklyTimesheet() {
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8082";
   const [currentWeekStart, setCurrentWeekStart] = useState(
     dayjs().startOf("week")
   );
-  const [times, setTimes] = useState({});
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [times, setTimes] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [isFileInputEnabled, setIsFileInputEnabled] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8082";
-
+  // ---------- Data Fetch ----------
   useEffect(() => {
     fetchProjects();
   }, []);
-
   useEffect(() => {
     if (selectedProjectId) {
       fetchTimesheetData();
@@ -35,50 +55,42 @@ const WeeklyTimesheet = () => {
     }
   }, [selectedProjectId, currentWeekStart]);
 
-  useEffect(() => {
-    setIsFileInputEnabled(!!selectedProjectId);
-  }, [selectedProjectId]);
+  const employeeId = sessionStorage.getItem("id");
+  const token = sessionStorage.getItem("token");
+  const authHeader = { Authorization: `Bearer ${token}` };
 
   const fetchProjects = async () => {
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-    if (!employeeId || !token) {
-      console.error("Employee ID or token not found");
-      return;
-    }
     try {
       setLoading(true);
-      const response = await axios.get(
+      const res = await axios.get(
         `${apiUrl}/employees/${employeeId}/projects`,
         {
-          params: { page: 0, size: 50, searchField: "", searchString: "" },
-          headers: { Authorization: `Bearer ${token}` },
+          params: { page: 0, size: 50 },
+          headers: authHeader,
         }
       );
-      setProjects(response.data.content || []);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
+      setProjects(res.data.content || []);
+    } catch (err) {
+      message.error("Failed to load projects.");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTimesheetData = async () => {
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-    if (!employeeId || !token) return;
+  const getWeekDays = () =>
+    Array.from({ length: 7 }, (_, i) => currentWeekStart.add(i, "day"));
 
+  const fetchTimesheetData = async () => {
     try {
       setLoading(true);
       const weekDates = getWeekDays();
-      const monthYearPairs = Array.from(
-        new Set(weekDates.map((date) => `${date.month() + 1}-${date.year()}`))
-      );
-      const newTimes = {};
-
-      for (const pair of monthYearPairs) {
+      const uniqueMonthYear = [
+        ...new Set(weekDates.map((d) => `${d.month() + 1}-${d.year()}`)),
+      ];
+      const tempTimes = {};
+      for (const pair of uniqueMonthYear) {
         const [month, year] = pair.split("-").map(Number);
-        const response = await axios.post(
+        const res = await axios.post(
           `${apiUrl}/timeSheets/getAllTimeSheets`,
           {
             employeeId,
@@ -86,623 +98,308 @@ const WeeklyTimesheet = () => {
             month,
             year,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
+          { headers: { ...authHeader, "Content-Type": "application/json" } }
         );
-        (response.data || []).forEach((entry) => {
-          const entryDate = dayjs(entry.date).format("YYYY-MM-DD");
-          newTimes[entryDate] = {
-            sheetId: entry.sheetId,
+        (res.data || []).forEach((entry) => {
+          const dateStr = dayjs(entry.date).format("YYYY-MM-DD");
+          tempTimes[dateStr] = {
             regularHours: entry.regularHours,
             overTimeHours: entry.overTimeHours,
-            status: entry.status, // Add status to track approval state
+            status: entry.status,
           };
         });
       }
-      setTimes(newTimes);
-    } catch (error) {
-      console.error("Error fetching timesheet data:", error);
+      setTimes(tempTimes);
+    } catch (err) {
+      message.error("Error fetching timesheet data.");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchUploadedFiles = async () => {
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-    if (!employeeId || !token || !selectedProjectId) return;
-
     try {
-      const weekStart = currentWeekStart;
-      const month = weekStart.month() + 1;
-      const year = weekStart.year();
-      const monthName = getMonthName(month);
-
-      const response = await axios.get(
-        `${apiUrl}/timeSheets/getUploadedFiles/${employeeId}/${selectedProjectId}/${year}/${monthName}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const monthName = dayjs(currentWeekStart).format("MMMM");
+      const res = await axios.get(
+        `${apiUrl}/timeSheets/getUploadedFiles/${employeeId}/${selectedProjectId}/${currentWeekStart.year()}/${monthName}`,
+        { headers: authHeader }
       );
-      setUploadedFiles(response.data);
-    } catch (error) {
-      console.error("Error fetching uploaded files:", error);
+      setUploadedFiles(res.data);
+    } catch {
+      setUploadedFiles([]);
     }
   };
 
-  const getMonthName = (monthNumber) => {
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return monthNames[monthNumber - 1];
-  };
-
-  const getWeekDays = () => {
-    return Array.from({ length: 7 }, (_, i) => currentWeekStart.add(i, "day"));
-  };
-
-  const handlePrevWeek = () => {
-    setCurrentWeekStart((prev) => prev.subtract(7, "day"));
-  };
-
-  const handleNextWeek = () => {
-    setCurrentWeekStart((prev) => prev.add(7, "day"));
-  };
-
-  const handleTimeChange = (date, value) => {
+  // ---------- Time Input ----------
+  const handleTimeChange = (date, field, value) => {
     setTimes((prev) => ({
       ...prev,
-      [date]: {
-        ...(prev[date] || {}),
-        regularHours: value,
-      },
+      [date]: { ...(prev[date] || {}), [field]: value },
     }));
   };
 
-  const handleOvertimeChange = (date, value) => {
-    setTimes((prev) => ({
-      ...prev,
-      [date]: {
-        ...(prev[date] || {}),
-        overTimeHours: value,
-      },
-    }));
+  const isApproved = (date) => times[date]?.status === "APPROVED";
+
+  const getTotalHours = (field) => {
+    return getWeekDays().reduce(
+      (sum, d) => sum + Number(times[d.format("YYYY-MM-DD")]?.[field] || 0),
+      0
+    );
   };
 
-  // Helper function to check if a date is approved
-  const isDateApproved = (dateStr) => {
-    return times[dateStr]?.status === "APPROVED";
-  };
-
-  const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
-  const handleFileChange = (event) => {
-    const newFiles = Array.from(event.target.files);
-    setSelectedFiles((prevFiles) => {
-      const currentTotalSize = prevFiles.reduce(
-        (sum, file) => sum + file.size,
-        0
+  // ---------- File Upload ----------
+  const handleFileUpload = ({ fileList }) =>
+    setSelectedFiles(fileList.map((f) => f.originFileObj));
+  const handleDownload = async (fileName) => {
+    try {
+      const monthName = dayjs(currentWeekStart).format("MMMM");
+      const res = await axios.get(
+        `${apiUrl}/timeSheets/downloadFile/${employeeId}/${selectedProjectId}/${currentWeekStart.year()}/${monthName}/${fileName}`,
+        { headers: authHeader, responseType: "blob" }
       );
-      const filteredNewFiles = [];
-      let newTotalSize = currentTotalSize;
-
-      for (const file of newFiles) {
-        if (newTotalSize + file.size > MAX_TOTAL_SIZE) {
-          alert(
-            `Cannot add ${file.name} - total size would exceed ${
-              MAX_TOTAL_SIZE / 1024 / 1024
-            }MB`
-          );
-          continue;
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      message.error("Download failed.");
+    }
+  };
+  const handleDelete = async (fileName) => {
+    try {
+      await axios.delete(
+        `${apiUrl}/timeSheets/deleteUploadedFile/${employeeId}/${fileName}`,
+        {
+          headers: authHeader,
         }
-
-        const isDuplicate = prevFiles.some(
-          (f) =>
-            f.name === file.name &&
-            f.size === file.size &&
-            f.lastModified === file.lastModified
-        );
-
-        if (!isDuplicate) {
-          filteredNewFiles.push(file);
-          newTotalSize += file.size;
-        }
-      }
-
-      return [...prevFiles, ...filteredNewFiles];
-    });
-    event.target.value = "";
+      );
+      message.success("File deleted.");
+      fetchUploadedFiles();
+    } catch {
+      message.error("Failed to delete file.");
+    }
   };
 
-  const handleSaveTimesheet = async () => {
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-    if (!employeeId || !token || !selectedProjectId) return;
-
+  // ---------- Save ----------
+  const handleSave = async () => {
+    if (!selectedProjectId)
+      return message.warning("Please select a project first.");
     try {
       setLoading(true);
-
-      // Save timesheet entries (only for non-approved dates)
-      const entries = Object.entries(times)
-        .filter(([dateStr]) => !isDateApproved(dateStr)) // Only save non-approved entries
-        .map(([dateStr, data]) => {
-          const date = dayjs(dateStr);
+      const entries = getWeekDays()
+        .filter((d) => !isApproved(d.format("YYYY-MM-DD")))
+        .map((d) => {
+          const dateStr = d.format("YYYY-MM-DD");
+          const t = times[dateStr] || {};
           return {
             employeeId,
             projectId: selectedProjectId,
-            date: date.valueOf(),
-            regularHours: Number(data.regularHours || 0),
-            overTimeHours: Number(data.overTimeHours || 0),
-            sheetId: data.sheetId || null,
-            month: date.month() + 1,
-            year: date.year(),
-            status: null,
+            date: d.valueOf(),
+            regularHours: Number(t.regularHours || 0),
+            overTimeHours: Number(t.overTimeHours || 0),
+            month: d.month() + 1,
+            year: d.year(),
           };
         });
-
-      if (entries.length > 0) {
+      if (entries.length)
         await axios.post(`${apiUrl}/timeSheets/createTimeSheet`, entries, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: { ...authHeader, "Content-Type": "application/json" },
         });
-      }
 
-      // Upload files if any
       if (selectedFiles.length > 0) {
-        const formData = new FormData();
-        formData.append("employeeID", employeeId);
-        selectedFiles.forEach((file) => formData.append("documents", file));
-
-        const year = currentWeekStart.year();
-        const monthName = getMonthName(currentWeekStart.month() + 1);
-
+        const fd = new FormData();
+        fd.append("employeeID", employeeId);
+        selectedFiles.forEach((f) => fd.append("documents", f));
+        const monthName = dayjs(currentWeekStart).format("MMMM");
         await axios.post(
-          `${apiUrl}/timeSheets/uploadfiles/${employeeId}/${selectedProjectId}/${year}/${monthName}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          `${apiUrl}/timeSheets/uploadfiles/${employeeId}/${selectedProjectId}/${currentWeekStart.year()}/${monthName}`,
+          fd,
+          { headers: { ...authHeader, "Content-Type": "multipart/form-data" } }
         );
-
         setSelectedFiles([]);
-        const fileInput = document.getElementById("fileInput");
-        if (fileInput) fileInput.value = "";
         fetchUploadedFiles();
       }
-
-      const approvedDatesCount = Object.keys(times).filter(dateStr => isDateApproved(dateStr)).length;
-      if (approvedDatesCount > 0) {
-        alert(`Timesheet and files saved successfully! Note: ${approvedDatesCount} approved date(s) were not modified.`);
-      } else {
-        alert("Timesheet and files saved successfully!");
-      }
-    } catch (error) {
-      console.error("Error saving timesheet:", error);
-      alert("Failed to save timesheet. Please try again.");
+      message.success("Timesheet saved successfully!");
+    } catch {
+      message.error("Failed to save timesheet.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownloadFile = async (fileName) => {
-    if (!fileName) return;
+  // ---------- Columns ----------
+  const columns = getWeekDays().map((d) => {
+    const dateStr = d.format("YYYY-MM-DD");
+    const approved = isApproved(dateStr);
+    return {
+      title: (
+        <div style={{ textAlign: "center" }}>
+          <div>
+            <CalendarOutlined /> {d.format("ddd, MMM D")}
+          </div>
+          {approved && <Tag color="green">Approved</Tag>}
+        </div>
+      ),
+      dataIndex: dateStr,
+      align: "center",
+      render: () => (
+        <Space direction="vertical">
+          <InputNumber
+            min={0}
+            max={24}
+            value={times[dateStr]?.regularHours || 0}
+            onChange={(val) => handleTimeChange(dateStr, "regularHours", val)}
+            disabled={approved}
+            placeholder="Reg"
+          />
+          <InputNumber
+            min={0}
+            max={24}
+            value={times[dateStr]?.overTimeHours || 0}
+            onChange={(val) => handleTimeChange(dateStr, "overTimeHours", val)}
+            disabled={approved}
+            placeholder="OT"
+          />
+        </Space>
+      ),
+    };
+  });
 
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-    const year = currentWeekStart.year();
-    const monthName = getMonthName(currentWeekStart.month() + 1);
-
-    try {
-      const response = await fetch(
-        `${apiUrl}/timeSheets/downloadFile/${employeeId}/${selectedProjectId}/${year}/${monthName}/${fileName}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to download file");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      alert("Failed to download file. Please try again.");
-    }
-  };
-
-  const handleDeleteFile = async (fileName) => {
-    if (!fileName) return;
-
-    const employeeId = sessionStorage.getItem("id");
-    const token = sessionStorage.getItem("token");
-
-    try {
-      const response = await fetch(
-        `${apiUrl}/timeSheets/deleteUploadedFile/${employeeId}/${fileName}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      setUploadedFiles((prevFiles) =>
-        prevFiles.filter((file) => file.fileName !== fileName)
-      );
-      console.log(`File ${fileName} deleted successfully`);
-    } catch (error) {
-      console.error("Error deleting file:", error);
-    }
-  };
-
-  const getTotalHours = () => {
-    const weekDates = getWeekDays();
-    return weekDates.reduce((sum, date) => {
-      const dateStr = date.format("YYYY-MM-DD");
-      return sum + Number(times[dateStr]?.regularHours || 0);
-    }, 0);
-  };
-
-  const handleThisWeek = () => {
-    setCurrentWeekStart(dayjs().startOf("week"));
-  };
-
-  const handleDateSelect = (e) => {
-    const selectedDate = dayjs(e.target.value);
-    if (selectedDate.isValid()) {
-      setCurrentWeekStart(selectedDate.startOf("week"));
-    }
-  };
-
-  const handleRemoveSelectedFile = (index) => {
-    setSelectedFiles((prevFiles) => {
-      const newFiles = [...prevFiles];
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
-  };
-
-  const getTotalOvertime = () => {
-    const weekDates = getWeekDays();
-    return weekDates.reduce((sum, date) => {
-      const dateStr = date.format("YYYY-MM-DD");
-      return sum + Number(times[dateStr]?.overTimeHours || 0);
-    }, 0);
-  };
-
-  const weekDays = getWeekDays();
+  const dataSource = [
+    { key: "1" }, // empty row since we’re not mapping per user
+  ];
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Timesheet (Week of {currentWeekStart.format("MMM D, YYYY")})</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{ padding: "30px" }}
+    >
+      <Card
+        bordered={false}
+        style={{
+          boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+          borderRadius: 16,
+          background: "#fff",
+        }}
+      >
+        <Title level={3} style={{ marginBottom: 20 }}>
+          Weekly Timesheet
+        </Title>
 
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ marginRight: 10 }}>Select Project: </label>
-        <select
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-        >
-          <option value="">-- Select a Project --</option>
-          {projects.map((projectHistory) => (
-            <option
-              key={projectHistory.projectId}
-              value={projectHistory.projectId}
-            >
-              {projectHistory.subVendorOne}/{projectHistory.subVendorTwo}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ marginRight: 10 }}>Pick Date: </label>
-        <input
-          type="date"
-          onChange={handleDateSelect}
-          value={currentWeekStart.format("YYYY-MM-DD")}
-        />
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={handlePrevWeek}>⬅️ Previous Week</button>
-        <button onClick={handleThisWeek} style={{ marginLeft: 10 }}>
-          🕓 This Week
-        </button>
-        <button onClick={handleNextWeek} style={{ marginLeft: 10 }}>
-          Next Week ➡️
-        </button>
-        {selectedProjectId && (
-          <button
-            onClick={handleSaveTimesheet}
-            style={{
-              marginLeft: 20,
-              backgroundColor: "#4CAF50",
-              color: "white",
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "4px",
+        <Space wrap size="large" style={{ marginBottom: 25 }}>
+          <Select
+            placeholder="Select Project"
+            style={{ width: 260 }}
+            value={selectedProjectId}
+            onChange={setSelectedProjectId}
+            options={projects.map((p) => ({
+              value: p.projectId,
+              label: `${p.subVendorOne || ""} / ${p.subVendorTwo || ""}`,
+            }))}
+          />
+          <DatePicker
+            picker="week"
+            value={currentWeekStart}
+            onChange={(val) => setCurrentWeekStart(val.startOf("week"))}
+            format={(value) => {
+              if (!value) return "";
+              const start = value.startOf("week").format("MMM D");
+              const end = value.endOf("week").format("MMM D, YYYY");
+              return `${start} - ${end}`;
             }}
+          />
+          <Button
+            icon={<LeftOutlined />}
+            onClick={() =>
+              setCurrentWeekStart(currentWeekStart.subtract(7, "day"))
+            }
           >
-            Save Timesheet
-          </button>
-        )}
-      </div>
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <>
-          <table
-            border="1"
-            cellPadding="10"
-            style={{
-              marginTop: 20,
-              textAlign: "center",
-              borderCollapse: "collapse",
-              width: "100%",
-            }}
+            Prev
+          </Button>
+          <Button
+            icon={<RightOutlined />}
+            onClick={() => setCurrentWeekStart(currentWeekStart.add(7, "day"))}
           >
-            <thead>
-              <tr style={{ backgroundColor: "#f2f2f2" }}>
-                {weekDays.map((date) => (
-                  <th key={date.format("YYYY-MM-DD")}>
-                    {date.format("ddd (D MMM)")}
-                  </th>
-                ))}
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {weekDays.map((date) => (
-                  <td key={date.format("date-row")}>
-                    {date.format("YYYY-MM-DD")}
-                  </td>
-                ))}
-                <td></td>
-              </tr>
-              <tr>
-                {weekDays.map((date) => (
-                  <td key={date.format("day-row")}>{date.format("dddd")}</td>
-                ))}
-                <td>
-                  <strong>Hours</strong>
-                </td>
-              </tr>
-              <tr>
-                {weekDays.map((date) => {
-                  const dateStr = date.format("YYYY-MM-DD");
-                  const isApproved = isDateApproved(dateStr);
-                  const isDisabled = !selectedProjectId || isApproved;
-                  
-                  return (
-                    <td 
-                      key={dateStr}
-                      style={{
-                        backgroundColor: isApproved ? "#e8f5e8" : "transparent",
-                        position: "relative"
-                      }}
-                    >
-                      <div>
-                        <input
-                          type="number"
-                          placeholder="Reg"
-                          value={times[dateStr]?.regularHours || ""}
-                          onChange={(e) =>
-                            handleTimeChange(dateStr, e.target.value)
-                          }
-                          min="0"
-                          max="24"
-                          step="0.25"
-                          style={{ 
-                            width: "60px", 
-                            marginBottom: "5px",
-                            backgroundColor: isApproved ? "#f0f8f0" : "white",
-                            cursor: isApproved ? "not-allowed" : "text"
-                          }}
-                          disabled={isDisabled}
-                          title={isApproved ? "This date is approved and cannot be edited" : ""}
-                        />
-                        <input
-                          type="number"
-                          placeholder="OT"
-                          value={times[dateStr]?.overTimeHours || ""}
-                          onChange={(e) =>
-                            handleOvertimeChange(dateStr, e.target.value)
-                          }
-                          min="0"
-                          max="24"
-                          step="0.25"
-                          style={{ 
-                            width: "60px",
-                            backgroundColor: isApproved ? "#f0f8f0" : "white",
-                            cursor: isApproved ? "not-allowed" : "text"
-                          }}
-                          disabled={isDisabled}
-                          title={isApproved ? "This date is approved and cannot be edited" : ""}
-                        />
-                        {isApproved && (
-                          <div style={{
-                            fontSize: "10px",
-                            color: "#28a745",
-                            fontWeight: "bold",
-                            marginTop: "2px"
-                          }}>
-                            APPROVED
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
-                <td>
-                  <strong>{getTotalHours()}</strong>
-                  <br />
-                  <small>{getTotalOvertime()} OT</small>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div>
-            <input
-              type="file"
-              id="fileInput"
-              multiple
-              onChange={handleFileChange}
-              disabled={!isFileInputEnabled}
-              style={{ display: "none" }}
+            Next
+          </Button>
+          <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
+            Save
+          </Button>
+        </Space>
+        {loading ? (
+          <div style={{ textAlign: "center", margin: "50px 0" }}>
+            <Spin size="large" tip="Loading timesheet..." />
+          </div>
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              dataSource={dataSource}
+              pagination={false}
+              bordered
+              style={{ marginBottom: 30 }}
+              scroll={{ x: true }}
             />
-            <label
-              htmlFor="fileInput"
-              style={{
-                display: "inline-block",
-                padding: "8px 16px",
-                backgroundColor: isFileInputEnabled ? "#4CAF50" : "#cccccc",
-                color: "white",
-                borderRadius: "4px",
-                cursor: isFileInputEnabled ? "pointer" : "not-allowed",
-                marginRight: "10px",
-              }}
-            >
-              Choose Files
-            </label>
 
-            {selectedFiles.length > 0 && (
-              <div style={{ marginTop: "10px" }}>
-                <h5>Selected Files:</h5>
-                <ul style={{ listStyle: "none", padding: 0 }}>
-                  {selectedFiles.map((file, index) => (
+            <Space size="large" style={{ marginBottom: 25 }}>
+              <Tag color="blue">
+                Total Hours: {getTotalHours("regularHours")}
+              </Tag>
+              <Tag color="purple">
+                Overtime: {getTotalHours("overTimeHours")}
+              </Tag>
+            </Space>
+            <Card
+              type="inner"
+              title={<Text strong>Upload Files</Text>}
+              extra={<CloudUploadOutlined />}
+              style={{ borderRadius: 10 }}
+            >
+              <Upload
+                multiple
+                showUploadList={{ showRemoveIcon: true }}
+                beforeUpload={() => false}
+                onChange={handleFileUpload}
+              >
+                <Button icon={<FileOutlined />}>Select Files</Button>
+              </Upload>
+
+              {uploadedFiles.length > 0 && (
+                <ul style={{ marginTop: 20, listStyle: "none", padding: 0 }}>
+                  {uploadedFiles.map((file, i) => (
                     <li
-                      key={index}
+                      key={i}
                       style={{
                         display: "flex",
+                        justifyContent: "space-between",
                         alignItems: "center",
-                        marginBottom: "5px",
-                        padding: "5px",
-                        backgroundColor: "#f8f9fa",
-                        borderRadius: "4px",
+                        borderBottom: "1px solid #f0f0f0",
+                        padding: "8px 0",
                       }}
                     >
-                      <span style={{ flex: 1 }}>{file.name}</span>
-                      <FaTimes
-                        size={14}
-                        onClick={() => handleRemoveSelectedFile(index)}
-                        style={{
-                          cursor: "pointer",
-                          color: "red",
-                          marginLeft: "10px",
-                        }}
-                        title="Remove file"
-                      />
+                      <span>{file.fileName}</span>
+                      <Space>
+                        <DownloadOutlined
+                          style={{ color: "#1677ff", cursor: "pointer" }}
+                          onClick={() => handleDownload(file.fileName)}
+                        />
+                        <DeleteOutlined
+                          style={{ color: "#ff4d4f", cursor: "pointer" }}
+                          onClick={() => handleDelete(file.fileName)}
+                        />
+                      </Space>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <h3>Uploaded Files</h3>
-            {uploadedFiles.length === 0 ? (
-              <div>No files uploaded for this project and month.</div>
-            ) : (
-              <ul style={{ listStyleType: "none", padding: 0 }}>
-                {uploadedFiles.map((file, index) => (
-                  <li
-                    key={index}
-                    style={{
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span style={{ marginRight: 10 }}>
-                      {file.fileName}
-                      {file.uploadedAt && (
-                        <span
-                          style={{
-                            fontSize: "0.8em",
-                            color: "#666",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          (Uploaded:{" "}
-                          {new Date(file.uploadedAt).toLocaleDateString()})
-                        </span>
-                      )}
-                    </span>
-                    <TbCloudDownload
-                      size={25}
-                      title="Download"
-                      onClick={() => handleDownloadFile(file.fileName)}
-                      style={{ cursor: "pointer", marginRight: 10 }}
-                    />
-                    <AiFillDelete
-                      size={20}
-                      title="Delete"
-                      onClick={() => handleDeleteFile(file.fileName)}
-                      style={{ cursor: "pointer", color: "#ff6b6b" }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <button
-            onClick={handleSaveTimesheet}
-            disabled={!selectedProjectId}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: selectedProjectId ? "#4CAF50" : "#f2f2f2",
-              color: selectedProjectId ? "white" : "#aaa",
-              border: "none",
-              borderRadius: "4px",
-              cursor: selectedProjectId ? "pointer" : "not-allowed",
-              marginTop: 20,
-            }}
-          >
-            Save Timesheet and Upload Files
-          </button>
-
-          {!selectedProjectId && (
-            <div style={{ marginTop: 20, color: "#ff6b6b" }}>
-              Please select a project to view and edit timesheet data.
-            </div>
-          )}
-        </>
-      )}
-    </div>
+              )}
+            </Card>
+          </>
+        )}
+      </Card>
+    </motion.div>
   );
-};
-
-export default WeeklyTimesheet;
+}
