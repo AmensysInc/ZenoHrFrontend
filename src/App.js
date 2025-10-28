@@ -247,6 +247,7 @@ function App() {
             <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
             {role === "SADMIN" && (
               <>
+                <Route path="/addprospect" element={<AddProspectEmployee />} />
                 <Route path="/companyrole" element={<UserRole />} />
                 <Route path="/addcompanyrole" element={<AddUserRole />} />
                 <Route path="/editcompanyrole/:id" element={<EditUserRole />} />

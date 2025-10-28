@@ -11,28 +11,32 @@ import {
   DatePicker,
   Select,
   message,
+  Row,
+  Col,
 } from "antd";
 import { FiEdit2 } from "react-icons/fi";
-import { AiOutlineReload } from "react-icons/ai";
+import { AiOutlineReload, AiOutlineSearch } from "react-icons/ai";
 import dayjs from "dayjs";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 export default function PurchaseOrders() {
   const apiUrl = process.env.REACT_APP_API_URL;
+  const token = sessionStorage.getItem("token");
+
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [recruiters, setRecruiters] = useState([]);
 
-  // Edit Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [form] = Form.useForm();
-
-  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     fetchOrders(page, pageSize);
@@ -42,28 +46,33 @@ export default function PurchaseOrders() {
     loadRecruiters();
   }, []);
 
+  // Fetch Orders
   const fetchOrders = async (page, size) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${apiUrl}/orders?page=${page - 1}&size=${size}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await fetch(`${apiUrl}/orders?page=${page - 1}&size=${size}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await response.json();
-      setOrders(
-        data.content.map((order) => ({
-          key: order.id,
-          ...order,
-        }))
-      );
+
+      const mappedOrders = data.content.map((order) => ({
+        key: order.id,
+        employeeName: `${order.employeeFirstName || ""} ${order.employeeLastName || ""}`.trim(),
+        ...order,
+      }));
+
+      setOrders(mappedOrders);
+      setFilteredOrders(mappedOrders);
       setTotal(data.totalElements || data.totalPages * size);
     } catch (error) {
       console.error("Error loading orders:", error);
+      message.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
   };
 
+  // Load Recruiters
   const loadRecruiters = async () => {
     try {
       const res = await fetch("http://localhost:8082/users");
@@ -74,11 +83,23 @@ export default function PurchaseOrders() {
     }
   };
 
+  // Search Handler
+  const handleSearch = (value) => {
+    setSearchText(value);
+    if (!value) {
+      setFilteredOrders(orders);
+    } else {
+      const lower = value.toLowerCase();
+      const filtered = orders.filter((o) => o.employeeName.toLowerCase().includes(lower));
+      setFilteredOrders(filtered);
+    }
+  };
+
+  // Edit Modal
   const handleEdit = (order) => {
     setEditingOrder(order);
     form.setFieldsValue({
-      employeeFirstName: order.employeeFirstName,
-      employeeLastName: order.employeeLastName,
+      employeeName: order.employeeName,
       dateOfJoining: order.dateOfJoining ? dayjs(order.dateOfJoining) : null,
       projectEndDate: order.projectEndDate ? dayjs(order.projectEndDate) : null,
       billRate: order.billRate,
@@ -91,6 +112,7 @@ export default function PurchaseOrders() {
     setIsModalOpen(true);
   };
 
+  // Update Order
   const handleUpdate = async () => {
     try {
       const values = await form.validateFields();
@@ -124,40 +146,32 @@ export default function PurchaseOrders() {
     }
   };
 
+  // Table Columns
   const columns = [
     {
-      title: "First Name",
-      dataIndex: "employeeFirstName",
-      sorter: (a, b) => a.employeeFirstName.localeCompare(b.employeeFirstName),
-    },
-    {
-      title: "Last Name",
-      dataIndex: "employeeLastName",
-      sorter: (a, b) => a.employeeLastName.localeCompare(b.employeeLastName),
+      title: "Employee Name",
+      dataIndex: "employeeName",
+      sorter: (a, b) => a.employeeName.localeCompare(b.employeeName),
     },
     {
       title: "Date of Joining",
       dataIndex: "dateOfJoining",
-      sorter: (a, b) =>
-        new Date(a.dateOfJoining) - new Date(b.dateOfJoining),
+      sorter: (a, b) => new Date(a.dateOfJoining) - new Date(b.dateOfJoining),
     },
     {
       title: "Project End Date",
       dataIndex: "projectEndDate",
-      sorter: (a, b) =>
-        new Date(a.projectEndDate) - new Date(b.projectEndDate),
+      sorter: (a, b) => new Date(a.projectEndDate) - new Date(b.projectEndDate),
     },
     {
       title: "Bill Rate",
       dataIndex: "billRate",
+      align: "center",
+      render: (rate) => (rate ? `$${rate}` : "-"),
     },
     {
       title: "Client Name",
       dataIndex: "endClientName",
-      filters: [
-        ...new Set(orders.map((o) => o.endClientName).filter(Boolean)),
-      ].map((c) => ({ text: c, value: c })),
-      onFilter: (value, record) => record.endClientName === value,
     },
     {
       title: "Vendor Phone No",
@@ -170,30 +184,23 @@ export default function PurchaseOrders() {
     {
       title: "Net Terms",
       dataIndex: "netTerms",
-      filters: [
-        ...new Set(orders.map((o) => o.netTerms).filter(Boolean)),
-      ].map((t) => ({ text: t, value: t })),
-      onFilter: (value, record) => record.netTerms === value,
     },
     {
       title: "Recruiter",
       dataIndex: "recruiterName",
-      filters: recruiters.map((r) => ({
-        text: `${r.firstname} ${r.lastname}`,
-        value: `${r.firstname} ${r.lastname}`,
-      })),
-      onFilter: (value, record) => record.recruiterName === value,
     },
     {
       title: "Actions",
+      align: "center",
       render: (record) => (
-        <Space size="middle">
-          <FiEdit2
-            onClick={() => handleEdit(record)}
-            title="Edit"
-            style={{ cursor: "pointer" }}
-          />
-        </Space>
+        <Button
+          type="link"
+          icon={<FiEdit2 />}
+          onClick={() => handleEdit(record)}
+          style={{ color: "#4f46e5" }}
+        >
+          Edit
+        </Button>
       ),
     },
   ];
@@ -204,90 +211,149 @@ export default function PurchaseOrders() {
   };
 
   return (
-    <Card>
-      <Title level={4} style={{ textAlign: "center" }}>
-        Purchase Orders
-      </Title>
-
-      <div
+    <div
+      style={{
+        maxWidth: 1300,
+        margin: "0 auto",
+        padding: "20px 24px",
+      }}
+    >
+      <Card
         style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 10,
+          borderRadius: 16,
+          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+          border: "1px solid #f0f0f0",
+          padding: 24,
         }}
       >
-        <Button
-          type="default"
-          icon={<AiOutlineReload />}
-          onClick={() => fetchOrders(1, pageSize)}
-        >
-          Refresh
-        </Button>
-      </div>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <Title level={3} style={{ color: "#4f46e5", marginBottom: 4 }}>
+            Purchase Orders
+          </Title>
+          <Text type="secondary">
+            Manage, view, and update all employee purchase orders
+          </Text>
+        </div>
 
-      <Table
-        columns={columns}
-        dataSource={orders}
-        loading={loading}
-        pagination={{
-          current: page,
-          total,
-          showSizeChanger: true,
-          pageSize,
-        }}
-        bordered
-        onChange={handleTableChange}
-      />
+        {/* Search + Refresh Section */}
+        <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
+          <Col xs={24} sm={16} md={12}>
+            <Input
+              prefix={<AiOutlineSearch style={{ color: "#4f46e5" }} />}
+              placeholder="Search by Employee Name"
+              value={searchText}
+              onChange={(e) => handleSearch(e.target.value)}
+              allowClear
+              style={{
+                borderRadius: 8,
+                height: 40,
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={8} md={6} style={{ textAlign: "right", marginTop: 8 }}>
+            <Button
+              icon={<AiOutlineReload />}
+              onClick={() => fetchOrders(1, pageSize)}
+              style={{
+                backgroundColor: "#4f46e5",
+                color: "#fff",
+                borderRadius: 8,
+                height: 40,
+                fontWeight: 500,
+              }}
+            >
+              Refresh
+            </Button>
+          </Col>
+        </Row>
+
+        {/* Table */}
+        <Table
+          columns={columns}
+          dataSource={filteredOrders}
+          loading={loading}
+          pagination={{
+            current: page,
+            total,
+            showSizeChanger: true,
+            pageSize,
+          }}
+          bordered
+          size="middle"
+          onChange={handleTableChange}
+          locale={{ emptyText: "No purchase orders found." }}
+          style={{
+            borderRadius: 8,
+          }}
+        />
+      </Card>
 
       {/* Update Modal */}
       <Modal
-        title="Update Purchase Order"
+        title={<span style={{ color: "#4f46e5" }}>Update Purchase Order</span>}
         open={isModalOpen}
         onOk={handleUpdate}
         onCancel={() => setIsModalOpen(false)}
         okText="Update"
         width={700}
+        centered
       >
-        <Form form={form} layout="vertical">
-          <Form.Item name="employeeFirstName" label="First Name">
-            <Input />
-          </Form.Item>
-          <Form.Item name="employeeLastName" label="Last Name">
-            <Input />
-          </Form.Item>
-          <Form.Item name="dateOfJoining" label="Date Of Joining">
-            <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="projectEndDate" label="Project End Date">
-            <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="billRate" label="Bill Rate">
-            <Input />
-          </Form.Item>
-          <Form.Item name="endClientName" label="Client Name">
-            <Input />
-          </Form.Item>
-          <Form.Item name="vendorPhoneNo" label="Vendor Phone No">
-            <Input />
-          </Form.Item>
-          <Form.Item name="vendorEmailId" label="Vendor Email">
-            <Input />
-          </Form.Item>
-          <Form.Item name="netTerms" label="Net Terms">
-            <Input />
-          </Form.Item>
-          <Form.Item name="recruiterName" label="Recruiter">
-            <Select placeholder="Select Recruiter">
-              {recruiters.map((r) => (
-                <Select.Option key={r.id} value={`${r.firstname} ${r.lastname}`}>
-                  {r.firstname} {r.lastname}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+        <Form form={form} layout="vertical" size="middle">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="employeeName" label="Employee Name">
+                <Input disabled />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="recruiterName" label="Recruiter">
+                <Select placeholder="Select Recruiter">
+                  {recruiters.map((r) => (
+                    <Option key={r.id} value={`${r.firstname} ${r.lastname}`}>
+                      {r.firstname} {r.lastname}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="dateOfJoining" label="Date Of Joining">
+                <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="projectEndDate" label="Project End Date">
+                <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="billRate" label="Bill Rate">
+                <Input prefix="$" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="endClientName" label="Client Name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="vendorPhoneNo" label="Vendor Phone No">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="vendorEmailId" label="Vendor Email">
+                <Input type="email" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="netTerms" label="Net Terms">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
       </Modal>
-    </Card>
+    </div>
   );
 }

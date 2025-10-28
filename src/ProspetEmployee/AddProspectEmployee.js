@@ -145,7 +145,7 @@ export default function AddProspectEmployee() {
           <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
             Submit
           </Button>
-          <Button onClick={() => navigate("/")}>Cancel</Button>
+          <Button onClick={() => navigate("/employees")}>Cancel</Button>
         </Form.Item>
       </Form>
 

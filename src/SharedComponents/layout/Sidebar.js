@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Menu, Typography, Button } from "antd";
 import {
   ApartmentOutlined,
@@ -16,7 +16,7 @@ import {
   UserSwitchOutlined,
   PoweroffOutlined,
 } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { logoutUser } from "../authUtils/authUtils";
 import "./Sidebar.css";
@@ -28,17 +28,18 @@ export default function SideBar({ setIsLoggedIn, setRole }) {
   const roleFromSessionStorage = sessionStorage.getItem("role");
   const role = roleFromSessionStorage ? roleFromSessionStorage.replace(/"/g, "") : "";
 
-  // ✅ Get user info
   const firstName = sessionStorage.getItem("firstName")?.replace(/"/g, "") || "";
   const lastName = sessionStorage.getItem("lastName")?.replace(/"/g, "") || "";
 
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logoutUser(setIsLoggedIn, setRole, navigate);
   };
 
+  // ✅ Role-based menu items
   const menuItemsByRole = {
     ADMIN: [
       { key: "companies", label: "Companies", icon: <ApartmentOutlined />, path: "/companies" },
@@ -82,6 +83,22 @@ export default function SideBar({ setIsLoggedIn, setRole }) {
 
   const items = menuItemsByRole[role] || [];
 
+  // ✅ Handle active menu highlight
+  const [activeKey, setActiveKey] = useState("");
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // If on dashboard ("/"), don't highlight anything
+    if (currentPath === "/") {
+      setActiveKey("");
+    } else {
+      // Find the first matching menu item by its path
+      const matchedItem = items.find((item) => currentPath.startsWith(item.path));
+      setActiveKey(matchedItem ? matchedItem.key : "");
+    }
+  }, [location.pathname, items]);
+
   if (!items.length) return null;
 
   return (
@@ -113,7 +130,7 @@ export default function SideBar({ setIsLoggedIn, setRole }) {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={[items[0]?.key]}
+          selectedKeys={[activeKey]} // ✅ Dynamically highlight
           items={items.map((item) => ({
             key: item.key,
             icon: item.icon,
