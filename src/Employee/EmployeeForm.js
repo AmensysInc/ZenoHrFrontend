@@ -265,7 +265,7 @@ export default function EmployeeForm({ mode }) {
           )}
           <Button
             type="default"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/employees")}
             style={{ marginRight: 8 }}
           >
             Cancel

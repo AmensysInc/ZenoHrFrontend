@@ -201,46 +201,7 @@ export default function VisaDetails() {
             Add Visa Details
           </Button>
         </div>
-
-        {/* Search Filters */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}
-        >
-          <Select
-            value={searchField}
-            onChange={setSearchField}
-            options={fieldOptions}
-            style={{ width: 200 }}
-            placeholder="Select Field"
-          />
-          <Input
-            placeholder="Search..."
-            allowClear
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: "100%", maxWidth: 400 }}
-          />
-          <Button
-            type="primary"
-            onClick={handleSearch}
-            style={{ height: "30px"}}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={handleClearSearch}
-            style={{ height: "30px"}}
-          >
-            Clear
-          </Button>
-        </div>
-
+        
         {/* Visa Details Table */}
         <Table
           columns={columns}

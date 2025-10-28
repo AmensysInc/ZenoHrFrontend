@@ -13,11 +13,9 @@ import {
 } from "antd";
 import { BiDollar } from "react-icons/bi";
 import { IoIosPause } from "react-icons/io";
+import { IoCartSharp } from "react-icons/io5"; // 🛒 <-- Added new icon
 import { FiEdit2 } from "react-icons/fi";
-import {
-  AiFillDelete,
-  AiOutlineUsergroupAdd,
-} from "react-icons/ai";
+import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { MdFileDownload } from "react-icons/md";
 import { GiTakeMyMoney } from "react-icons/gi";
@@ -25,7 +23,7 @@ import {
   deleteEmployee,
   fetchEmployees,
 } from "../SharedComponents/services/EmployeeServices";
-import "./Employee.css"; // ✅ we'll create this for hover animations
+import "./Employee.css";
 
 const { Title } = Typography;
 
@@ -89,6 +87,7 @@ export default function Employee() {
   const handleViewTracking = (id) => navigate(`/tracking/${id}`);
   const handleEditEmployee = (id) => navigate(`/editemployee/${id}`);
   const handleAddLeaveBalance = (id) => navigate(`/addleavebalance/${id}`);
+  const handleViewPurchaseOrders = (id) => navigate(`/orders/${id}`); // 🛒 new route handler
 
   const handleDownloadFiles = async (employeeId) => {
     try {
@@ -139,14 +138,11 @@ export default function Employee() {
 
   const columns = [
     {
-      title: "First Name",
-      dataIndex: "firstName",
-      sorter: (a, b) => a.firstName.localeCompare(b.firstName),
-    },
-    {
-      title: "Last Name",
-      dataIndex: "lastName",
-      sorter: (a, b) => a.lastName.localeCompare(b.lastName),
+      title: "Employee Name",
+      dataIndex: "employeeName",
+      sorter: (a, b) =>
+        `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+      render: (_, record) => `${record.firstName} ${record.lastName}`,
     },
     {
       title: "Email ID",
@@ -203,14 +199,17 @@ export default function Employee() {
             title="Profit & Loss"
             className="icon-mac icon-profit"
           />
+          <IoCartSharp
+            onClick={() => handleViewPurchaseOrders(record.employeeID)}
+            title="View Purchase Orders"
+            className="icon-mac icon-cart"
+          />
+
           <Popconfirm
             title="Delete this employee?"
             onConfirm={() => handleDeleteEmployee(record.employeeID)}
           >
-            <AiFillDelete
-              title="Delete"
-              className="icon-mac icon-delete"
-            />
+            <AiFillDelete title="Delete" className="icon-mac icon-delete" />
           </Popconfirm>
         </Space>
       ),

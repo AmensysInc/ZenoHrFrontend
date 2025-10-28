@@ -306,43 +306,56 @@ export default function TimeSheets() {
 
   const handleFileUpload = ({ fileList }) => setSelectedFiles(fileList);
 
-  const handleSubmit = async () => {
-    if (!isCurrentMonthYear) {
-      message.warning("You can only submit for the current month and year");
-      return;
+const handleSubmit = async () => {
+  if (!isCurrentMonthYear) {
+    message.warning("You can only submit for the current month and year");
+    return;
+  }
+
+  const dirtyData = timeSheets.filter((t) => t.__dirty);
+  const uploadMonth = monthOptions[parseInt(selectedMonth, 10) - 1];
+
+  try {
+    // ✅ Attach required identifiers to each entry
+    const payload = dirtyData.map((t) => ({
+      ...t,
+      employeeId: selectedEmployee,
+      projectId: selectedProject.projectId,
+      month: selectedMonth,
+      year: selectedYear,
+      date: t.date.toISOString(), // ensure ISO string
+      notes: t.notes || null,
+    }));
+
+    // Save timesheets
+    if (payload.length > 0) {
+      await post("/timeSheets/createTimeSheet", payload);
+      message.success("✅ Timesheets saved successfully!");
     }
 
-    const dirtyData = timeSheets.filter((t) => t.__dirty);
-    const uploadMonth = monthOptions[parseInt(selectedMonth, 10) - 1];
+    // Upload files (if any)
+    if (selectedFiles.length > 0) {
+      const formData = new FormData();
+      selectedFiles.forEach((f) => formData.append("documents", f.originFileObj));
 
-    try {
-      // Save timesheets
-      if (dirtyData.length > 0) {
-        await post("/timeSheets/createTimeSheet", dirtyData);
-        message.success("Timesheets saved successfully!");
-      }
-
-      // Upload files
-      if (selectedFiles.length > 0) {
-        const formData = new FormData();
-        formData.append("employeeID", selectedEmployee);
-        selectedFiles.forEach((f) => formData.append("documents", f.originFileObj));
-
-        await post(
-          `/timeSheets/uploadfiles/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${uploadMonth}`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
-        message.success("Files uploaded successfully!");
-        loadUploadedFiles();
-      }
-
-      setSelectedFiles([]);
-      setTimeSheets((prev) => prev.map((t) => ({ ...t, __dirty: false })));
-    } catch {
-      message.error("Error submitting data");
+      await post(
+        `/timeSheets/uploadfiles/${selectedEmployee}/${selectedProject.projectId}/${selectedYear}/${uploadMonth}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      message.success("📂 Files uploaded successfully!");
+      loadUploadedFiles();
     }
-  };
+
+    // Reset UI state
+    setSelectedFiles([]);
+    setTimeSheets((prev) => prev.map((t) => ({ ...t, __dirty: false })));
+  } catch (err) {
+    console.error(err);
+    message.error("❌ Error submitting data");
+  }
+};
+
 
   const handleApproveAll = async () => {
     if (!isCurrentMonthYear) {

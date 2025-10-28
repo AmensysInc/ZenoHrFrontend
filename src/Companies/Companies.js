@@ -127,13 +127,13 @@ export default function Companies() {
           Company Details
         </Title>
 
-        <Space>
+        {/* <Space>
           <Link to="/addcompany">
             <Button type="primary" icon={<BsFillPersonPlusFill />}>
               Add Company
             </Button>
           </Link>
-        </Space>
+        </Space> */}
       </div>
 
       {/* Table Section */}

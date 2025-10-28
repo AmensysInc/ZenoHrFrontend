@@ -1,137 +1,159 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Card, Table, Typography, Button, Space, message } from "antd";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
-import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button } from "antd";
 import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/services/OrderService";
+
+const { Title, Text } = Typography;
 
 export default function PurchaseOrder() {
   const [orders, setOrders] = useState([]);
-  const [userDetail, setUserDetail] = useState({});
+  const [employeeName, setEmployeeName] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
-  let { employeeId } = useParams();
+  const { employeeId } = useParams();
 
   useEffect(() => {
     loadOrders();
-  }, [currentPage, pageSize, searchQuery, searchField]);
+  }, [currentPage, pageSize]);
 
   const loadOrders = async () => {
     try {
-      const ordersData = await getOrdersForEmployee(employeeId, currentPage, pageSize, searchQuery, searchField);
-      const detailsData = await getUserDetails(employeeId);
+      setLoading(true);
+      const [ordersData, userDetails] = await Promise.all([
+        getOrdersForEmployee(employeeId, currentPage, pageSize),
+        getUserDetails(employeeId),
+      ]);
 
-      setOrders(ordersData.content);
-      setTotalPages(ordersData.totalPages);
-      setUserDetail({
-        first: detailsData.firstName,
-        last: detailsData.lastName,
-      });
+      const fullName = `${userDetails.firstName || ""} ${userDetails.lastName || ""}`.trim();
+      setEmployeeName(fullName);
+      setOrders(ordersData.content || []);
+      setTotalPages(ordersData.totalPages || 1);
     } catch (error) {
       console.error("Error loading orders:", error);
+      message.error("Failed to load purchase orders");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const handleAddOrder = (employeeId) => {
-    navigate(`/orders/${employeeId}/addorder`);
-  };
-  const handleEditOrder = (employeeId, orderId) => {
+  const handleAddOrder = () => navigate(`/orders/${employeeId}/addorder`);
+  const handleEditOrder = (orderId) =>
     navigate(`/orders/${employeeId}/${orderId}/editorder`);
-  };
-  const handleSearch = () => {
-    loadOrders();
-  };
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    setSearchField("");
-    loadOrders();
-  };
+
+  const columns = [
+    {
+      title: "S.No",
+      render: (_, __, index) => index + 1 + currentPage * pageSize,
+      width: 80,
+      align: "center",
+    },
+    {
+      title: "Date of Joining",
+      dataIndex: "dateOfJoining",
+      key: "dateOfJoining",
+    },
+    {
+      title: "Project End Date",
+      dataIndex: "projectEndDate",
+      key: "projectEndDate",
+    },
+    {
+      title: "Bill Rate",
+      dataIndex: "billRate",
+      key: "billRate",
+      align: "center",
+      render: (rate) => (rate ? `$${rate}` : "-"),
+    },
+    {
+      title: "Client Name",
+      dataIndex: "endClientName",
+      key: "endClientName",
+    },
+    {
+      title: "Vendor Phone No",
+      dataIndex: "vendorPhoneNo",
+      key: "vendorPhoneNo",
+    },
+    {
+      title: "Vendor Email ID",
+      dataIndex: "vendorEmailId",
+      key: "vendorEmailId",
+    },
+    {
+      title: "Actions",
+      align: "center",
+      render: (record) => (
+        <Space size="middle">
+          <FiEdit2
+            onClick={() => handleEditOrder(record.orderId)}
+            title="Edit Order"
+            style={{ cursor: "pointer", color: "#4f46e5" }}
+          />
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <>
-      <h4 className="text-center">
-        {userDetail.first} {userDetail.last}
-      </h4>
-      <div className="d-flex justify-content-end">
-        <button
-          className="btn btn-primary"
-          onClick={() => handleAddOrder(employeeId)}
+    <Card
+      style={{
+        borderRadius: 12,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 24,
+      }}
+    >
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <Title level={4} style={{ color: "#4f46e5", marginBottom: 4 }}>
+          Purchase Orders
+        </Title>
+        <Text type="secondary">
+          {employeeName ? `Employee: ${employeeName}` : "Employee Details"}
+        </Text>
+      </div>
+
+      {/* Add Button */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 16,
+        }}
+      >
+        <Button
+          type="primary"
+          icon={<BiSolidAddToQueue size={16} />}
+          onClick={handleAddOrder}
         >
-          <BiSolidAddToQueue size={15} />
-          Orders
-        </button>
+          Add Order
+        </Button>
       </div>
-      <div className="search-container">
-        <div className="search-bar">
-          <Select
-            value={searchField}
-            onChange={(value) => setSearchField(value)}
-            style={{ width: 120 }}
-          >
-            <Select.Option value="">Select Field</Select.Option>
-            <Select.Option value="dateOfJoining">Data Of Joining</Select.Option>
-            <Select.Option value="projectEndDate">Project End Date</Select.Option>
-            <Select.Option value="billRate">Bill Rate</Select.Option>
-            <Select.Option value="endClientName">Client Name</Select.Option>
-            <Select.Option value="vendorPhoneNo">Vendor PhoneNo</Select.Option>
-            <Select.Option value="vendorEmailId">Vendor EmailID</Select.Option>
-          </Select>
-          <Input.Search
-            placeholder="Search..."
-            onSearch={handleSearch}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            enterButton
-          />
-        </div>
-        <Button onClick={handleClearSearch}>Clear</Button>
-      </div>
-      <table className="table border shadow">
-        <thead>
-          <tr>
-            <th scope="col">S.No</th>
-            <th scope="col">Date Of Joining</th>
-            <th scope="col">Project End Date</th>
-            <th scope="col">Bill Rate</th>
-            <th scope="col">Client Name</th>
-            <th scope="col">Vendor PhoneNo</th>
-            <th scope="col">Vendor Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.length > 0 ? (
-            orders.map((employeeOrder, index) => {
-              const userIndex = index + currentPage * pageSize;
-              return (
-                <tr key={userIndex}>
-                  <th scope="row">{userIndex + 1}</th>
-                  <td>{employeeOrder.dateOfJoining}</td>
-                  <td>{employeeOrder.projectEndDate}</td>
-                  <td>{employeeOrder.billRate}</td>
-                  <td>{employeeOrder.endClientName}</td>
-                  <td>{employeeOrder.vendorPhoneNo}</td>
-                  <td>{employeeOrder.vendorEmailId}</td>
-                  <td>
-                    <div className="icon-container">
-                      <FiEdit2 onClick={() => handleEditOrder(employeeId, employeeOrder.orderId)} size={20} />
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan="7">No Orders</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <Pagination currentPage={currentPage} totalPages={totalPages} setCurrentPage={setCurrentPage} />
-    </>
+
+      {/* Orders Table */}
+      <Table
+        bordered
+        columns={columns}
+        dataSource={orders}
+        loading={loading}
+        rowKey="orderId"
+        pagination={{
+          current: currentPage + 1,
+          total: totalPages * pageSize,
+          pageSize,
+          showSizeChanger: true,
+          onChange: (page) => setCurrentPage(page - 1),
+          onShowSizeChange: (_, size) => setPageSize(size),
+        }}
+        locale={{
+          emptyText: "No purchase orders found.",
+        }}
+      />
+    </Card>
   );
 }

@@ -157,10 +157,11 @@ export default function VisaDetailsForm({ mode }) {
               >
                 <Select placeholder="Select Visa Type">
                   <Option value="H1B">H1B</Option>
-                  <Option value="OPT">OPT</Option>
-                  <Option value="GREENCARD">Green Card</Option>
-                  <Option value="H4AD">H4AD</Option>
+                  <Option value="H4AD">H4 EAD</Option>
                   <Option value="CPT">CPT</Option>
+                  <Option value="OPT">OPT(Extension)</Option>
+                  <Option value="GREENCARD">Green Card</Option>
+                  <Option value="CITIZEN">US CITIZEN</Option>
                 </Select>
               </Form.Item>
             </Col>
