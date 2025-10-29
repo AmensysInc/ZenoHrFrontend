@@ -77,7 +77,7 @@ export async function createEmployee(employee) {
       dob: employee.dob,
       onBench: employee.onBench,
       securityGroup: employee.securityGroup,
-      companyId: Number(employee.company),
+      companyId: Number(employee.companyId),
       password: employee.password,
     };
 
@@ -96,7 +96,7 @@ export async function updateEmployee(employeeId, employee) {
   try {
     const employeeDTO = {
       ...employee,
-      companyId: Number(employee.company),
+      companyId: Number(employee.companyId),
     };
 
     const response = await put(`/employees/${employeeId}`, employeeDTO, {

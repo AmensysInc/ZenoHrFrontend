@@ -32,68 +32,94 @@ export default function EmployeeForm({ mode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [form] = Form.useForm();
 
   const isEditMode = mode === "edit";
 
-  const [form] = Form.useForm();
-
+  // ✅ Fetch Companies
   useEffect(() => {
     const fetchData = async () => {
-      const companyData = await fetchCompanies(0, 10);
-      setCompanies(companyData?.content || []);
+      try {
+        const companyData = await fetchCompanies(0, 10);
+        console.log("Fetched Companies:", companyData?.content);
+        setCompanies(companyData?.content || []);
+      } catch (err) {
+        console.error("Error fetching companies:", err);
+      }
     };
     fetchData();
   }, []);
 
+  // ✅ Fetch Employee Data (Edit Mode)
   useEffect(() => {
     if (isEditMode && employeeId) {
       const fetchData = async () => {
-        const data = await fetchEmployeeDataById(employeeId);
-        if (data) {
-          form.setFieldsValue({
-            ...data,
-            dob: data.dob ? dayjs(data.dob) : null,
-            company: data.company?.companyId || "",
-          });
+        try {
+          const data = await fetchEmployeeDataById(employeeId);
+          if (data) {
+            form.setFieldsValue({
+              ...data,
+              dob: data.dob ? dayjs(data.dob) : null,
+              company: data.company?.companyId
+                ? String(data.company.companyId)
+                : data.company?.id
+                ? String(data.company.id)
+                : "",
+            });
+          }
+        } catch (err) {
+          console.error("Error fetching employee:", err);
         }
       };
       fetchData();
     }
   }, [isEditMode, employeeId, form]);
 
+  // ✅ Password Validation
   const isValidPassword = (value) => {
     const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
     return pattern.test(value);
   };
 
-  const onFinish = async (values) => {
-    try {
-      if (values.password && !isValidPassword(values.password)) {
-        setError(
-          "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
-        );
-        return;
-      }
+  // ✅ Submit Handler
+const onFinish = async (values) => {
+  try {
+    console.log("Form Values:", values);
 
-      const payload = {
-        ...values,
-        dob: values.dob ? values.dob.format("YYYY-MM-DD") : null,
-        companyId: values.company ? parseInt(values.company, 10) : null,
-      };
-      delete payload.company;
-
-      const success = isEditMode
-        ? await updateEmployee(employeeId, payload)
-        : await createEmployee(payload);
-
-      if (success) {
-        setIsModalOpen(true);
-      }
-    } catch (err) {
-      setError(err?.response?.data?.message || "An unknown error occurred.");
+    if (!values.company) {
+      setError("Please select a company before submitting.");
+      return;
     }
-  };
 
+    if (values.password && !isValidPassword(values.password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
+      );
+      return;
+    }
+
+    const payload = {
+      ...values,
+      dob: values.dob ? values.dob.format("YYYY-MM-DD") : null,
+      companyId: String(values.company), // ✅ Convert to string instead of Number
+    };
+
+    delete payload.company;
+    console.log("Submitting Payload:", payload); // Should show companyId: "1"
+
+    const success = isEditMode
+      ? await updateEmployee(employeeId, payload)
+      : await createEmployee(payload);
+
+    if (success) setIsModalOpen(true);
+  } catch (err) {
+    console.error("Error:", err);
+    setError(err?.response?.data?.message || "An unknown error occurred.");
+  }
+};
+  
+
+  // ✅ Send Login Details
   const handleSendDetails = async () => {
     const values = form.getFieldsValue();
     const success = await sendLoginDetails(values.emailID);
@@ -101,21 +127,20 @@ export default function EmployeeForm({ mode }) {
     else setError("Error sending login details.");
   };
 
+  // ✅ Modal Controls
   const handleOk = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/employees");
   };
-
   const handleCancel = () => {
     setIsModalOpen(false);
-    navigate("/");
+    navigate("/employees");
   };
 
-  // ✅ Navigation handlers
+  // ✅ Navigation Handlers
   const handleGoToProjects = () => {
     navigate(`/editemployee/${employeeId}/project-history`);
   };
-
   const handleGoToVisaDetails = () => {
     navigate(`/editemployee/${employeeId}/visa-details`);
   };
@@ -154,6 +179,7 @@ export default function EmployeeForm({ mode }) {
           company: "",
         }}
       >
+        {/* ================== Personal Details ================== */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -164,7 +190,6 @@ export default function EmployeeForm({ mode }) {
               <Input placeholder="First Name" maxLength={50} />
             </Form.Item>
           </Col>
-
           <Col span={12}>
             <Form.Item label="Last Name" name="lastName">
               <Input placeholder="Last Name" maxLength={50} />
@@ -172,6 +197,7 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
+        {/* ================== Contact Details ================== */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -185,7 +211,6 @@ export default function EmployeeForm({ mode }) {
               <Input placeholder="Email Address" />
             </Form.Item>
           </Col>
-
           <Col span={12}>
             <Form.Item
               label="Phone Number"
@@ -197,6 +222,7 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
+        {/* ================== DOB & College ================== */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -207,7 +233,6 @@ export default function EmployeeForm({ mode }) {
               <DatePicker style={{ width: "100%" }} />
             </Form.Item>
           </Col>
-
           <Col span={12}>
             <Form.Item label="College Name" name="clgOfGrad">
               <Input placeholder="College Name" />
@@ -215,12 +240,25 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
+        {/* ================== Company & Status ================== */}
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Company" name="company">
-              <Select placeholder="Select Company" allowClear>
+            <Form.Item
+              label="Company"
+              name="company"
+              rules={[{ required: true, message: "Please select company" }]}
+            >
+              <Select
+                placeholder="Select Company"
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
                 {companies.map((comp) => (
-                  <Option key={comp.companyId} value={comp.companyId}>
+                  <Option
+                    key={comp.companyId ?? comp.id}
+                    value={String(comp.companyId ?? comp.id)}
+                  >
                     {comp.companyName}
                   </Option>
                 ))}
@@ -244,6 +282,7 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
+        {/* ================== Password ================== */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="Password" name="password">
@@ -252,7 +291,7 @@ export default function EmployeeForm({ mode }) {
           </Col>
         </Row>
 
-        {/* ✅ Form Buttons */}
+        {/* ================== Buttons ================== */}
         <Form.Item style={{ textAlign: "center", marginTop: 16 }}>
           {isEditMode && (
             <Button
@@ -275,7 +314,7 @@ export default function EmployeeForm({ mode }) {
           </Button>
         </Form.Item>
 
-        {/* ✅ New Section: Additional Actions (Only in Edit Mode) */}
+        {/* ================== Extra Actions ================== */}
         {isEditMode && (
           <div style={{ textAlign: "center", marginTop: 24 }}>
             <Space>
@@ -290,6 +329,7 @@ export default function EmployeeForm({ mode }) {
         )}
       </Form>
 
+      {/* ================== Modal ================== */}
       <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
         <p>Employee {isEditMode ? "updated" : "added"} successfully!</p>
       </Modal>
