@@ -32,18 +32,6 @@ const AllTimeSheets = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [showAllProjects, setShowAllProjects] = useState(false);
 
-  const [uploadedDocs, setUploadedDocs] = useState([]);
-  const [docsModalVisible, setDocsModalVisible] = useState(false);
-
-  const [notesModalVisible, setNotesModalVisible] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [noteEmployeeId, setNoteEmployeeId] = useState(null);
-  const [noteProjectId, setNoteProjectId] = useState(null);
-
-  const [reminderModalVisible, setReminderModalVisible] = useState(false);
-  const [reminderEmployee, setReminderEmployee] = useState(null);
-  const [reminderText, setReminderText] = useState("");
-
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editData, setEditData] = useState([]);
 
@@ -151,6 +139,7 @@ const AllTimeSheets = () => {
     fetchTimeSheets();
   }, [selectedMonth, selectedYear]);
 
+  // Render all days in month
   const renderDates = () => {
     if (!selectedMonth || !selectedYear) return [];
     const numDays = new Date(selectedYear, selectedMonth, 0).getDate();
@@ -160,6 +149,7 @@ const AllTimeSheets = () => {
     });
   };
 
+  // Find Regular Hours for each date cell
   const findRegularHours = (empId, projectId, date) => {
     const sheet = timeSheets.find(
       (ts) =>
@@ -170,7 +160,10 @@ const AllTimeSheets = () => {
     return sheet?.regularHours || 0;
   };
 
+  // ✅ UPDATED handleOpenEdit: Show all days (1–31)
   const handleOpenEdit = (employee, project) => {
+    const numDays = new Date(selectedYear, selectedMonth, 0).getDate();
+
     const filteredSheets = timeSheets.filter(
       (ts) =>
         ts.empId === employee.employeeID &&
@@ -179,25 +172,41 @@ const AllTimeSheets = () => {
         new Date(ts.date).getFullYear() === selectedYear
     );
 
-    if (!filteredSheets.length) {
-      Modal.warning({
-        title: "No timesheets found for this employee/project.",
-      });
-      return;
-    }
-    setEditData(filteredSheets);
+    const fullMonthData = Array.from({ length: numDays }, (_, i) => {
+      const dateObj = new Date(selectedYear, selectedMonth - 1, i + 1);
+      const existing = filteredSheets.find(
+        (ts) => new Date(ts.date).getDate() === i + 1
+      );
+      return (
+        existing || {
+          empId: employee.employeeID,
+          employeeId: employee.employeeID,
+          projectId: project.projectId,
+          date: dateObj.toISOString(),
+          regularHours: 0,
+          overTimeHours: 0,
+          status: "PENDING",
+          notes: "",
+          masterId: null,
+          sheetId: null,
+        }
+      );
+    });
+
+    setEditData(fullMonthData);
     setEditModalVisible(true);
   };
+
+  // Save edited data
   const handleSaveEdit = async () => {
     if (!editData || !editData.length) return;
 
     try {
-      // ✅ Transform each entry before posting
       const payload = editData.map((ts) => ({
         masterId: ts.masterId || null,
         month: selectedMonth,
         year: selectedYear,
-        employeeId: ts.empId || ts.employeeId, // ensure correct name
+        employeeId: ts.empId || ts.employeeId,
         projectId: ts.projectId,
         sheetId: ts.sheetId || null,
         regularHours: ts.regularHours || 0,
@@ -320,6 +329,7 @@ const AllTimeSheets = () => {
     <div>
       <h2 style={{ marginBottom: 20 }}>All Employee Time Sheets</h2>
 
+      {/* Filters */}
       <div
         style={{
           marginBottom: 20,
@@ -382,6 +392,7 @@ const AllTimeSheets = () => {
         </Checkbox>
       </div>
 
+      {/* Table */}
       <Table
         columns={columns}
         dataSource={employees}
@@ -403,7 +414,7 @@ const AllTimeSheets = () => {
         onOk={handleSaveEdit}
         onCancel={() => setEditModalVisible(false)}
         okText="Save Changes"
-        width={700}
+        width={750}
       >
         {editData.length > 0 ? (
           <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 10 }}>
@@ -420,13 +431,10 @@ const AllTimeSheets = () => {
               >
                 <span>{new Date(entry.date).toLocaleDateString()}</span>
 
-                {/* ✅ Fully controlled Regular Hours */}
                 <InputNumber
                   min={0}
-                  max={100000}
-                  value={
-                    Number.isFinite(entry.regularHours) ? entry.regularHours : 0
-                  }
+                  max={24}
+                  value={entry.regularHours || 0}
                   onChange={(val) => {
                     const updated = [...editData];
                     updated[idx].regularHours = val ?? 0;
@@ -434,15 +442,10 @@ const AllTimeSheets = () => {
                   }}
                 />
 
-                {/* ✅ Fully controlled Overtime Hours */}
                 <InputNumber
                   min={0}
                   max={10}
-                  value={
-                    Number.isFinite(entry.overTimeHours)
-                      ? entry.overTimeHours
-                      : 0
-                  }
+                  value={entry.overTimeHours || 0}
                   onChange={(val) => {
                     const updated = [...editData];
                     updated[idx].overTimeHours = val ?? 0;
