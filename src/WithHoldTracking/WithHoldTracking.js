@@ -12,11 +12,19 @@ import {
   Pagination,
   Row,
   Col,
+  Input,
 } from "antd";
-import { MailOutlined, PlusOutlined, EditOutlined, SaveOutlined } from "@ant-design/icons";
-import FroalaEditor from "react-froala-wysiwyg";
-import "froala-editor/css/froala_editor.pkgd.min.css";
-import "froala-editor/js/plugins.pkgd.min.js";
+import {
+  MailOutlined,
+  PlusOutlined,
+  EditOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
+
+// --- ReactQuill imports ---
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+// ---------------------------
 
 import {
   getEmployeeDetails,
@@ -40,6 +48,17 @@ export default function WithHoldTracking() {
   const [totalPages, setTotalPages] = useState(1);
   const [editorValues, setEditorValues] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  // Email modal state
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [emailFields, setEmailFields] = useState({
+    to: "",
+    cc: "",
+    subject: "",
+    body: "",
+  });
+
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     loadTrackings();
@@ -76,14 +95,41 @@ export default function WithHoldTracking() {
     }
   };
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = () => {
     if (!userDetail.email) {
       message.warning("Email not available for this user.");
       return;
     }
+
+    setEmailFields({
+      to: userDetail.email,
+      cc: "",
+      subject: `WithHold Details for ${userDetail.first} ${userDetail.last}`,
+      body: `
+        Hi ${userDetail.first},<br/><br/>
+        Please find the latest WithHold details attached or updated.<br/><br/>
+        Regards,<br/>
+        HR / Admin Team
+      `,
+    });
+
+    setEmailModalVisible(true);
+  };
+
+  const handleConfirmSend = async () => {
     try {
-      await resetPassword({ email: userDetail.email, category: "WITH_HOLD" });
+      const { to, cc, subject, body } = emailFields;
+
+      await resetPassword({
+        email: to,
+        cc,
+        subject,
+        body,
+        category: "ADMIN",
+      });
+
       message.success("Email sent successfully.");
+      setEmailModalVisible(false);
     } catch (error) {
       console.error("Email send failed:", error);
       message.error("Failed to send email.");
@@ -165,51 +211,15 @@ export default function WithHoldTracking() {
             );
 
             const columns = [
-              {
-                title: "Month",
-                dataIndex: "month",
-                key: "month",
-              },
-              {
-                title: "Year",
-                dataIndex: "year",
-                key: "year",
-              },
-              {
-                title: "Project",
-                dataIndex: "projectName",
-                key: "projectName",
-              },
-              {
-                title: "Actual Hours",
-                dataIndex: "actualHours",
-                key: "actualHours",
-              },
-              {
-                title: "Actual Rate",
-                dataIndex: "actualRate",
-                key: "actualRate",
-              },
-              {
-                title: "Actual Amount",
-                dataIndex: "actualAmt",
-                key: "actualAmt",
-              },
-              {
-                title: "Paid Hours",
-                dataIndex: "paidHours",
-                key: "paidHours",
-              },
-              {
-                title: "Paid Rate",
-                dataIndex: "paidRate",
-                key: "paidRate",
-              },
-              {
-                title: "Paid Amount",
-                dataIndex: "paidAmt",
-                key: "paidAmt",
-              },
+              { title: "Month", dataIndex: "month", key: "month" },
+              { title: "Year", dataIndex: "year", key: "year" },
+              { title: "Project", dataIndex: "projectName", key: "projectName" },
+              { title: "Actual Hours", dataIndex: "actualHours", key: "actualHours" },
+              { title: "Actual Rate", dataIndex: "actualRate", key: "actualRate" },
+              { title: "Actual Amount", dataIndex: "actualAmt", key: "actualAmt" },
+              { title: "Paid Hours", dataIndex: "paidHours", key: "paidHours" },
+              { title: "Paid Rate", dataIndex: "paidRate", key: "paidRate" },
+              { title: "Paid Amount", dataIndex: "paidAmt", key: "paidAmt" },
               {
                 title: "Balance",
                 dataIndex: "balance",
@@ -220,21 +230,9 @@ export default function WithHoldTracking() {
                   </Text>
                 ),
               },
-              {
-                title: "Type",
-                dataIndex: "type",
-                key: "type",
-              },
-              {
-                title: "Status",
-                dataIndex: "status",
-                key: "status",
-              },
-              {
-                title: "Bill Rate",
-                dataIndex: "billRate",
-                key: "billRate",
-              },
+              { title: "Type", dataIndex: "type", key: "type" },
+              { title: "Status", dataIndex: "status", key: "status" },
+              { title: "Bill Rate", dataIndex: "billRate", key: "billRate" },
               {
                 title: "Action",
                 key: "action",
@@ -256,9 +254,7 @@ export default function WithHoldTracking() {
                   <Space>
                     <Text strong>Project:</Text>
                     <Text>{projectName}</Text>
-                    <Text type="secondary">
-                      (Total Balance: {totalBalance})
-                    </Text>
+                    <Text type="secondary">(Total Balance: {totalBalance})</Text>
                   </Space>
                 }
                 key={projectName}
@@ -280,12 +276,14 @@ export default function WithHoldTracking() {
                       title={`Excel Data — ${t.month} ${t.year}`}
                       style={{ marginTop: 24 }}
                     >
-                      <FroalaEditor
-                        model={editorValues[t.trackingId] || ""}
-                        onModelChange={(html) =>
+                      <ReactQuill
+                        theme="snow"
+                        value={editorValues[t.trackingId] || ""}
+                        onChange={(html) =>
                           handleEditorChange(t.trackingId, html)
                         }
                       />
+
                       <Button
                         icon={<SaveOutlined />}
                         type="primary"
@@ -313,6 +311,47 @@ export default function WithHoldTracking() {
           })}
         </Collapse>
       )}
+
+      {/* Email Modal */}
+      <Modal
+        title="Send WithHold Email"
+        open={emailModalVisible}
+        onOk={handleConfirmSend}
+        onCancel={() => setEmailModalVisible(false)}
+        okText="Send"
+        width={700}
+      >
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Text strong>To:</Text>
+          <Input value={emailFields.to} disabled />
+
+          <Text strong>CC:</Text>
+          <Input
+            placeholder="Optional"
+            value={emailFields.cc}
+            onChange={(e) =>
+              setEmailFields({ ...emailFields, cc: e.target.value })
+            }
+          />
+
+          <Text strong>Subject:</Text>
+          <Input
+            value={emailFields.subject}
+            onChange={(e) =>
+              setEmailFields({ ...emailFields, subject: e.target.value })
+            }
+          />
+
+          <Text strong>Body:</Text>
+          <ReactQuill
+            theme="snow"
+            value={emailFields.body}
+            onChange={(html) =>
+              setEmailFields({ ...emailFields, body: html })
+            }
+          />
+        </Space>
+      </Modal>
 
       <Modal
         open={isModalVisible}

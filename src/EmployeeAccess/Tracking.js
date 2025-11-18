@@ -9,8 +9,13 @@ import {
   Space,
   Spin,
   Tooltip,
+  Modal,
+  Input,
 } from "antd";
 import { MailOutlined, ReloadOutlined } from "@ant-design/icons";
+import FroalaEditor from "react-froala-wysiwyg";
+import "froala-editor/css/froala_editor.pkgd.min.css";
+import "froala-editor/js/plugins.pkgd.min.js";
 
 const { Title, Text } = Typography;
 
@@ -22,6 +27,15 @@ export default function Tracking() {
   const [trackings, setTrackings] = useState([]);
   const [employeeEmail, setEmployeeEmail] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Email modal states
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [emailFields, setEmailFields] = useState({
+    to: "",
+    cc: "",
+    subject: "",
+    body: "",
+  });
 
   // ✅ Fetch both employee details and tracking data on mount
   useEffect(() => {
@@ -57,19 +71,49 @@ export default function Tracking() {
     }
   };
 
-  const handleSendEmail = async () => {
+  // 📨 Open Email Modal
+  const handleSendEmail = () => {
     if (!employeeEmail) {
       message.warning("Employee email not available.");
       return;
     }
 
+    // Pre-fill template
+    setEmailFields({
+      to: employeeEmail,
+      cc: "",
+      subject: "WithHold / Tracking Details Update",
+      body: `
+        Hi,
+
+        Please find your latest WithHold and tracking details below.
+
+        Regards,<br/>
+        HR / Admin Team
+      `,
+    });
+
+    setEmailModalVisible(true);
+  };
+
+  // ✅ Confirm Email Send
+  const handleConfirmSend = async () => {
+    const { to, cc, subject, body } = emailFields;
     try {
       await axios.post(
         `${apiUrl}/auth/resetPassword`,
-        { email: employeeEmail, category: "WITHHOLD_EMP" },
+        {
+          email: to,
+          cc,
+          subject,
+          body,
+          category: "WITHHOLD_EMP",
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       message.success("Email sent successfully!");
+      setEmailModalVisible(false);
     } catch (err) {
       console.error("Failed to send email:", err);
       message.error("Error sending email.");
@@ -100,11 +144,7 @@ export default function Tracking() {
         background: "#fff",
       }}
     >
-      <Space
-        direction="vertical"
-        style={{ width: "100%" }}
-        size="large"
-      >
+      <Space direction="vertical" style={{ width: "100%" }} size="large">
         <div className="d-flex justify-content-between align-items-center">
           <Title level={3} style={{ marginBottom: 0 }}>
             Tracking Details
@@ -118,7 +158,7 @@ export default function Tracking() {
               />
             </Tooltip>
 
-            <Tooltip title="Send Reset Email">
+            <Tooltip title="Send Email">
               <Button
                 type="primary"
                 icon={<MailOutlined />}
@@ -146,6 +186,46 @@ export default function Tracking() {
           Logged in as: <b>{employeeEmail || "N/A"}</b>
         </Text>
       </Space>
+
+      {/* 📨 Email Modal */}
+      <Modal
+        title="Send WithHold / Tracking Email"
+        open={emailModalVisible}
+        onOk={handleConfirmSend}
+        onCancel={() => setEmailModalVisible(false)}
+        okText="Send Email"
+        width={700}
+      >
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Text strong>To:</Text>
+          <Input value={emailFields.to} disabled />
+
+          <Text strong>CC:</Text>
+          <Input
+            placeholder="Optional"
+            value={emailFields.cc}
+            onChange={(e) =>
+              setEmailFields({ ...emailFields, cc: e.target.value })
+            }
+          />
+
+          <Text strong>Subject:</Text>
+          <Input
+            value={emailFields.subject}
+            onChange={(e) =>
+              setEmailFields({ ...emailFields, subject: e.target.value })
+            }
+          />
+
+          <Text strong>Body:</Text>
+          <FroalaEditor
+            model={emailFields.body}
+            onModelChange={(html) =>
+              setEmailFields({ ...emailFields, body: html })
+            }
+          />
+        </Space>
+      </Modal>
     </Card>
   );
 }
