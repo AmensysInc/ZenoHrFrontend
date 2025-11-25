@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Card,
@@ -37,20 +37,51 @@ export default function Tracking() {
     body: "",
   });
 
-  // ✅ Fetch both employee details and tracking data on mount
+  // Abort controller ref (persists across renders)
+  const abortControllerRef = useRef(null);
+
+  // Cleanup function to cancel pending API calls
+  const cancelPendingRequests = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
+  // Fetch data on mount
   useEffect(() => {
-    Promise.all([fetchTrackings(), fetchEmployeeEmail()]);
+    abortControllerRef.current = new AbortController();
+    const controller = abortControllerRef.current;
+
+    fetchTrackings(controller);
+    fetchEmployeeEmail(controller);
+
+    return () => {
+      cancelPendingRequests();
+    };
   }, []);
 
-  const fetchTrackings = async () => {
+  // -----------------------------
+  // Fetch Trackings (SAFE API CALL)
+  // -----------------------------
+  const fetchTrackings = async (controller = abortControllerRef.current) => {
     setLoading(true);
     try {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       };
-      const res = await axios.get(`${apiUrl}/employees/${employeeId}/trackings`, config);
+
+      const res = await axios.get(
+        `${apiUrl}/employees/${employeeId}/trackings`,
+        config
+      );
+
       setTrackings(res.data?.content || []);
     } catch (err) {
+      if (axios.isCancel(err)) {
+        console.warn("Fetch trackings request cancelled");
+        return;
+      }
       console.error("Error fetching trackings:", err);
       message.error("Failed to load tracking details.");
     } finally {
@@ -58,36 +89,48 @@ export default function Tracking() {
     }
   };
 
-  const fetchEmployeeEmail = async () => {
+  // -----------------------------
+  // Fetch Employee Email (SAFE)
+  // -----------------------------
+  const fetchEmployeeEmail = async (controller = abortControllerRef.current) => {
     try {
       const config = {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       };
-      const res = await axios.get(`${apiUrl}/employees/${employeeId}`, config);
+
+      const res = await axios.get(
+        `${apiUrl}/employees/${employeeId}`,
+        config
+      );
+
       setEmployeeEmail(res.data?.emailID || "");
     } catch (err) {
+      if (axios.isCancel(err)) {
+        console.warn("Fetch employee email cancelled");
+        return;
+      }
       console.error("Failed to fetch employee email:", err);
       message.warning("Could not fetch employee email.");
     }
   };
 
-  // 📨 Open Email Modal
+  // -----------------------------
+  // Email Modal Logic
+  // -----------------------------
   const handleSendEmail = () => {
     if (!employeeEmail) {
       message.warning("Employee email not available.");
       return;
     }
 
-    // Pre-fill template
     setEmailFields({
       to: employeeEmail,
       cc: "",
       subject: "WithHold / Tracking Details Update",
       body: `
-        Hi,
-
-        Please find your latest WithHold and tracking details below.
-
+        Hi,<br/><br/>
+        Please find your latest WithHold and tracking details below.<br/><br/>
         Regards,<br/>
         HR / Admin Team
       `,
@@ -96,7 +139,6 @@ export default function Tracking() {
     setEmailModalVisible(true);
   };
 
-  // ✅ Confirm Email Send
   const handleConfirmSend = async () => {
     const { to, cc, subject, body } = emailFields;
     try {
@@ -120,6 +162,7 @@ export default function Tracking() {
     }
   };
 
+  // Table Columns
   const columns = [
     { title: "S.No", dataIndex: "index", render: (_, __, i) => i + 1 },
     { title: "Month", dataIndex: "month" },
@@ -146,15 +189,13 @@ export default function Tracking() {
     >
       <Space direction="vertical" style={{ width: "100%" }} size="large">
         <div className="d-flex justify-content-between align-items-center">
-          <Title level={3} style={{ marginBottom: 0 }}>
-            Tracking Details
-          </Title>
+          <Title level={3}>Tracking Details</Title>
+
           <Space>
             <Tooltip title="Refresh">
               <Button
                 icon={<ReloadOutlined />}
-                onClick={fetchTrackings}
-                type="default"
+                onClick={() => fetchTrackings(abortControllerRef.current)}
               />
             </Tooltip>
 
@@ -162,8 +203,8 @@ export default function Tracking() {
               <Button
                 type="primary"
                 icon={<MailOutlined />}
-                onClick={handleSendEmail}
                 disabled={!employeeEmail}
+                onClick={handleSendEmail}
               >
                 Send Email
               </Button>
@@ -187,7 +228,7 @@ export default function Tracking() {
         </Text>
       </Space>
 
-      {/* 📨 Email Modal */}
+      {/* Email Modal */}
       <Modal
         title="Send WithHold / Tracking Email"
         open={emailModalVisible}
@@ -202,7 +243,6 @@ export default function Tracking() {
 
           <Text strong>CC:</Text>
           <Input
-            placeholder="Optional"
             value={emailFields.cc}
             onChange={(e) =>
               setEmailFields({ ...emailFields, cc: e.target.value })

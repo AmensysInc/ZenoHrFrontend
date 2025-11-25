@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -12,7 +12,6 @@ import {
   Pagination,
   Row,
   Col,
-  Input,
 } from "antd";
 import {
   MailOutlined,
@@ -21,10 +20,8 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 
-// --- ReactQuill imports ---
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
-// ---------------------------
+// ⭐ Replace Froala → Jodit
+import JoditEditor from "jodit-react";
 
 import {
   getEmployeeDetails,
@@ -49,16 +46,8 @@ export default function WithHoldTracking() {
   const [editorValues, setEditorValues] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Email modal state
-  const [emailModalVisible, setEmailModalVisible] = useState(false);
-  const [emailFields, setEmailFields] = useState({
-    to: "",
-    cc: "",
-    subject: "",
-    body: "",
-  });
-
-  const token = sessionStorage.getItem("token");
+  // We create refs dynamically per trackingId
+  const editorRefs = useRef({});
 
   useEffect(() => {
     loadTrackings();
@@ -67,25 +56,30 @@ export default function WithHoldTracking() {
   const loadTrackings = async () => {
     try {
       setLoading(true);
+
       const trackingResponse = await getTrackingForEmployee(
         employeeId,
         currentPage,
         pageSize
       );
+
       const detailsData = await getEmployeeDetails(employeeId);
 
       setTrackings(trackingResponse.content || []);
       setTotalPages(trackingResponse.totalPages || 1);
+
       setUserDetail({
         first: detailsData.firstName,
         last: detailsData.lastName,
         email: detailsData.emailID,
       });
 
+      // Initialize Jodit values
       const initValues = {};
       (trackingResponse.content || []).forEach((t) => {
         initValues[t.trackingId] = t.excelData || "";
       });
+
       setEditorValues(initValues);
     } catch (error) {
       console.error("Error loading trackings:", error);
@@ -95,41 +89,14 @@ export default function WithHoldTracking() {
     }
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!userDetail.email) {
       message.warning("Email not available for this user.");
       return;
     }
-
-    setEmailFields({
-      to: userDetail.email,
-      cc: "",
-      subject: `WithHold Details for ${userDetail.first} ${userDetail.last}`,
-      body: `
-        Hi ${userDetail.first},<br/><br/>
-        Please find the latest WithHold details attached or updated.<br/><br/>
-        Regards,<br/>
-        HR / Admin Team
-      `,
-    });
-
-    setEmailModalVisible(true);
-  };
-
-  const handleConfirmSend = async () => {
     try {
-      const { to, cc, subject, body } = emailFields;
-
-      await resetPassword({
-        email: to,
-        cc,
-        subject,
-        body,
-        category: "ADMIN",
-      });
-
+      await resetPassword({ email: userDetail.email, category: "WITH_HOLD" });
       message.success("Email sent successfully.");
-      setEmailModalVisible(false);
     } catch (error) {
       console.error("Email send failed:", error);
       message.error("Failed to send email.");
@@ -145,7 +112,10 @@ export default function WithHoldTracking() {
   };
 
   const handleEditorChange = (trackingId, html) => {
-    setEditorValues((prev) => ({ ...prev, [trackingId]: html }));
+    setEditorValues((prev) => ({
+      ...prev,
+      [trackingId]: html,
+    }));
   };
 
   const handleSaveExcel = async (trackingId) => {
@@ -153,16 +123,21 @@ export default function WithHoldTracking() {
       const tracking = trackings.find((t) => t.trackingId === trackingId);
       if (!tracking) return;
 
-      const updated = { ...tracking, excelData: editorValues[trackingId] || "" };
+      const updated = {
+        ...tracking,
+        excelData: editorValues[trackingId] || "",
+      };
+
       await updateTracking(trackingId, updated);
 
       setTrackings((prev) =>
         prev.map((t) =>
           t.trackingId === trackingId
-            ? { ...t, excelData: editorValues[trackingId] || "" }
+            ? { ...t, excelData: editorValues[trackingId] }
             : t
         )
       );
+
       message.success("Excel data saved successfully.");
     } catch (error) {
       console.error("Error saving excel data:", error);
@@ -193,7 +168,12 @@ export default function WithHoldTracking() {
         >
           Send Email
         </Button>
-        <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddTracking}>
+
+        <Button
+          type="dashed"
+          icon={<PlusOutlined />}
+          onClick={handleAddTracking}
+        >
           New WithHold
         </Button>
       </Space>
@@ -211,31 +191,29 @@ export default function WithHoldTracking() {
             );
 
             const columns = [
-              { title: "Month", dataIndex: "month", key: "month" },
-              { title: "Year", dataIndex: "year", key: "year" },
-              { title: "Project", dataIndex: "projectName", key: "projectName" },
-              { title: "Actual Hours", dataIndex: "actualHours", key: "actualHours" },
-              { title: "Actual Rate", dataIndex: "actualRate", key: "actualRate" },
-              { title: "Actual Amount", dataIndex: "actualAmt", key: "actualAmt" },
-              { title: "Paid Hours", dataIndex: "paidHours", key: "paidHours" },
-              { title: "Paid Rate", dataIndex: "paidRate", key: "paidRate" },
-              { title: "Paid Amount", dataIndex: "paidAmt", key: "paidAmt" },
+              { title: "Month", dataIndex: "month" },
+              { title: "Year", dataIndex: "year" },
+              { title: "Project", dataIndex: "projectName" },
+              { title: "Actual Hours", dataIndex: "actualHours" },
+              { title: "Actual Rate", dataIndex: "actualRate" },
+              { title: "Actual Amount", dataIndex: "actualAmt" },
+              { title: "Paid Hours", dataIndex: "paidHours" },
+              { title: "Paid Rate", dataIndex: "paidRate" },
+              { title: "Paid Amount", dataIndex: "paidAmt" },
               {
                 title: "Balance",
                 dataIndex: "balance",
-                key: "balance",
                 render: (val) => (
                   <Text strong type={val >= 0 ? "success" : "danger"}>
                     {val}
                   </Text>
                 ),
               },
-              { title: "Type", dataIndex: "type", key: "type" },
-              { title: "Status", dataIndex: "status", key: "status" },
-              { title: "Bill Rate", dataIndex: "billRate", key: "billRate" },
+              { title: "Type", dataIndex: "type" },
+              { title: "Status", dataIndex: "status" },
+              { title: "Bill Rate", dataIndex: "billRate" },
               {
                 title: "Action",
-                key: "action",
                 render: (_, record) => (
                   <Button
                     type="link"
@@ -254,12 +232,14 @@ export default function WithHoldTracking() {
                   <Space>
                     <Text strong>Project:</Text>
                     <Text>{projectName}</Text>
-                    <Text type="secondary">(Total Balance: {totalBalance})</Text>
+                    <Text type="secondary">
+                      (Total Balance: {totalBalance})
+                    </Text>
                   </Space>
                 }
                 key={projectName}
               >
-                <Card bordered={true}>
+                <Card bordered>
                   <Table
                     columns={columns}
                     dataSource={projectTrackings}
@@ -273,14 +253,21 @@ export default function WithHoldTracking() {
                     <Card
                       key={t.trackingId}
                       type="inner"
-                      title={`Excel Data — ${t.month} ${t.year}`}
+                      title={`Excel Data`}
                       style={{ marginTop: 24 }}
                     >
-                      <ReactQuill
-                        theme="snow"
+                      <JoditEditor
+                        ref={(el) => (editorRefs.current[t.trackingId] = el)}
                         value={editorValues[t.trackingId] || ""}
-                        onChange={(html) =>
-                          handleEditorChange(t.trackingId, html)
+                        config={{
+                          readonly: false,
+                          height: 300,
+                          toolbarSticky: false,
+                          allowResizeX: false,
+                          allowResizeY: false,
+                        }}
+                        onBlur={(content) =>
+                          handleEditorChange(t.trackingId, content)
                         }
                       />
 
@@ -311,47 +298,6 @@ export default function WithHoldTracking() {
           })}
         </Collapse>
       )}
-
-      {/* Email Modal */}
-      <Modal
-        title="Send WithHold Email"
-        open={emailModalVisible}
-        onOk={handleConfirmSend}
-        onCancel={() => setEmailModalVisible(false)}
-        okText="Send"
-        width={700}
-      >
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Text strong>To:</Text>
-          <Input value={emailFields.to} disabled />
-
-          <Text strong>CC:</Text>
-          <Input
-            placeholder="Optional"
-            value={emailFields.cc}
-            onChange={(e) =>
-              setEmailFields({ ...emailFields, cc: e.target.value })
-            }
-          />
-
-          <Text strong>Subject:</Text>
-          <Input
-            value={emailFields.subject}
-            onChange={(e) =>
-              setEmailFields({ ...emailFields, subject: e.target.value })
-            }
-          />
-
-          <Text strong>Body:</Text>
-          <ReactQuill
-            theme="snow"
-            value={emailFields.body}
-            onChange={(html) =>
-              setEmailFields({ ...emailFields, body: html })
-            }
-          />
-        </Space>
-      </Modal>
 
       <Modal
         open={isModalVisible}
