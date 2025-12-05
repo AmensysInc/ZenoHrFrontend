@@ -7,3 +7,7 @@
 .app{
     height: 92.5vh;
 }
+
+.ck-editor__editable_inline {
+  min-height: 260px !important;
+}

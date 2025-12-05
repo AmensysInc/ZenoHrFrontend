@@ -6,12 +6,13 @@ import {
   Button,
   Typography,
   Space,
-  message,
   Collapse,
   Modal,
   Pagination,
   Row,
   Col,
+  Input,
+  message,
 } from "antd";
 import {
   MailOutlined,
@@ -20,7 +21,6 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 
-// ⭐ Replace Froala → Jodit
 import JoditEditor from "jodit-react";
 
 import {
@@ -41,12 +41,18 @@ export default function WithHoldTracking() {
   const [trackings, setTrackings] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [editorValues, setEditorValues] = useState({});
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // We create refs dynamically per trackingId
+  // ------- Email Modal States -------
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+
+  const emailEditorRef = useRef(null);
+
   const editorRefs = useRef({});
 
   useEffect(() => {
@@ -74,12 +80,10 @@ export default function WithHoldTracking() {
         email: detailsData.emailID,
       });
 
-      // Initialize Jodit values
       const initValues = {};
       (trackingResponse.content || []).forEach((t) => {
         initValues[t.trackingId] = t.excelData || "";
       });
-
       setEditorValues(initValues);
     } catch (error) {
       console.error("Error loading trackings:", error);
@@ -89,20 +93,49 @@ export default function WithHoldTracking() {
     }
   };
 
-  const handleSendEmail = async () => {
+  // ---------------- EMAIL POPUP --------------------
+  const openEmailModal = () => {
     if (!userDetail.email) {
       message.warning("Email not available for this user.");
       return;
     }
+    setEmailSubject("");
+    setEmailBody("");
+    setIsEmailModalVisible(true);
+  };
+
+  const handleEmailSend = async () => {
+    if (!emailSubject.trim()) {
+      message.warning("Please enter subject.");
+      return;
+    }
+    if (!emailBody.trim()) {
+      message.warning("Please enter email body.");
+      return;
+    }
+
     try {
-      await resetPassword({ email: userDetail.email, category: "WITH_HOLD" });
+      setSendingEmail(true);
+
+      // Modify your API call if needed
+      await resetPassword({
+        email: userDetail.email,
+        category: "WITH_HOLD",
+        subject: emailSubject,
+        body: emailBody,
+      });
+
       message.success("Email sent successfully.");
+      setIsEmailModalVisible(false);
     } catch (error) {
       console.error("Email send failed:", error);
       message.error("Failed to send email.");
+    } finally {
+      setSendingEmail(false);
     }
   };
 
+  // ---------------- TRACKING LOGIC --------------------
   const handleAddTracking = () => {
     navigate(`/tracking/${employeeId}/addtracking`);
   };
@@ -163,23 +196,19 @@ export default function WithHoldTracking() {
         <Button
           type="primary"
           icon={<MailOutlined />}
-          onClick={handleSendEmail}
+          onClick={openEmailModal}
           disabled={!userDetail.email}
         >
           Send Email
         </Button>
 
-        <Button
-          type="dashed"
-          icon={<PlusOutlined />}
-          onClick={handleAddTracking}
-        >
+        <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddTracking}>
           New WithHold
         </Button>
       </Space>
 
       {Object.keys(grouped).length === 0 ? (
-        <Text type="secondary" style={{ display: "block", textAlign: "center" }}>
+        <Text type="secondary" style={{ textAlign: "center", display: "block" }}>
           No tracking data found.
         </Text>
       ) : (
@@ -232,9 +261,7 @@ export default function WithHoldTracking() {
                   <Space>
                     <Text strong>Project:</Text>
                     <Text>{projectName}</Text>
-                    <Text type="secondary">
-                      (Total Balance: {totalBalance})
-                    </Text>
+                    <Text type="secondary">(Total Balance: {totalBalance})</Text>
                   </Space>
                 }
                 key={projectName}
@@ -253,7 +280,7 @@ export default function WithHoldTracking() {
                     <Card
                       key={t.trackingId}
                       type="inner"
-                      title={`Excel Data`}
+                      title="Excel Data"
                       style={{ marginTop: 24 }}
                     >
                       <JoditEditor
@@ -262,9 +289,6 @@ export default function WithHoldTracking() {
                         config={{
                           readonly: false,
                           height: 300,
-                          toolbarSticky: false,
-                          allowResizeX: false,
-                          allowResizeY: false,
                         }}
                         onBlur={(content) =>
                           handleEditorChange(t.trackingId, content)
@@ -299,12 +323,39 @@ export default function WithHoldTracking() {
         </Collapse>
       )}
 
+      {/* ---------------- Email Modal -------------------- */}
       <Modal
-        open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
+        title="Send WithHold Email"
+        open={isEmailModalVisible}
+        onCancel={() => setIsEmailModalVisible(false)}
+        onOk={handleEmailSend}
+        confirmLoading={sendingEmail}
+        okText="Send Email"
+        cancelText="Cancel"
+        width={700}
       >
-        <Text>Operation successful</Text>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Text strong>To:</Text>
+          <Input value={userDetail.email} disabled />
+
+          <Text strong>Subject:</Text>
+          <Input
+            placeholder="Enter subject"
+            value={emailSubject}
+            onChange={(e) => setEmailSubject(e.target.value)}
+          />
+
+          <Text strong>Body:</Text>
+          <JoditEditor
+            ref={emailEditorRef}
+            value={emailBody}
+            config={{
+              readonly: false,
+              height: 250,
+            }}
+            onBlur={(newContent) => setEmailBody(newContent)}
+          />
+        </Space>
       </Modal>
     </div>
   );

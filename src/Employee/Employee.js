@@ -13,7 +13,7 @@ import {
 } from "antd";
 import { BiDollar } from "react-icons/bi";
 import { IoIosPause } from "react-icons/io";
-import { IoCartSharp } from "react-icons/io5"; // 🛒 <-- Added new icon
+import { IoCartSharp } from "react-icons/io5";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
@@ -41,6 +41,16 @@ export default function Employee() {
 
   useEffect(() => {
     fetchData(1, 10);
+    
+    // Suppress ResizeObserver errors
+    const handleError = (e) => {
+      if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+        e.stopImmediatePropagation();
+      }
+    };
+    
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
   }, []);
 
   const fetchData = async (page, pageSize) => {
@@ -67,19 +77,28 @@ export default function Employee() {
       );
       setTotal(totalPages * pageSize);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching employees:", err);
+      message.error("Failed to fetch employees");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteEmployee = async (employeeId) => {
-    const success = await deleteEmployee(employeeId);
-    if (success) {
-      message.success("Employee deleted successfully");
-      fetchData(1, 10);
-    } else {
-      message.error("Failed to delete employee");
+    try {
+      setLoading(true);
+      const success = await deleteEmployee(employeeId);
+      if (success) {
+        message.success("Employee deleted successfully");
+        await fetchData(1, 10);
+      } else {
+        message.error("Failed to delete employee");
+      }
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      message.error("An error occurred while deleting employee");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,7 +106,7 @@ export default function Employee() {
   const handleViewTracking = (id) => navigate(`/tracking/${id}`);
   const handleEditEmployee = (id) => navigate(`/editemployee/${id}`);
   const handleAddLeaveBalance = (id) => navigate(`/addleavebalance/${id}`);
-  const handleViewPurchaseOrders = (id) => navigate(`/orders/${id}`); // 🛒 new route handler
+  const handleViewPurchaseOrders = (id) => navigate(`/orders/${id}`);
 
   const handleDownloadFiles = async (employeeId) => {
     try {
@@ -129,6 +148,7 @@ export default function Employee() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+      window.URL.revokeObjectURL(url);
       message.success("File downloaded");
     } catch (error) {
       console.error("Error downloading file:", error);
@@ -178,38 +198,52 @@ export default function Employee() {
             onClick={() => handleEditEmployee(record.employeeID)}
             title="Edit"
             className="icon-mac icon-edit"
+            style={{ cursor: 'pointer' }}
           />
           <IoIosPause
             onClick={() => handleAddLeaveBalance(record.employeeID)}
             title="Add Leave Balance"
             className="icon-mac icon-leave"
+            style={{ cursor: 'pointer' }}
           />
           <BiDollar
             onClick={() => handleViewTracking(record.employeeID)}
             title="WithHold Tracking"
             className="icon-mac icon-tracking"
+            style={{ cursor: 'pointer' }}
           />
           <MdFileDownload
             onClick={() => handleDownloadFiles(record.employeeID)}
             title="Download Files"
             className="icon-mac icon-download"
+            style={{ cursor: 'pointer' }}
           />
           <GiTakeMyMoney
             onClick={() => handleProfitAndLoss(record.employeeID)}
             title="Profit & Loss"
             className="icon-mac icon-profit"
+            style={{ cursor: 'pointer' }}
           />
           <IoCartSharp
             onClick={() => handleViewPurchaseOrders(record.employeeID)}
             title="View Purchase Orders"
             className="icon-mac icon-cart"
+            style={{ cursor: 'pointer' }}
           />
 
           <Popconfirm
             title="Delete this employee?"
+            description="This action cannot be undone."
             onConfirm={() => handleDeleteEmployee(record.employeeID)}
+            okText="Yes"
+            cancelText="No"
+            placement="topRight"
           >
-            <AiFillDelete title="Delete" className="icon-mac icon-delete" />
+            <AiFillDelete 
+              title="Delete" 
+              className="icon-mac icon-delete"
+              style={{ cursor: 'pointer' }}
+            />
           </Popconfirm>
         </Space>
       ),
@@ -268,6 +302,7 @@ export default function Employee() {
         pagination={{
           total,
           showSizeChanger: true,
+          defaultPageSize: 10,
         }}
         bordered
       />
@@ -277,6 +312,7 @@ export default function Employee() {
         open={fileModalVisible}
         onCancel={() => setFileModalVisible(false)}
         footer={null}
+        width={600}
       >
         {fileList.length > 0 ? (
           <List
