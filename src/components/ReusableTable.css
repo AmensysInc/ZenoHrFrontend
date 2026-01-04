@@ -1,0 +1,58 @@
+/* ===== CARD (transparent background & spacing consistency) ===== */
+.reusable-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 16px 0 28px 0 !important;
+  margin: 0 28px !important;
+}
+
+/* ===== TITLE ===== */
+.reusable-title {
+  text-align: center;
+  color: black;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px !important;
+}
+
+/* ===== TABLE HEADER (dark blue header) ===== */
+.common-table-header .ant-table-thead > tr > th {
+  background: #0d2a4d !important; /* Dark Blue */
+  color: #ffffff !important; /* White Text */
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #0a1f38 !important;
+}
+
+/* ===== ZEBRA ROWS ===== */
+.table-row-light {
+  background-color: #ffffff !important;
+}
+
+.table-row-dark {
+  background-color: #d2e0f4 !important;
+}
+
+/* ===== TBody Styling ===== */
+.common-table-header .ant-table-tbody > tr > td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #e0e6f0 !important;
+  font-size: 14px;
+}
+
+/* ===== Hover Effect ===== */
+.common-table-header .ant-table-tbody > tr:hover > td {
+  background-color: #ffffe2 !important;
+}
+
+/* ===== Rounded Corners ===== */
+.ant-table-container {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.reusable-card .ant-card-body {
+  padding: 0 !important;
+}

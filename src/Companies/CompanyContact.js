@@ -1,59 +1,121 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, Typography, Spin, message, Space, Button, Tooltip } from "antd";
-import { MailOutlined, CopyOutlined, ReloadOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import {
+  Card,
+  Typography,
+  Spin,
+  message,
+  Space,
+  Button,
+  Tooltip,
+} from "antd";
+import {
+  MailOutlined,
+  CopyOutlined,
+  ReloadOutlined,
+  InfoCircleOutlined,
+  DownloadOutlined,
+  FileOutlined,
+} from "@ant-design/icons";
 import { motion } from "framer-motion";
 
 const { Title, Text } = Typography;
 
 export default function CompanyContact() {
   const [email, setEmail] = useState("");
+  const [companyId, setCompanyId] = useState(null);
+  const [documentName, setDocumentName] = useState(null);
   const [loading, setLoading] = useState(true);
-  const apiUrl = process.env.REACT_APP_API_URL;
 
-  const fetchCompanyEmail = async () => {
+  const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "");
+
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  // ==========================
+  // Fetch Company Details
+  // ==========================
+  const fetchCompanyDetails = async () => {
     try {
       setLoading(true);
       const employeeId = sessionStorage.getItem("id");
-      const token = sessionStorage.getItem("token");
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+      const response = await axios.get(
+        `${apiUrl}/employees/${employeeId}`,
+        { headers: getAuthHeaders() }
+      );
 
-      const response = await axios.get(`${apiUrl}/employees/${employeeId}`, config);
-      const companyEmail = response.data?.company?.email || "Unavailable";
-      setEmail(companyEmail);
+      const company = response.data?.company || {};
+
+      setEmail(company.email || "Unavailable");
+      setCompanyId(company.companyId || null);
+      setDocumentName(company.documentName || null);
     } catch (error) {
-      console.error("Error fetching company email:", error);
+      console.error(error);
+      message.error("Failed to fetch company contact details.");
       setEmail("Unavailable");
-      message.error("Failed to fetch company contact email.");
+      setCompanyId(null);
+      setDocumentName(null);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCompanyEmail();
-  }, [apiUrl]);
+    fetchCompanyDetails();
+  }, []);
 
+  // ==========================
+  // Copy Email
+  // ==========================
   const handleCopy = () => {
     if (email && email !== "Unavailable") {
       navigator.clipboard.writeText(email);
       message.success("Email copied to clipboard!");
-    } else {
-      message.warning("No valid email to copy.");
     }
   };
 
+  // ==========================
+  // Download Company File (JWT SAFE)
+  // ==========================
+  const downloadCompanyFile = async () => {
+    try {
+      const response = await axios.get(
+        `${apiUrl}/companies/${companyId}/download-document`,
+        {
+          headers: getAuthHeaders(),
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = documentName || "company-document";
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      message.error("Failed to download company document");
+    }
+  };
+
+  // ==========================
+  // UI
+  // ==========================
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      style={{ padding: "30px" }}
+      style={{ padding: 30 }}
     >
       <Card
         bordered={false}
@@ -62,74 +124,67 @@ export default function CompanyContact() {
           margin: "0 auto",
           borderRadius: 16,
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          background: "#fff",
         }}
       >
-        <Space
-          direction="vertical"
-          size="large"
-          style={{ width: "100%", textAlign: "center" }}
-        >
+        <Space direction="vertical" size="large" style={{ width: "100%", textAlign: "center" }}>
           <Title level={3}>
             <MailOutlined style={{ color: "#1677ff", marginRight: 10 }} />
             Company Contact
           </Title>
 
           {loading ? (
-            <Spin size="large" tip="Fetching contact details..." />
+            <Spin size="large" />
           ) : email === "Unavailable" ? (
-            <div>
+            <>
               <InfoCircleOutlined style={{ color: "#ff4d4f", fontSize: 20 }} />
-              <Text type="danger" style={{ marginLeft: 8, fontSize: 16 }}>
-                Company email not available
-              </Text>
-              <div style={{ marginTop: 16 }}>
-                <Button
-                  type="primary"
-                  icon={<ReloadOutlined />}
-                  onClick={fetchCompanyEmail}
-                >
-                  Retry
-                </Button>
-              </div>
-            </div>
+              <Text type="danger">Company details not available</Text>
+              <Button icon={<ReloadOutlined />} onClick={fetchCompanyDetails}>
+                Retry
+              </Button>
+            </>
           ) : (
             <>
-              <Text style={{ fontSize: 16 }}>
-                For any company-related queries, reach out at:
-              </Text>
+              {/* ================= Email ================= */}
+              <Text>For company-related queries:</Text>
 
               <Space
-                direction="horizontal"
                 align="center"
                 style={{
                   background: "#f5f9ff",
                   padding: "12px 20px",
                   borderRadius: 8,
                   border: "1px solid #d6e4ff",
-                  justifyContent: "center",
-                  width: "fit-content",
-                  margin: "0 auto",
                 }}
               >
-                <MailOutlined style={{ color: "#1677ff" }} />
-                <Text copyable={{ text: email }} strong>
-                  {email}
-                </Text>
-                <Tooltip title="Copy to clipboard">
-                  <Button
-                    type="text"
-                    icon={<CopyOutlined />}
-                    onClick={handleCopy}
-                  />
+                <MailOutlined />
+                <Text strong>{email}</Text>
+                <Tooltip title="Copy">
+                  <Button type="text" icon={<CopyOutlined />} onClick={handleCopy} />
                 </Tooltip>
               </Space>
 
-              <Button
-                type="default"
-                icon={<ReloadOutlined />}
-                onClick={fetchCompanyEmail}
-              >
+              {/* ================= Company Document ================= */}
+              <div style={{ marginTop: 20 }}>
+                <Title level={5}>Weekly Report template</Title>
+
+                {documentName ? (
+                  <Space>
+                    <FileOutlined style={{ color: "#1677ff" }} />
+                    <Text>{documentName}</Text>
+                    <Tooltip title="Download">
+                      <Button
+                        type="link"
+                        icon={<DownloadOutlined />}
+                        onClick={downloadCompanyFile}
+                      />
+                    </Tooltip>
+                  </Space>
+                ) : (
+                  <Text type="secondary">No document uploaded</Text>
+                )}
+              </div>
+
+              <Button icon={<ReloadOutlined />} onClick={fetchCompanyDetails}>
                 Refresh
               </Button>
             </>
