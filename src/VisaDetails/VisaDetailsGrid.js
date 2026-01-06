@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Card, Typography, Button, Space, Switch } from "antd";
-import { AiOutlineReload } from "react-icons/ai";
+import { Card, Typography } from "antd";
 import axios from "axios";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -55,54 +56,25 @@ export default function VisaDetailsGrid() {
     // eslint-disable-next-line
   }, [page, size, showExpired]);
 
-  // Table Columns with Filters and Sorting
   const columns = [
-    {
-      title: "Employee Name",
-      dataIndex: "employeeName",
-      key: "employeeName",
-      sorter: (a, b) => a.employeeName.localeCompare(b.employeeName),
-    },
-    {
-      title: "Visa Type",
-      dataIndex: "visaType",
-      key: "visaType",
-      filters: [
-        ...new Set(visaDetails.map((v) => v.visaType).filter(Boolean)),
-      ].map((t) => ({ text: t, value: t })),
-      onFilter: (value, record) => record.visaType === value,
-    },
+    { title: "Employee Name", dataIndex: "employeeName" },
+    { title: "Visa Type", dataIndex: "visaType" },
     {
       title: "Start Date",
       dataIndex: "visaStartDate",
-      key: "visaStartDate",
-      sorter: (a, b) =>
-        new Date(a.visaStartDate) - new Date(b.visaStartDate),
       render: (date) => (date ? new Date(date).toLocaleDateString() : "-"),
     },
     {
       title: "Expiry Date",
       dataIndex: "visaExpiryDate",
-      key: "visaExpiryDate",
-      sorter: (a, b) =>
-        new Date(a.visaExpiryDate) - new Date(b.visaExpiryDate),
       render: (date) => (date ? new Date(date).toLocaleDateString() : "-"),
     },
     {
       title: "I-94 Date",
       dataIndex: "i94Date",
-      key: "i94Date",
       render: (date) => (date ? new Date(date).toLocaleDateString() : "-"),
     },
-    {
-      title: "Job Title",
-      dataIndex: "jobTitle",
-      key: "jobTitle",
-      filters: [
-        ...new Set(visaDetails.map((v) => v.jobTitle).filter(Boolean)),
-      ].map((j) => ({ text: j, value: j })),
-      onFilter: (value, record) => record.jobTitle === value,
-    },
+    { title: "Job Title", dataIndex: "jobTitle" },
   ];
 
   const handleTableChange = (pagination) => {
@@ -112,43 +84,29 @@ export default function VisaDetailsGrid() {
 
   return (
     <AnimatedPageWrapper>
-      <div style={{ padding: "0 24px" }}>
-        <Card>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <Title level={4} style={{ margin: 0 }}>
-              Visa Details (All Employees)
-            </Title>
-            <Space>
-              <span>Show Expired Visas</span>
-              <Switch checked={showExpired} onChange={setShowExpired} />
-              <Button
-                icon={<AiOutlineReload />}
-                onClick={() => fetchVisaDetails(1, size)}
-                type="primary"
-              >
-                Refresh
-              </Button>
-            </Space>
-          </div>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          Visa Details (All Employees)
+        </Title>
 
-          <ReusableTable
-            columns={columns}
-            data={visaDetails}
-            rowKey="key"
-            loading={loading}
-            pagination={true}
-            total={total}
-            onChange={handleTableChange}
-          />
-        </Card>
-      </div>
+        <TableFilter />
+
+        <ReusableTable
+          columns={columns}
+          data={visaDetails}
+          loading={loading}
+          total={total}
+          pagination={true}
+          onChange={handleTableChange}
+        />
+      </Card>
     </AnimatedPageWrapper>
   );
 }

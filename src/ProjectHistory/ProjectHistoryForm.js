@@ -8,6 +8,8 @@ import {
   fetchProjectDetails,
   updateProject,
 } from "../SharedComponents/services/ProjectHistoryService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -100,26 +102,26 @@ export default function ProjectHistoryForm({ mode }) {
   };
 
   return (
-    <Card
-      loading={loading}
-      style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 24,
-        maxWidth: 800,
-        margin: "30px auto",
-      }}
-    >
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <Title level={4} style={{ color: "#4f46e5", marginBottom: 5 }}>
+    <AnimatedPageWrapper>
+      <Card
+        loading={loading}
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          maxWidth: 800,
+          margin: "0 auto",
+        }}
+      >
+        <Title level={4} style={{ ...titleStyle, paddingBottom: 12 }}>
           {isEditMode ? "Edit Project" : "Add Project"}
         </Title>
-        <p style={{ marginBottom: 0, color: "#555" }}>
+        <p style={{ textAlign: "center", color: "#555", marginBottom: 20 }}>
           {employeeName ? `Employee: ${employeeName}` : "Employee Details"}
         </p>
-      </div>
 
-      <form onSubmit={onSubmit}>
+        <div style={{ padding: "0 28px" }}>
+          <form onSubmit={onSubmit}>
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>
             <label className="form-label">Sub Vendor One</label>
@@ -193,21 +195,23 @@ export default function ProjectHistoryForm({ mode }) {
         </div>
       </form>
 
-      <Modal
-        open={isModalOpen}
-        onOk={handleModalClose}
-        onCancel={handleModalClose}
-        footer={[
-          <Button key="ok" type="primary" onClick={handleModalClose}>
-            OK
-          </Button>,
-        ]}
-      >
-        <p>
-          Project {isEditMode ? "updated" : "added"} successfully for{" "}
-          <strong>{employeeName}</strong>.
-        </p>
-      </Modal>
-    </Card>
+          <Modal
+            open={isModalOpen}
+            onOk={handleModalClose}
+            onCancel={handleModalClose}
+            footer={[
+              <Button key="ok" type="primary" onClick={handleModalClose}>
+                OK
+              </Button>,
+            ]}
+          >
+            <p>
+              Project {isEditMode ? "updated" : "added"} successfully for{" "}
+              <strong>{employeeName}</strong>.
+            </p>
+          </Modal>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

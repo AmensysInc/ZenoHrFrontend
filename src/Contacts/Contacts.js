@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Space, Button, Popconfirm, message } from "antd";
+import { Card, Typography, Space, Button, Popconfirm, message } from "antd";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
@@ -7,7 +7,11 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
+
+const { Title } = Typography;
 
 export default function Contacts() {
   const navigate = useNavigate();
@@ -56,7 +60,6 @@ export default function Contacts() {
     {
       title: "Email",
       dataIndex: "email",
-      sorter: (a, b) => (a.email || "").localeCompare(b.email || ""),
     },
     {
       title: "Actions",
@@ -73,7 +76,6 @@ export default function Contacts() {
 
           <Popconfirm
             title="Delete this contact?"
-            description="This action cannot be undone."
             okText="Yes"
             cancelText="No"
             onConfirm={() => handleDelete(record.id)}
@@ -90,49 +92,58 @@ export default function Contacts() {
     },
   ];
 
-  // Button style
-  const primaryActionBtn = {
-    backgroundColor: "#0D2A4D",
-    color: "#fff",
-    borderRadius: 8,
-    height: 40,
-    fontWeight: 500,
-    border: "none",
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-  };
-
-  // Header with Add Contact button
-  const extraHeader = (
-    <div
-      style={{
-        marginBottom: 16,
-        padding: "0 28px",
-        display: "flex",
-        justifyContent: "flex-start",
-      }}
-    >
-      <Button
-        style={primaryActionBtn}
-        icon={<BsFillPersonPlusFill />}
-        onClick={() => navigate("/addcontact")}
-      >
-        Add Contact
-      </Button>
-    </div>
-  );
-
   return (
     <AnimatedPageWrapper>
-      <ReusableTable
-        title="Contacts List"
-        columns={columns}
-        data={contacts}
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-        extraHeader={extraHeader}
-      />
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          Contacts List
+        </Title>
+
+        <TableFilter />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            marginLeft: 30,
+          }}
+        >
+          <Button
+            icon={<BsFillPersonPlusFill />}
+            onClick={() => navigate("/addcontact")}
+            style={{
+              backgroundColor: "#0D2A4D",
+              color: "#fff",
+              borderRadius: 8,
+              height: 40,
+              fontWeight: 500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              border: "none",
+            }}
+          >
+            Add Contact
+          </Button>
+        </div>
+
+        <ReusableTable
+          columns={columns}
+          data={contacts}
+          loading={loading}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
     </AnimatedPageWrapper>
   );
 }

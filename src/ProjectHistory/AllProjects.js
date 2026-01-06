@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Card, Typography, Button } from "antd";
-import { AiOutlineReload } from "react-icons/ai";
+import { Card, Typography } from "antd";
 import axios from "axios";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -46,55 +47,22 @@ export default function AllProjects() {
     // eslint-disable-next-line
   }, [page, size]);
 
-  // Table columns with filters (like Employee component)
   const columns = [
-    {
-      title: "Employee Name",
-      dataIndex: "employeeName",
-      sorter: (a, b) => a.employeeName.localeCompare(b.employeeName),
-    },
-    {
-      title: "Sub Vendor 1",
-      dataIndex: "subVendorOne",
-      filters: [
-        ...new Set(projects.map((p) => p.subVendorOne).filter(Boolean)),
-      ].map((v) => ({ text: v, value: v })),
-      onFilter: (value, record) => record.subVendorOne === value,
-    },
-    {
-      title: "Sub Vendor 2",
-      dataIndex: "subVendorTwo",
-      filters: [
-        ...new Set(projects.map((p) => p.subVendorTwo).filter(Boolean)),
-      ].map((v) => ({ text: v, value: v })),
-      onFilter: (value, record) => record.subVendorTwo === value,
-    },
-    {
-      title: "Address",
-      dataIndex: "projectAddress",
-    },
+    { title: "Employee Name", dataIndex: "employeeName" },
+    { title: "Sub Vendor 1", dataIndex: "subVendorOne" },
+    { title: "Sub Vendor 2", dataIndex: "subVendorTwo" },
+    { title: "Address", dataIndex: "projectAddress" },
     {
       title: "Start Date",
       dataIndex: "projectStartDate",
-      sorter: (a, b) =>
-        new Date(a.projectStartDate) - new Date(b.projectStartDate),
       render: (date) => (date ? new Date(date).toLocaleDateString() : "-"),
     },
     {
       title: "End Date",
       dataIndex: "projectEndDate",
-      sorter: (a, b) =>
-        new Date(a.projectEndDate) - new Date(b.projectEndDate),
       render: (date) => (date ? new Date(date).toLocaleDateString() : "-"),
     },
-    {
-      title: "Status",
-      dataIndex: "projectStatus",
-      filters: [
-        ...new Set(projects.map((p) => p.projectStatus).filter(Boolean)),
-      ].map((s) => ({ text: s, value: s })),
-      onFilter: (value, record) => record.projectStatus === value,
-    },
+    { title: "Status", dataIndex: "projectStatus" },
   ];
 
   const handleTableChange = (pagination) => {
@@ -104,39 +72,29 @@ export default function AllProjects() {
 
   return (
     <AnimatedPageWrapper>
-      <div style={{ padding: "0 24px" }}>
-        <Card>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <Title level={4} style={{ margin: 0 }}>
-              All Projects
-            </Title>
-            <Button
-              icon={<AiOutlineReload />}
-              onClick={() => fetchProjects(1, size)}
-              type="primary"
-            >
-              Refresh
-            </Button>
-          </div>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          All Projects
+        </Title>
 
-          <ReusableTable
-            columns={columns}
-            data={projects}
-            rowKey="key"
-            loading={loading}
-            pagination={true}
-            total={total}
-            onChange={handleTableChange}
-          />
-        </Card>
-      </div>
+        <TableFilter />
+
+        <ReusableTable
+          columns={columns}
+          data={projects}
+          loading={loading}
+          total={total}
+          pagination={true}
+          onChange={handleTableChange}
+        />
+      </Card>
     </AnimatedPageWrapper>
   );
 }

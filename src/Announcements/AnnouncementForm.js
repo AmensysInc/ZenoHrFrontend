@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Button, message as antdMessage, Spin, Checkbox } from "antd";
+import { Form, Input, Select, Button, message as antdMessage, Spin, Checkbox, Card, Typography } from "antd";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
+
+const { Title } = Typography;
 
 export default function AnnouncementForm({ onClose, onSuccess }) {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchingEmployees, setFetchingEmployees] = useState(false);
@@ -10,6 +16,8 @@ export default function AnnouncementForm({ onClose, onSuccess }) {
 
   const token = sessionStorage.getItem("token");
   const API_URL = process.env.REACT_APP_API_URL;
+
+  const isModal = !!onClose;
 
   // Fetch Employees
   useEffect(() => {
@@ -43,8 +51,12 @@ export default function AnnouncementForm({ onClose, onSuccess }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       antdMessage.success("Announcement created successfully");
-      onSuccess && onSuccess();
-      onClose && onClose();
+      if (isModal) {
+        onSuccess && onSuccess();
+        onClose && onClose();
+      } else {
+        navigate("/announcements");
+      }
     } catch (err) {
       console.error(err);
       antdMessage.error("Failed to create announcement");
@@ -53,85 +65,116 @@ export default function AnnouncementForm({ onClose, onSuccess }) {
     }
   };
 
-  return (
-    <div className="p-6 bg-white shadow-xl rounded-2xl w-[500px]">
-      <h2 className="text-2xl font-bold mb-6 text-center">Create Announcement</h2>
-
-      <Spin spinning={fetchingEmployees}>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{ type: "INFO" }}
+  const formContent = (
+    <Spin spinning={fetchingEmployees}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{ type: "INFO" }}
+      >
+        {/* Title */}
+        <Form.Item
+          label="Title"
+          name="title"
+          rules={[{ required: true, message: "Please enter a title" }]}
         >
-          {/* Title */}
-          <Form.Item
-            label="Title"
-            name="title"
-            rules={[{ required: true, message: "Please enter a title" }]}
+          <Input placeholder="Enter announcement title" />
+        </Form.Item>
+
+        {/* Message */}
+        <Form.Item
+          label="Message"
+          name="message"
+          rules={[{ required: true, message: "Please enter a message" }]}
+        >
+          <Input.TextArea rows={4} placeholder="Enter announcement message" />
+        </Form.Item>
+
+        {/* Type */}
+        <Form.Item label="Type" name="type">
+          <Select>
+            <Select.Option value="INFO">Info</Select.Option>
+            <Select.Option value="URGENT">Urgent</Select.Option>
+            <Select.Option value="EVENT">Event</Select.Option>
+          </Select>
+        </Form.Item>
+
+        {/* Employees Multi-Select with Checkboxes */}
+        <Form.Item
+          label="Select Employees"
+          name="employeeIds"
+          rules={[{ required: true, message: "Please select at least one employee" }]}
+        >
+          <Select
+            mode="multiple"
+            placeholder="Select employees"
+            optionFilterProp="children"
+            showSearch
+            loading={fetchingEmployees}
+            optionRender={(option) => (
+              <div className="flex items-center">
+                <Checkbox checked={form.getFieldValue("employeeIds")?.includes(option.value)}>
+                  {option.label}
+                </Checkbox>
+              </div>
+            )}
           >
-            <Input placeholder="Enter announcement title" />
-          </Form.Item>
+            {employees.map((emp) => (
+              <Select.Option
+                key={emp.employeeID}
+                value={emp.employeeID}
+                label={`${emp.firstName} ${emp.lastName} (${emp.emailID})`}
+              >
+                {emp.firstName} {emp.lastName} ({emp.emailID})
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
-          {/* Message */}
-          <Form.Item
-            label="Message"
-            name="message"
-            rules={[{ required: true, message: "Please enter a message" }]}
-          >
-            <Input.TextArea rows={4} placeholder="Enter announcement message" />
-          </Form.Item>
+        {/* Buttons */}
+        <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+          <Button onClick={isModal ? onClose : () => navigate("/announcements")} style={{ marginRight: 8 }}>
+            Cancel
+          </Button>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
+    </Spin>
+  );
 
-          {/* Type */}
-          <Form.Item label="Type" name="type">
-            <Select>
-              <Select.Option value="INFO">Info</Select.Option>
-              <Select.Option value="URGENT">Urgent</Select.Option>
-              <Select.Option value="EVENT">Event</Select.Option>
-            </Select>
-          </Form.Item>
+  // Modal version
+  if (isModal) {
+    return (
+      <div className="p-6 bg-white shadow-xl rounded-2xl w-[500px]">
+        <h2 className="text-2xl font-bold mb-6 text-center">Create Announcement</h2>
+        {formContent}
+      </div>
+    );
+  }
 
-          {/* Employees Multi-Select with Checkboxes */}
-          <Form.Item
-            label="Select Employees"
-            name="employeeIds"
-            rules={[{ required: true, message: "Please select at least one employee" }]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Select employees"
-              optionFilterProp="children"
-              showSearch
-              loading={fetchingEmployees}
-              optionRender={(option) => (
-                <div className="flex items-center">
-                  <Checkbox checked={form.getFieldValue("employeeIds")?.includes(option.value)}>
-                    {option.label}
-                  </Checkbox>
-                </div>
-              )}
-            >
-              {employees.map((emp) => (
-                <Select.Option
-                  key={emp.employeeID}
-                  value={emp.employeeID}
-                  label={`${emp.firstName} ${emp.lastName} (${emp.emailID})`}
-                >
-                  {emp.firstName} {emp.lastName} ({emp.emailID})
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+  // Page version with card wrapper
+  return (
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          Add Announcement
+        </Title>
 
-          {/* Buttons */}
-          <Form.Item className="flex justify-end space-x-4">
-            <Button onClick={onClose}>Cancel</Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Spin>
-    </div>
+        <div style={{ padding: "0 28px" }}>
+          {formContent}
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

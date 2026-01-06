@@ -1,34 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "antd";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { Form, Input, Button, Modal, Card, Typography, Row, Col } from "antd";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   createEmployee,
   fetchEmployeeDataById,
   updateEmployee,
 } from "../SharedComponents/services/ContactServices";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
+
+const { Title } = Typography;
 
 export default function ContactForm({ mode }) {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [employee, setEmployee] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    linkedinLink: "", // Updated field name to match backend
-  });
-
-  const { firstName, lastName, email, phoneNumber, linkedinLink } = employee;
+  const isEditMode = mode === "edit";
 
   useEffect(() => {
-    if (mode === "edit" && id) {
+    if (isEditMode && id) {
       const fetchData = async () => {
         try {
           const employeeData = await fetchEmployeeDataById(id);
           if (employeeData) {
-            setEmployee(employeeData);
+            form.setFieldsValue(employeeData);
           }
         } catch (error) {
           console.error("Error fetching employee data:", error);
@@ -36,138 +34,129 @@ export default function ContactForm({ mode }) {
       };
       fetchData();
     }
-  }, [mode, id]);
+  }, [isEditMode, id, form]);
 
-  const onSubmit = async (event) => {
-  event.preventDefault();
-  try {
-    const success =
-      mode === "edit"
-        ? await updateEmployee(id, employee)
-        : await createEmployee(employee); // Send as object, not array
+  const onSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const success = isEditMode
+        ? await updateEmployee(id, values)
+        : await createEmployee(values);
 
-    if (success) {
-      showModal();
+      if (success) {
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isEditMode ? "updating" : "adding"} contact:`,
+        error.response?.data || error.message
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error(
-      `Error ${mode === "edit" ? "updating" : "adding"} contact:`,
-      error.response?.data || error.message
-    );
-  }
-};
-
-
-  const showModal = () => {
-    setIsModalOpen(true);
   };
 
-  const handleOk = () => {
+  const handleModalClose = () => {
     setIsModalOpen(false);
     navigate("/contacts");
   };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    navigate("/contacts");
-  };
-
-  const onInputChange = (e) => {
-    setEmployee({ ...employee, [e.target.name]: e.target.value });
-  };
-
-  const isEditMode = mode === "edit";
 
   return (
-    <div className="container mt-4">
-      <div className="form-container">
-        <h2 className="text-center mb-4">
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
           {isEditMode ? "Edit" : "Add"} Contact
-        </h2>
-        <form onSubmit={onSubmit}>
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="firstName" className="form-label">
-                First Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                name="firstName"
-                value={firstName}
-                onChange={onInputChange}
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="lastName" className="form-label">
-                Last Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                name="lastName"
-                value={lastName}
-                onChange={onInputChange}
-              />
-            </div>
-          </div>
+        </Title>
 
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
-              <input
-                type="email"
-                className="form-control"
-                name="email"
-                value={email}
-                onChange={onInputChange}
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="phoneNumber" className="form-label">
-                Phone Number
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                name="phoneNumber"
-                value={phoneNumber}
-                onChange={onInputChange}
-                required
-              />
-            </div>
-          </div>
+        <div style={{ padding: "0 28px" }}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onSubmit}
+          >
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="First Name"
+                  name="firstName"
+                  rules={[{ required: true, message: "Please enter first name" }]}
+                >
+                  <Input placeholder="First Name" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Last Name"
+                  name="lastName"
+                >
+                  <Input placeholder="Last Name" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <div className="mb-3">
-            <label htmlFor="linkedinLink" className="form-label">
-              LinkedIn Profile
-            </label>
-            <input
-              type="url"
-              className="form-control"
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Email"
+                  name="email"
+                  rules={[
+                    { required: true, message: "Please enter email" },
+                    { type: "email", message: "Please enter a valid email" },
+                  ]}
+                >
+                  <Input placeholder="Email" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Phone Number"
+                  name="phoneNumber"
+                  rules={[{ required: true, message: "Please enter phone number" }]}
+                >
+                  <Input placeholder="Phone Number" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              label="LinkedIn Profile"
               name="linkedinLink"
-              value={linkedinLink}
-              onChange={onInputChange}
-              placeholder=""
-            />
-          </div>
+            >
+              <Input placeholder="LinkedIn Profile URL" />
+            </Form.Item>
 
-          <button type="submit" className="btn btn-outline-primary me-2">
-            {isEditMode ? "Update" : "Submit"}
-          </button>
-          <Link className="btn btn-outline-danger" to="/contacts">
-            Cancel
-          </Link>
-        </form>
+            <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+              <Button onClick={() => navigate("/contacts")} style={{ marginRight: 8 }}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {isEditMode ? "Update" : "Submit"}
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
 
-        <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <Modal
+          open={isModalOpen}
+          onOk={handleModalClose}
+          onCancel={handleModalClose}
+          footer={[
+            <Button key="ok" type="primary" onClick={handleModalClose}>
+              OK
+            </Button>,
+          ]}
+        >
           <p>Contact {isEditMode ? "Updated" : "Added"} successfully!</p>
         </Modal>
-      </div>
-    </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

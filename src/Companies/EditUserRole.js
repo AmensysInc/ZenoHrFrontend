@@ -12,8 +12,8 @@ import {
   message,
   Spin,
 } from "antd";
-import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
-import "./EditUserRole.css";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -28,6 +28,7 @@ const EditUserRole = () => {
   const [userName, setUserName] = useState("");
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const config = {
     headers: {
@@ -35,7 +36,6 @@ const EditUserRole = () => {
     },
   };
 
-  /** Fetch role, user, and company data **/
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,9 +72,9 @@ const EditUserRole = () => {
     fetchData();
   }, [id, API_URL, form]);
 
-  /** Submit Handler **/
   const handleSubmit = async (values) => {
     try {
+      setSubmitting(true);
       await axios.put(`${API_URL}/user-company/${id}`, values, config);
       if (values.defaultCompany) {
         sessionStorage.setItem("defaultCompanyId", values.companyId);
@@ -84,94 +84,89 @@ const EditUserRole = () => {
     } catch (err) {
       console.error("Error updating role:", err);
       message.error("Failed to update user role.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="edit-user-role-loading">
-        <Spin size="large" tip="Loading user role..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="edit-user-role-container">
+    <AnimatedPageWrapper>
       <Card
-        bordered={false}
-        className="edit-user-role-card"
-        title={
-          <div className="edit-user-role-header">
-            <Button
-              icon={<ArrowLeftOutlined />}
-              type="link"
-              onClick={() => navigate("/companyrole")}
-            >
-              Back
-            </Button>
-            <Title level={3}>Edit User Role</Title>
-          </div>
-        }
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          autoComplete="off"
-          className="edit-user-role-form"
-        >
-          <Form.Item label="User">
-            <Input value={userName} readOnly />
-          </Form.Item>
+        <Title level={4} style={titleStyle}>
+          Edit User Role
+        </Title>
 
-          <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: "Please select a role" }]}
-          >
-            <Select placeholder="Select a role">
-              <Option value="ADMIN">ADMIN</Option>
-              <Option value="EMPLOYEE">EMPLOYEE</Option>
-              <Option value="RECRUITER">RECRUITER</Option>
-              <Option value="SALES">SALES</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="companyId"
-            label="Company"
-            rules={[{ required: true, message: "Please select a company" }]}
-          >
-            <Select placeholder="Select company">
-              {companies.map((company) => (
-                <Option key={company.companyId} value={company.companyId}>
-                  {company.companyName}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="defaultCompany"
-            label="Default Company"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="True" unCheckedChildren="False" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SaveOutlined />}
-              block
+        <div style={{ padding: "0 28px" }}>
+          <Spin spinning={loading}>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              autoComplete="off"
             >
-              Update Role
-            </Button>
-          </Form.Item>
-        </Form>
+              <Form.Item label="User">
+                <Input value={userName} readOnly />
+              </Form.Item>
+
+              <Form.Item
+                name="role"
+                label="Role"
+                rules={[{ required: true, message: "Please select a role" }]}
+              >
+                <Select placeholder="Select a role">
+                  <Option value="ADMIN">ADMIN</Option>
+                  <Option value="EMPLOYEE">EMPLOYEE</Option>
+                  <Option value="RECRUITER">RECRUITER</Option>
+                  <Option value="SALES">SALES</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="companyId"
+                label="Company"
+                rules={[{ required: true, message: "Please select a company" }]}
+              >
+                <Select placeholder="Select company">
+                  {companies.map((company) => (
+                    <Option key={company.companyId} value={company.companyId}>
+                      {company.companyName}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="defaultCompany"
+                label="Default Company"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="True" unCheckedChildren="False" />
+              </Form.Item>
+
+              <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+                <Button
+                  onClick={() => navigate("/companyrole")}
+                  style={{ marginRight: 8 }}
+                >
+                  Cancel
+                </Button>
+                <Button type="primary" htmlType="submit" loading={submitting}>
+                  Update Role
+                </Button>
+              </Form.Item>
+            </Form>
+          </Spin>
+        </div>
       </Card>
-    </div>
+    </AnimatedPageWrapper>
   );
 };
 
