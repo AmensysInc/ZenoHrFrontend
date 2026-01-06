@@ -8,6 +8,8 @@ import {
   fetchOrderDetails,
   updateOrder,
 } from "../SharedComponents/services/OrderService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -95,25 +97,25 @@ export default function PurchaseOrderForm({ mode }) {
   };
 
   return (
-    <Card
-      loading={loading}
-      style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 24,
-        maxWidth: 800,
-        margin: "30px auto",
-      }}
-    >
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <Title level={4} style={{ color: "#4f46e5", marginBottom: 4 }}>
+    <AnimatedPageWrapper>
+      <Card
+        loading={loading}
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          maxWidth: 800,
+          margin: "0 auto",
+        }}
+      >
+        <Title level={4} style={{ ...titleStyle, paddingBottom: 12 }}>
           {isEditMode ? "Edit Purchase Order" : "Add Purchase Order"}
         </Title>
-        <p style={{ color: "#555", marginBottom: 0 }}>
+        <p style={{ textAlign: "center", color: "#555", marginBottom: 20 }}>
           {employeeName ? `Employee: ${employeeName}` : "Employee Details"}
         </p>
-      </div>
+
+        <div style={{ padding: "0 28px" }}>
 
       {/* Form */}
       <form onSubmit={onSubmit}>
@@ -205,22 +207,24 @@ export default function PurchaseOrderForm({ mode }) {
         </div>
       </form>
 
-      {/* Success Modal */}
-      <Modal
-        open={isModalOpen}
-        onOk={handleModalClose}
-        onCancel={handleModalClose}
-        footer={[
-          <Button key="ok" type="primary" onClick={handleModalClose}>
-            OK
-          </Button>,
-        ]}
-      >
-        <p>
-          Purchase Order {isEditMode ? "updated" : "added"} successfully for{" "}
-          <strong>{employeeName}</strong>.
-        </p>
-      </Modal>
-    </Card>
+          {/* Success Modal */}
+          <Modal
+            open={isModalOpen}
+            onOk={handleModalClose}
+            onCancel={handleModalClose}
+            footer={[
+              <Button key="ok" type="primary" onClick={handleModalClose}>
+                OK
+              </Button>,
+            ]}
+          >
+            <p>
+              Purchase Order {isEditMode ? "updated" : "added"} successfully for{" "}
+              <strong>{employeeName}</strong>.
+            </p>
+          </Modal>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }
