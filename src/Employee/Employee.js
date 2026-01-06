@@ -20,6 +20,7 @@ import {
 } from "../SharedComponents/services/EmployeeServices";
 
 import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Title } = Typography;
@@ -275,42 +276,55 @@ export default function Employee() {
     fetchData(pagination.current, pagination.pageSize);
   };
 
-  // Header with action buttons
-  const extraHeader = (
-    <div
-      style={{
-        marginBottom: 16,
-        padding: "0 28px",
-        display: "flex",
-        justifyContent: "flex-start",
-        gap: 12,
-      }}
-    >
-      <Link to="/adduser">
-        <Button style={primaryActionBtn} icon={<BsFillPersonPlusFill />}>
-          Add Employee
-        </Button>
-      </Link>
-      <Link to="/addprospect">
-        <Button style={primaryActionBtn} icon={<AiOutlineUsergroupAdd />}>
-          Prospect Employee
-        </Button>
-      </Link>
-    </div>
-  );
-
   return (
     <AnimatedPageWrapper>
-      <ReusableTable
-        title="Employee Details"
-        columns={columns}
-        data={users}
-        loading={loading}
-        total={total}
-        onChange={onChange}
-        pagination={true}
-        extraHeader={extraHeader}
-      />
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={{ textAlign: "center" }}>
+          Employee Details
+        </Title>
+
+        <TableFilter />
+
+        {/* Top Buttons - on opposite sides */}
+        <div
+          style={{
+            marginLeft: 30,
+            marginRight: 30,
+            marginBottom: 16,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Link to="/adduser" style={{ textDecoration: "none" }}>
+            <Button style={primaryActionBtn} icon={<BsFillPersonPlusFill />}>
+              Add Employee
+            </Button>
+          </Link>
+
+          <Link to="/addprospect" style={{ textDecoration: "none" }}>
+            <Button style={primaryActionBtn} icon={<AiOutlineUsergroupAdd />}>
+              Prospect Employee
+            </Button>
+          </Link>
+        </div>
+
+        <ReusableTable
+          columns={columns}
+          data={users}
+          loading={loading}
+          total={total}
+          onChange={onChange}
+          pagination={true}
+        />
+      </Card>
 
       {/* File Download Modal */}
       <Modal
