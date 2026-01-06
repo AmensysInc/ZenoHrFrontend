@@ -10,13 +10,17 @@ import {
   Tag,
   InputNumber,
   message,
+  Card,
+  Typography,
 } from "antd";
 import { FaCheck, FaTimes, FaEdit } from "react-icons/fa";
 import { TbNotes } from "react-icons/tb";
 import { IoNotifications } from "react-icons/io5";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Option } = Select;
 const { TextArea } = Input;
+const { Title } = Typography;
 
 export default function AllTimeSheets() {
   // Master data
@@ -509,19 +513,21 @@ export default function AllTimeSheets() {
   );
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>All TimeSheets</h2>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <Title level={4} style={{ marginBottom: 20 }}>All TimeSheets</Title>
 
-      {/* Filters */}
-      <div
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 12,
-          alignItems: "center",
-        }}
-      >
+          {/* Filters */}
+          <div
+            style={{
+              marginBottom: 16,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
         <div>
           <span>Month: </span>
           <Select
@@ -731,6 +737,8 @@ export default function AllTimeSheets() {
           placeholder="Enter notes or comments..."
         />
       </Modal>
-    </div>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

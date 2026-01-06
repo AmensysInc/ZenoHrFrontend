@@ -25,6 +25,7 @@ import {
 } from "@ant-design/icons";
 import { get, post } from "../SharedComponents/httpClient ";
 import _ from "lodash";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -418,11 +419,13 @@ const handleSubmit = async () => {
   // 🎨 RENDER
   // ==========================
   return (
-    <Card
-      bordered={false}
-      style={{ margin: "2rem auto", maxWidth: 1200 }}
-      title={<Title level={3}>Time Sheets</Title>}
-    >
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card
+          bordered={false}
+          style={{ maxWidth: 1200, margin: "0 auto" }}
+        >
+          <Title level={4} style={{ marginBottom: 20 }}>Time Sheets</Title>
       <Space style={{ marginBottom: 20 }} wrap>
         {role === "ADMIN" && (
           <Select
@@ -560,6 +563,8 @@ const handleSubmit = async () => {
           Cancel
         </Button>
       </Space>
-    </Card>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

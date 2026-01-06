@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
-import { motion } from "framer-motion";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import {
   Card,
   Typography,
@@ -256,9 +256,10 @@ export default function AllEmployeesWeeklyFiles() {
      RENDER
   ==============================*/
   return (
-    <motion.div style={{ padding: 30 }}>
-      <Card bordered={false} style={{ borderRadius: 16 }}>
-        <Title level={3}>All Employees – Weekly Uploaded Files</Title>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered={false}>
+          <Title level={4} style={{ marginBottom: 20 }}>All Employees – Weekly Uploaded Files</Title>
 
         <Space wrap style={{ marginBottom: 20 }}>
           <DatePicker
@@ -374,6 +375,7 @@ export default function AllEmployeesWeeklyFiles() {
           onChange={(e) => setEmailBody(e.target.value)}
         />
       </Modal>
-    </motion.div>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

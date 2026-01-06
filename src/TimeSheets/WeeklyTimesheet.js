@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
-import { motion } from "framer-motion";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import {
   Card,
   Typography,
@@ -272,23 +272,12 @@ export default function WeeklyTimesheet() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      style={{ padding: "30px" }}
-    >
-      <Card
-        bordered={false}
-        style={{
-          boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
-          borderRadius: 16,
-          background: "#fff",
-        }}
-      >
-        <Title level={3} style={{ marginBottom: 20 }}>
-          Weekly Timesheet
-        </Title>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered={false}>
+          <Title level={4} style={{ marginBottom: 20 }}>
+            Weekly Timesheet
+          </Title>
 
         <Space wrap size="large" style={{ marginBottom: 25 }}>
           <Select
@@ -399,7 +388,8 @@ export default function WeeklyTimesheet() {
             </Card>
           </>
         )}
-      </Card>
-    </motion.div>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

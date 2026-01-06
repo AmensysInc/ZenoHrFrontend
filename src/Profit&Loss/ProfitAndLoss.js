@@ -8,12 +8,16 @@ import {
   Popconfirm,
   DatePicker,
   Select,
+  Card,
+  Typography,
 } from "antd";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const ProfitAndLoss = () => {
   const { employeeId } = useParams();
@@ -388,25 +392,34 @@ const ProfitAndLoss = () => {
   ];
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h4>Profit & Loss</h4>
-      <Button
-        onClick={handleAddRow}
-        type="primary"
-        style={{ marginBottom: 16 }}
-      >
-        Add Row
-      </Button>
-      <Form form={form} component={false}>
-        <Table
-          dataSource={dataSource}
-          columns={columns}
-          loading={loading}
-          rowKey="key"
-          pagination={false}
-        />
-      </Form>
-    </div>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>Profit & Loss</Title>
+            <Button onClick={handleAddRow} type="primary">
+              Add Row
+            </Button>
+          </div>
+          <Form form={form} component={false}>
+            <Table
+              dataSource={dataSource}
+              columns={columns}
+              loading={loading}
+              rowKey="key"
+              pagination={false}
+            />
+          </Form>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 };
 

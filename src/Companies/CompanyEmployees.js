@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, Typography, Empty } from "antd";
+import { Table, Spin, Typography, Empty, Card } from "antd";
 import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Title } = Typography;
 
@@ -36,11 +37,25 @@ export default function CompanyEmployees() {
   }, [companyId, token, API_URL]);
 
   if (loading) {
-    return <Spin size="large" style={{ display: "block", marginTop: 50 }} />;
+    return (
+      <AnimatedPageWrapper>
+        <div style={{ padding: "0 24px" }}>
+          <Spin size="large" style={{ display: "block", marginTop: 50 }} />
+        </div>
+      </AnimatedPageWrapper>
+    );
   }
 
   if (withholdData.length === 0) {
-    return <Empty description="No withhold data available" />;
+    return (
+      <AnimatedPageWrapper>
+        <div style={{ padding: "0 24px" }}>
+          <Card>
+            <Empty description="No withhold data available" />
+          </Card>
+        </div>
+      </AnimatedPageWrapper>
+    );
   }
 
   // Group data by employee
@@ -93,24 +108,30 @@ export default function CompanyEmployees() {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Title level={2}>{companyName || `Company ${companyId}`} Employee Withhold</Title>
-      <Table
-        columns={columns}
-        dataSource={tableData}
-        expandable={{
-          expandedRowRender: (record) => (
-            <Table
-              columns={projectColumns}
-              dataSource={record.projects.map((p, i) => ({ ...p, key: i }))}
-              pagination={false}
-              bordered
-            />
-          ),
-          rowExpandable: (record) => record.projects.length > 0,
-        }}
-        bordered
-      />
-    </div>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <Title level={4} style={{ marginBottom: 20 }}>
+            {companyName || `Company ${companyId}`} — Employee Withhold
+          </Title>
+          <Table
+            columns={columns}
+            dataSource={tableData}
+            expandable={{
+              expandedRowRender: (record) => (
+                <Table
+                  columns={projectColumns}
+                  dataSource={record.projects.map((p, i) => ({ ...p, key: i }))}
+                  pagination={false}
+                  bordered
+                />
+              ),
+              rowExpandable: (record) => record.projects.length > 0,
+            }}
+            bordered
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }
