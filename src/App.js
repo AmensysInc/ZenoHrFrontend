@@ -129,7 +129,7 @@ function App() {
           <div
             style={{
               flex: 1,
-              marginLeft: collapsed ? 80 : 267, // <-- updated
+              marginLeft: collapsed ? 100 : 295,
               backgroundColor: "#f8f9fa",
               overflowX: "auto",
               display: "flex",

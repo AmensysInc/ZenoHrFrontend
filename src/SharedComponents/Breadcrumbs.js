@@ -19,6 +19,16 @@ const CustomBreadcrumb = () => {
   const capitalizeFirstLetter = (string) =>
     string ? string.charAt(0).toUpperCase() + string.slice(1) : "";
 
+  // Name mapping for friendly display names
+  const nameMap = {
+    companyrole: "User Role",
+    bulkemail: "Campaign Mails",
+    "email-templates": "Email Templates",
+    alltimesheets: "All Time Sheets",
+    "purchase-orders": "Purchase Orders",
+    "visa-details": "Visa Details",
+  };
+
   // Build breadcrumb items dynamically
   const breadcrumbItems = [
     {
@@ -32,7 +42,7 @@ const CustomBreadcrumb = () => {
       .map((name, index) => {
         if (isUUID(name)) return null;
         const isLast = index === pathnames.length - 1;
-        const displayName = capitalizeFirstLetter(params[name] || name);
+        const displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
 
         let to = `/${pathnames.slice(0, index + 1).join("/")}`;
 
@@ -93,13 +103,18 @@ const styles = {
     padding: "14px 24px",
     background: "linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%)",
     borderBottom: "1px solid #e5e7eb",
-    borderRadius: "0 0 10px 10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    borderRadius: "10px 10px 10px 10px",
+    boxShadow: "0 0px 18px rgba(0,0,0,0.10)",
     display: "flex",
     alignItems: "center",
+    justifyContent: "left",
+    marginLeft: "28px",
+    marginTop: "28px",
+    marginRight: "28px",
+    marginBottom: "28px",
   },
   link: {
-    color: "#4f46e5",
+    color: "#000000ff",
     fontWeight: 500,
     textDecoration: "none",
     transition: "color 0.3s ease",
