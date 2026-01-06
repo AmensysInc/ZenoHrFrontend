@@ -12,6 +12,7 @@ import {
   Row,
   Col,
   Space,
+  Card,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -21,6 +22,8 @@ import {
   updateEmployee,
 } from "../SharedComponents/services/EmployeeServices";
 import { fetchCompanies } from "../SharedComponents/services/CompaniesServies";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -146,12 +149,22 @@ const onFinish = async (values) => {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
-      <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
-        {isEditMode ? "Edit Employee" : "Add Employee"}
-      </Title>
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
+      >
+        <Title level={3} style={{ ...titleStyle, paddingBottom: 12 }}>
+          {isEditMode ? "Edit Employee" : "Add Employee"}
+        </Title>
 
-      {error && (
+        <div style={{ padding: "0 28px" }}>
+          {error && (
         <Alert
           message={error}
           type="error"
@@ -329,10 +342,12 @@ const onFinish = async (values) => {
         )}
       </Form>
 
-      {/* ================== Modal ================== */}
-      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <p>Employee {isEditMode ? "updated" : "added"} successfully!</p>
-      </Modal>
-    </div>
+          {/* ================== Modal ================== */}
+          <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <p>Employee {isEditMode ? "updated" : "added"} successfully!</p>
+          </Modal>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }
