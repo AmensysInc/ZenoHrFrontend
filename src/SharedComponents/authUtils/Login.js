@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Card, Input, Button, Typography, Form, message, Spin } from "antd";
-import { MailOutlined, LockOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Input, Button, Typography, Form, message, Spin, Checkbox } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "./authUtils";
@@ -22,182 +22,245 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div style={styles.wrapper}>
-      {/* Animated background */}
-      <motion.div
-        initial={{ backgroundPosition: "0% 50%" }}
-        animate={{ backgroundPosition: "100% 50%" }}
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-        style={styles.animatedBg}
-      />
+    <div style={styles.container}>
+      {/* Left Panel - Login Form */}
+      <div style={styles.leftPanel}>
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={styles.loginForm}
+        >
+          <Title level={1} style={styles.title}>
+            Login
+          </Title>
+          <Text style={styles.subtitle}>Login to your account.</Text>
 
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
-      >
-        <Card bordered={false} style={styles.card}>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleLogin}
+            requiredMark={false}
+            style={{ marginTop: 32 }}
           >
-            <div style={styles.header}>
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8 }}
-              >
-                <Title level={2} style={styles.title}>
-                  Welcome Back
-                </Title>
-                <Text style={styles.subtitle}>
-                  Log in to your <b>Zeno HR & PAY</b> account
-                </Text>
-              </motion.div>
+            <Form.Item
+              name="email"
+              label={<span style={styles.label}>E-mail Address</span>}
+              rules={[
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Enter a valid email address" },
+              ]}
+            >
+              <Input
+                size="large"
+                placeholder="Enter your email"
+                style={styles.input}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label={<span style={styles.label}>Password</span>}
+              rules={[
+                { required: true, message: "Please enter your password" },
+              ]}
+            >
+              <Input.Password
+                size="large"
+                placeholder="Enter your password"
+                style={styles.input}
+              />
+            </Form.Item>
+
+            <div style={styles.formOptions}>
+              <Checkbox style={styles.rememberMe}>Remember me</Checkbox>
+              <Link to="/forgot-password" style={styles.resetPassword}>
+                Reset Password?
+              </Link>
             </div>
 
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleLogin}
-              requiredMark={false}
-              style={{ marginTop: 30 }}
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+              style={styles.signInBtn}
+              disabled={isLoading}
             >
-              <Form.Item
-                name="email"
-                label="Email Address"
-                rules={[
-                  { required: true, message: "Please enter your email" },
-                  { type: "email", message: "Enter a valid email address" },
-                ]}
-              >
-                <Input
-                  size="large"
-                  prefix={<MailOutlined style={{ color: "#8b8b8b" }} />}
-                  placeholder="Enter your email"
-                  style={styles.input}
-                />
-              </Form.Item>
+              {isLoading ? (
+                <>
+                  <Spin
+                    indicator={
+                      <LoadingOutlined style={{ color: "white" }} spin />
+                    }
+                    size="small"
+                  />{" "}
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+          </Form>
+        </motion.div>
+      </div>
 
-              <Form.Item
-                name="password"
-                label="Password"
-                rules={[{ required: true, message: "Please enter your password" }]}
-              >
-                <Input.Password
-                  size="large"
-                  prefix={<LockOutlined style={{ color: "#8b8b8b" }} />}
-                  placeholder="Enter your password"
-                  style={styles.input}
-                />
-              </Form.Item>
-
-              <div style={styles.forgot}>
-                <Link to="/forgot-password" style={styles.forgotLink}>
-                  Forgot Password?
-                </Link>
-              </div>
-
-              <motion.div whileHover={{ scale: 1.02 }}>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  block
-                  style={styles.button}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Spin
-                        indicator={<LoadingOutlined style={{ color: "white" }} spin />}
-                        size="small"
-                      />{" "}
-                      Logging in...
-                    </>
-                  ) : (
-                    "Log In"
-                  )}
-                </Button>
-              </motion.div>
-            </Form>
-          </motion.div>
-        </Card>
-      </motion.div>
+      {/* Right Panel - Image Background */}
+      <div style={styles.rightPanel}>
+        <img
+          src={process.env.PUBLIC_URL + "/login-bg.png"}
+          alt="Login background"
+          style={styles.backgroundImage}
+        />
+      </div>
     </div>
   );
 }
 
 const styles = {
-  wrapper: {
-    position: "relative",
+  container: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "100vh",
+    height: "100vh",
     overflow: "hidden",
-    padding: "20px",
   },
-  animatedBg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-    background: "linear-gradient(120deg, #667eea, #764ba2, #6b73ff, #000dff)",
-    backgroundSize: "300% 300%",
-    filter: "blur(80px)",
-    opacity: 0.6,
+  // Left Panel
+  leftPanel: {
+    flex: 1,
+    background: "#ffffff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "40px",
   },
-  card: {
-    width: 420,
-    borderRadius: 18,
-    background: "rgba(255, 255, 255, 0.9)",
-    boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
-    padding: "40px 35px",
-    position: "relative",
-    zIndex: 1,
-    backdropFilter: "blur(12px)",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "25px",
+  loginForm: {
+    width: "100%",
+    maxWidth: "420px",
   },
   title: {
-    color: "#2d3748",
-    fontWeight: 700,
-    marginBottom: "6px",
+    color: "#1e3a8a",
+    fontSize: "2.5rem",
+    fontWeight: 600,
+    marginBottom: "12px",
   },
   subtitle: {
     color: "#6b7280",
+    fontSize: "1rem",
   },
-  input: {
-    borderRadius: 10,
-  },
-  forgot: {
-    textAlign: "right",
-    marginBottom: "25px",
-  },
-  forgotLink: {
-    color: "#667eea",
-    textDecoration: "none",
+  label: {
+    color: "#1e3a8a",
+    fontSize: "0.9rem",
     fontWeight: 500,
   },
-  button: {
-    background: "linear-gradient(90deg, #667eea, #764ba2)",
-    border: "none",
-    fontWeight: 600,
-    height: "48px",
-    borderRadius: 12,
+  input: {
+    padding: "12px 16px",
+    border: "2px solid #e5e7eb",
+    borderRadius: "6px",
+    fontSize: "1rem",
   },
-  footer: {
-    textAlign: "center",
-    marginTop: 25,
+  formOptions: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "24px",
+  },
+  rememberMe: {
+    color: "#6b7280",
+    fontSize: "0.9rem",
+  },
+  resetPassword: {
+    color: "#1e3a8a",
+    textDecoration: "none",
+    fontSize: "0.9rem",
+    fontWeight: 500,
+  },
+  signInBtn: {
+    width: "100%",
+    padding: "14px",
+    background: "#1e40af",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "1rem",
+    fontWeight: 500,
+    height: "48px",
   },
   signupLink: {
-    color: "#764ba2",
+    textAlign: "center",
+    marginTop: "24px",
+    fontSize: "0.9rem",
+  },
+  signupAnchor: {
+    color: "#1e3a8a",
+    textDecoration: "none",
     fontWeight: 600,
+  },
+  // Right Panel
+  rightPanel: {
+    flex: 1,
+    position: "relative",
+    overflow: "hidden",
+  },
+  backgroundImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  heroContent: {
+    textAlign: "center",
+    zIndex: 2,
+    position: "relative",
+  },
+  heroTitle: {
+    color: "white",
+    fontSize: "2.5rem",
+    fontWeight: 600,
+    lineHeight: 1.3,
+    marginBottom: "40px",
+  },
+  highlight: {
+    color: "#fbbf24",
+  },
+  documentVisual: {
+    width: "350px",
+    height: "220px",
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)",
+    backdropFilter: "blur(20px)",
+    borderRadius: "16px",
+    transform: "rotate(-12deg)",
+    boxShadow: "0 30px 80px rgba(0, 0, 0, 0.4)",
+    border: "2px solid rgba(255, 255, 255, 0.2)",
+    marginBottom: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+  documentText: {
+    color: "rgba(255, 255, 255, 0.6)",
+    fontSize: "1.2rem",
+    fontWeight: 700,
+    letterSpacing: "2px",
+    textAlign: "center",
+    transform: "rotate(12deg)",
+  },
+  navDots: {
+    position: "absolute",
+    bottom: "-100px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    gap: "12px",
+  },
+  dot: {
+    width: "40px",
+    height: "8px",
+    borderRadius: "4px",
+    background: "rgba(255, 255, 255, 0.4)",
+    cursor: "pointer",
+  },
+  dotActive: {
+    background: "#fbbf24",
   },
 };

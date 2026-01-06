@@ -105,23 +105,25 @@ const styles = {
     paddingBottom: "6px",
   },
   logoutContainer: {
-    padding: "6px 16px 12px 16px",
-    borderTop: "1px solid #f0f0f0",
-    display: "flex",
+    padding: "6px 16px 0px 24px ",
+    paddingLeft: "24px",
     justifyContent: "center",
+    borderTop: "1px solid #f0f0f0",
   },
   logoutBtn: {
     color: "#6b7280",
     fontWeight: 500,
+    width: "100%",
     borderRadius: "8px",
-    border: "none",
+    border: "10px",
     fontSize: "14px",
-    height: "40px",
+    height: "32px",
     display: "flex",
     alignItems: "center",
+    paddingRight: "5px",
+    paddingBottom: "32px",
     justifyContent: "center",
-    padding: "0 16px",
-    gap: "10px",
+    paddingLeft: "2px",
   },
   collapseBtn: {
     position: "absolute",
@@ -257,46 +259,52 @@ export default function SideBar({
     EMPLOYEE: [
       {
         key: "overview",
-        label: "Overview",
+        label: "My Profile",
         icon: <AppstoreOutlined />,
         path: "/",
       },
-      {
-        key: "timeSheets",
-        label: "Monthly Time Sheets",
-        icon: <ClockCircleOutlined />,
-        path: "/timeSheets",
+            {
+        key: "Uploads",
+        label: "Uploads",
+        icon: <AppstoreOutlined />,
+        path: "/uploads",
       },
-      {
-        key: "weeklytimeSheets",
-        label: "Weekly Time Sheets",
-        icon: <ClockCircleOutlined />,
-        path: "/weeklytimeSheets",
-      },
-      {
-        key: "trackings",
-        label: "WithHold Tracking",
-        icon: <FundOutlined />,
-        path: "/trackings",
-      },
-      {
-        key: "withholdSheet",
-        label: "WithHold Sheet",
-        icon: <FileTextOutlined />,
-        path: "/withholdSheet",
-      },
-      {
-        key: "myfiles",
-        label: "Files",
-        icon: <FileOutlined />,
-        path: "/myfiles",
-      },
-      {
-        key: "announcements",
-        label: "Announcements",
-        icon: <NotificationOutlined />,
-        path: "/announcements",
-      },
+      // {
+      //   key: "timeSheets",
+      //   label: "Monthly Time Sheets",
+      //   icon: <ClockCircleOutlined />,
+      //   path: "/timeSheets",
+      // },
+      // {
+      //   key: "weeklytimeSheets",
+      //   label: "Weekly Time Sheets",
+      //   icon: <ClockCircleOutlined />,
+      //   path: "/weeklytimeSheets",
+      // },
+      // {
+      //   key: "trackings",
+      //   label: "WithHold Tracking",
+      //   icon: <FundOutlined />,
+      //   path: "/trackings",
+      // },
+      // {
+      //   key: "withholdSheet",
+      //   label: "WithHold Sheet",
+      //   icon: <FileTextOutlined />,
+      //   path: "/withholdSheet",
+      // },
+      // {
+      //   key: "myfiles",
+      //   label: "Files",
+      //   icon: <FileOutlined />,
+      //   path: "/myfiles",
+      // },
+      // {
+      //   key: "announcements",
+      //   label: "Announcements",
+      //   icon: <NotificationOutlined />,
+      //   path: "/announcements",
+      // },
       {
         key: "contactus",
         label: "Contact Us",
@@ -380,7 +388,6 @@ export default function SideBar({
               key={item.key}
               icon={item.icon}
               title={collapsed ? item.label : undefined}
-              onClick={() => collapsed && navigate(item.path)}
             >
               {!collapsed && <Link to={item.path}>{item.label}</Link>}
             </Menu.Item>

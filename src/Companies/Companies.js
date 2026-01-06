@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Space, Popconfirm, message } from "antd";
-import { AiFillDelete, AiFillEdit } from "react-icons/ai";
-
+import { Card, Table, Typography, Space, Popconfirm, message } from "antd";
+import { useNavigate } from "react-router-dom";
+import { AiFillDelete } from "react-icons/ai";
+import { FiEdit2 } from "react-icons/fi";
 import {
   fetchCompanies,
   deleteCompanies,
 } from "../SharedComponents/services/CompaniesServies";
 
-import ReusableTable from "../components/ReusableTable";
-import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+const { Title } = Typography;
 
 export default function Companies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData(1, 10);
@@ -47,7 +48,7 @@ export default function Companies() {
   };
 
   const handleEditCompany = (id) => {
-    window.location.href = `/editcompany/${id}`;
+    navigate(`/editcompany/${id}`);
   };
 
   const columns = [
@@ -55,39 +56,31 @@ export default function Companies() {
       title: "Company Name",
       dataIndex: "companyName",
       sorter: (a, b) => a.companyName.localeCompare(b.companyName),
+      filters: [
+        ...new Set(companies.map((c) => c.companyName).filter(Boolean)),
+      ].map((name) => ({ text: name, value: name })),
+      onFilter: (value, record) => record.companyName === value,
     },
     {
       title: "Email",
       dataIndex: "email",
-      render: (email) => email || "-",
-      sorter: (a, b) => (a.email || "").localeCompare(b.email || ""),
+      sorter: (a, b) => a.email.localeCompare(b.email),
     },
     {
       title: "Actions",
       align: "center",
       render: (record) => (
         <Space size="middle">
-          <AiFillEdit
-            style={{ color: "#000", cursor: "pointer", fontSize: 18 }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
-            onClick={() => handleEditCompany(record.companyId)}
+          <FiEdit2
             title="Edit"
+            className="icon-mac icon-edit"
+            onClick={() => handleEditCompany(record.companyId)}
           />
-
           <Popconfirm
             title="Delete this company?"
-            description="This action cannot be undone."
             onConfirm={() => handleDeleteCompany(record.companyId)}
-            okText="Yes"
-            cancelText="No"
           >
-            <AiFillDelete
-              style={{ color: "#000", cursor: "pointer", fontSize: 18 }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
-              title="Delete"
-            />
+            <AiFillDelete title="Delete" className="icon-mac icon-delete" />
           </Popconfirm>
         </Space>
       ),
@@ -99,16 +92,56 @@ export default function Companies() {
   };
 
   return (
-    <AnimatedPageWrapper>
-      <ReusableTable
-        title="Company Details"
+    <Card
+      style={{
+        borderRadius: 12,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 16,
+      }}
+    >
+      {/* Header Section */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <Title
+          level={4}
+          style={{
+            color: "#4f46e5",
+            fontWeight: 700,
+            letterSpacing: 0.5,
+            marginBottom: 0,
+          }}
+        >
+          Company Details
+        </Title>
+
+        {/* <Space>
+          <Link to="/addcompany">
+            <Button type="primary" icon={<BsFillPersonPlusFill />}>
+              Add Company
+            </Button>
+          </Link>
+        </Space> */}
+      </div>
+
+      {/* Table Section */}
+      <Table
         columns={columns}
-        data={companies}
+        dataSource={companies}
         loading={loading}
-        total={total}
         onChange={onChange}
-        pagination={true}
+        pagination={{
+          total,
+          showSizeChanger: true,
+        }}
+        bordered
       />
-    </AnimatedPageWrapper>
+    </Card>
   );
 }
