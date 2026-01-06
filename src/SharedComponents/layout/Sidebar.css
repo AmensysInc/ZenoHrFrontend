@@ -1,30 +1,194 @@
- .sidebar {
-    height: 100%; 
-    width: 100%;
-    top: 80px;
-    left: 0;
-    background-color: #549de6;
-    padding-top: 8%;
-    z-index: 999;
-  }
+.modern-sidebar .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 
-  .sidebar-list {
-    list-style-type: none;
-    padding-left: 0;
-  }
+.modern-sidebar {
+  transition: all 0.2s ease !important;
+}
 
-  .sidebar-item {
-    margin-bottom: 15px;
-  }
-  
-  .sidebar-link {
-    text-decoration: none;
-    color: white;
-    padding: 10px;
-    display: block;
-    transition: background-color 0.3s ease-in-out;
-  }
-  
-  .sidebar-link:hover {
-    background-color: #0f151c;
-  }
+.sidebar-text-content {
+  opacity: 0;
+  transition: opacity 0.12s ease 0.2s !important;
+}
+
+.modern-sidebar:not(.ant-layout-sider-collapsed) .sidebar-text-content {
+  opacity: 1;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .sidebar-text-content {
+  opacity: 0 !important;
+  transition: opacity 0s ease !important;
+  display: none !important;
+}
+
+.modern-menu.ant-menu-inline {
+  border-inline-end: none !important;
+}
+
+.modern-menu .ant-menu-item {
+  margin: 8px 12px;
+  padding: 0 16px !important;
+  height: 26px;
+  line-height: 44px;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.08s ease;
+}
+
+.modern-menu .ant-menu-item a {
+  color: inherit;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.modern-menu .ant-menu-item:hover,
+.collapse-trigger:hover {
+  color: hwb(230 2% 25%) !important;
+}
+.logout-button:hover {
+  color: #fd3535 !important;
+  background-color: transparent !important;
+}
+
+.modern-menu .ant-menu-item-selected {
+  background-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.modern-menu .ant-menu-item-selected a {
+  color: #000000 !important;
+}
+
+.modern-menu .ant-menu-item-selected .anticon {
+  color: #000000 !important;
+}
+
+.modern-menu .ant-menu-item::after {
+  display: none;
+}
+
+.modern-menu .anticon {
+  font-size: 18px;
+  color: #6b7280;
+  transition: color 0.08s ease;
+}
+
+.modern-menu .ant-menu-item:hover .anticon {
+  color: #1e66ca;
+}
+
+.logout-button,
+.collapse-trigger {
+  transition: all 0.08s ease;
+}
+
+.logout-button .anticon {
+  font-size: 18px;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .collapse-trigger {
+  position: static;
+  margin: 12px auto 0;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .logo {
+  padding: 20px 12px 16px;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .ant-menu-item {
+  padding: 0 calc(50% - 28px) !important;
+  justify-content: center;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .modern-menu .ant-menu-item {
+  margin: 8px 8px;
+}
+
+.modern-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modern-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-sidebar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.modern-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #0453c9;
+}
+
+.modern-sidebar .ant-layout-sider-trigger {
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  color: #6b7280;
+  transition: all 0.08s ease;
+}
+
+.modern-sidebar .ant-layout-sider-trigger:hover {
+  background: #f9fafb;
+  color: #1f2937;
+}
+
+.modern-menu.ant-menu-root {
+  padding: 0;
+  margin-left: 5px;
+}
+
+.modern-menu .ant-menu-submenu-title {
+  margin: 4px 12px;
+  padding: 0 16px !important;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.08s ease;
+}
+
+.modern-menu .ant-menu-submenu-title:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.modern-menu .ant-menu-submenu-arrow {
+  color: #6b7280;
+}
+
+.modern-menu .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: #1f2937;
+}
+
+.modern-menu .ant-menu-item,
+.modern-menu .ant-menu-submenu-title {
+  width: calc(80% - 13px) !important;
+}
+
+.ant-btn-icon-only.logout-button {
+  padding: 10px;
+}
+
+.ant-btn.css-dev-only-do-not-override-17a39f8.ant-btn-text.ant-btn-icon-only.logout-button {
+  justify-content: center;
+  padding-right: 10px;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .ant-menu-item a {
+  pointer-events: none;
+}
+
+.modern-sidebar.ant-layout-sider-collapsed .ant-tooltip-inner {
+  text-decoration: none;
+}
+.modern-sidebar .ant-menu-item:hover {
+  background-color: transparent !important;
+}

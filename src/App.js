@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "../src/App.css";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -65,6 +65,7 @@ import EditCompany from "./Companies/EditCompany";
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
   const [role, setRole] = useSessionStorage("role", "");
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -108,15 +109,21 @@ function App() {
       {/* ✅ Sidebar layout (visible only when logged in and not on auth pages) */}
       {isLoggedIn && !isAuthPage ? (
         <div style={{ display: "flex", minHeight: "100vh" }}>
-          <Sidebar setIsLoggedIn={setIsLoggedIn} setRole={setRole} />
+          <Sidebar
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            setIsLoggedIn={setIsLoggedIn}
+            setRole={setRole}
+          />
           <div
             style={{
               flex: 1,
-              marginLeft: 230,
+              marginLeft: collapsed ? 110 : 295,
               backgroundColor: "#f8f9fa",
               overflowX: "auto",
               display: "flex",
               flexDirection: "column",
+              transition: "margin-left 0.2s ease",
             }}
           >
             {shouldRenderBreadcrumb() && <Breadcrumbs />}

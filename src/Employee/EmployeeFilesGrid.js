@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Card,
   Space,
   Button,
@@ -9,9 +8,6 @@ import {
   message,
   Popconfirm,
   Tooltip,
-  Empty,
-  Row,
-  Col,
 } from "antd";
 import {
   FileTextOutlined,
@@ -21,6 +17,8 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title } = Typography;
 
@@ -184,72 +182,52 @@ export default function EmployeeFilesGrid() {
   ];
 
   return (
-    <div className="p-6">
-      <Card
-        className="shadow-lg rounded-2xl"
-        title={
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} md={8}>
-              <Space>
-                <FileTextOutlined style={{ fontSize: 26, color: "#1677ff" }} />
-                <Title level={4} style={{ margin: 0 }}>
-                  Employee Files
-                </Title>
-              </Space>
-            </Col>
-            
-            <Col xs={24} sm={12} md={16}>
-              <Row gutter={[8, 8]} justify="end" align="middle">
-                <Col xs={24} sm={16} md={12} lg={14}>
-                  <Input
-                    placeholder="Search by file name, employee name, or ID"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    allowClear
-                    prefix={<SearchOutlined />}
-                    onPressEnter={handleSearch}
-                    size="large"
-                  />
-                </Col>
-                <Col xs={24} sm={8} md={12} lg={10}>
-                  <Space wrap style={{ width: '100%', justifyContent: 'flex-end' }}>
-                    <Button 
-                      icon={<ReloadOutlined />} 
-                      onClick={handleReset}
-                      size="large"
-                    >
-                      Reset
-                    </Button>
-                    <Button 
-                      type="primary" 
-                      icon={<SearchOutlined />} 
-                      onClick={handleSearch}
-                      size="large"
-                    >
-                      Search
-                    </Button>
-                  </Space>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={filteredFiles}
-          rowKey={(record) => `${record.employeeID}-${record.fileName}`}
-          loading={loading}
-          pagination={{ 
-            pageSize: 10, 
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} items`
-          }}
-          locale={{ emptyText: <Empty description="No files found" /> }}
-        />
-      </Card>
-    </div>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Space>
+              <FileTextOutlined style={{ fontSize: 24, color: "#1677ff" }} />
+              <Title level={4} style={{ margin: 0 }}>
+                Employee Files
+              </Title>
+            </Space>
+            <Space>
+              <Input
+                placeholder="Search files..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                allowClear
+                prefix={<SearchOutlined />}
+                onPressEnter={handleSearch}
+                style={{ width: 250 }}
+              />
+              <Button icon={<ReloadOutlined />} onClick={handleReset}>
+                Reset
+              </Button>
+              <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+                Search
+              </Button>
+            </Space>
+          </div>
+
+          <ReusableTable
+            columns={columns}
+            data={filteredFiles}
+            rowKey={(record) => `${record.employeeID}-${record.fileName}`}
+            loading={loading}
+            pagination={true}
+            total={filteredFiles.length}
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

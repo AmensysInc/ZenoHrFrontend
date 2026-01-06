@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Card, Typography, Button, Modal, List, message, Dropdown } from "antd";
+import { MoreOutlined } from "@ant-design/icons";
+import { FiEdit2 } from "react-icons/fi";
 import {
-  Table,
-  Card,
-  Typography,
-  Space,
-  Button,
-  Modal,
-  List,
-  message,
-  Popconfirm,
-} from "antd";
+  AiFillDelete,
+  AiOutlineUsergroupAdd,
+} from "react-icons/ai";
+import { BsFillPersonPlusFill } from "react-icons/bs";
+import { MdFileDownload } from "react-icons/md";
 import { BiDollar } from "react-icons/bi";
 import { IoIosPause } from "react-icons/io";
 import { IoCartSharp } from "react-icons/io5";
-import { FiEdit2 } from "react-icons/fi";
-import { AiFillDelete, AiOutlineUsergroupAdd } from "react-icons/ai";
-import { BsFillPersonPlusFill } from "react-icons/bs";
-import { MdFileDownload } from "react-icons/md";
 import { GiTakeMyMoney } from "react-icons/gi";
+
 import {
   deleteEmployee,
   fetchEmployees,
 } from "../SharedComponents/services/EmployeeServices";
-import "./Employee.css";
+
+import ReusableTable from "../components/ReusableTable";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Title } = Typography;
 
@@ -39,16 +36,29 @@ export default function Employee() {
   const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
   const apiUrl = process.env.REACT_APP_API_URL;
 
+  // Button styles
+  const primaryActionBtn = {
+    backgroundColor: "#0D2A4D",
+    color: "#fff",
+    borderRadius: 8,
+    height: 40,
+    fontWeight: 500,
+    border: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  };
+
   useEffect(() => {
     fetchData(1, 10);
-    
+
     // Suppress ResizeObserver errors
     const handleError = (e) => {
       if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
         e.stopImmediatePropagation();
       }
     };
-    
+
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
@@ -172,10 +182,6 @@ export default function Employee() {
     {
       title: "Company",
       render: (record) => (record.company ? record.company.companyName : "N/A"),
-      filters: [
-        ...new Set(users.map((u) => u.company?.companyName).filter(Boolean)),
-      ].map((c) => ({ text: c, value: c })),
-      onFilter: (value, record) => record.company?.companyName === value,
     },
     {
       title: "Phone No",
@@ -184,129 +190,129 @@ export default function Employee() {
     {
       title: "Working Status",
       dataIndex: "onBench",
-      filters: [
-        { text: "Working", value: "Working" },
-        { text: "On Bench", value: "On Bench" },
-      ],
-      onFilter: (value, record) => record.onBench === value,
     },
     {
       title: "Actions",
-      render: (record) => (
-        <Space size="middle">
-          <FiEdit2
-            onClick={() => handleEditEmployee(record.employeeID)}
-            title="Edit"
-            className="icon-mac icon-edit"
-            style={{ cursor: 'pointer' }}
-          />
-          <IoIosPause
-            onClick={() => handleAddLeaveBalance(record.employeeID)}
-            title="Add Leave Balance"
-            className="icon-mac icon-leave"
-            style={{ cursor: 'pointer' }}
-          />
-          <BiDollar
-            onClick={() => handleViewTracking(record.employeeID)}
-            title="WithHold Tracking"
-            className="icon-mac icon-tracking"
-            style={{ cursor: 'pointer' }}
-          />
-          <MdFileDownload
-            onClick={() => handleDownloadFiles(record.employeeID)}
-            title="Download Files"
-            className="icon-mac icon-download"
-            style={{ cursor: 'pointer' }}
-          />
-          <GiTakeMyMoney
-            onClick={() => handleProfitAndLoss(record.employeeID)}
-            title="Profit & Loss"
-            className="icon-mac icon-profit"
-            style={{ cursor: 'pointer' }}
-          />
-          <IoCartSharp
-            onClick={() => handleViewPurchaseOrders(record.employeeID)}
-            title="View Purchase Orders"
-            className="icon-mac icon-cart"
-            style={{ cursor: 'pointer' }}
-          />
+      render: (record) => {
+        const items = [
+          {
+            key: "edit",
+            label: (
+              <span onClick={() => handleEditEmployee(record.employeeID)}>
+                <FiEdit2 style={{ marginRight: 8 }} /> Edit
+              </span>
+            ),
+          },
+          {
+            key: "leave",
+            label: (
+              <span onClick={() => handleAddLeaveBalance(record.employeeID)}>
+                <IoIosPause style={{ marginRight: 8 }} /> Add Leave Balance
+              </span>
+            ),
+          },
+          {
+            key: "tracking",
+            label: (
+              <span onClick={() => handleViewTracking(record.employeeID)}>
+                <BiDollar style={{ marginRight: 8 }} /> Withhold Tracker
+              </span>
+            ),
+          },
+          {
+            key: "download",
+            label: (
+              <span onClick={() => handleDownloadFiles(record.employeeID)}>
+                <MdFileDownload style={{ marginRight: 8 }} /> Download Files
+              </span>
+            ),
+          },
+          {
+            key: "profit",
+            label: (
+              <span onClick={() => handleProfitAndLoss(record.employeeID)}>
+                <GiTakeMyMoney style={{ marginRight: 8 }} /> Profit & Loss
+              </span>
+            ),
+          },
+          {
+            key: "orders",
+            label: (
+              <span onClick={() => handleViewPurchaseOrders(record.employeeID)}>
+                <IoCartSharp style={{ marginRight: 8 }} /> View Purchase Orders
+              </span>
+            ),
+          },
+          {
+            key: "delete",
+            label: (
+              <span
+                onClick={() =>
+                  Modal.confirm({
+                    title: "Delete employee?",
+                    content: "This action cannot be undone.",
+                    onOk: () => handleDeleteEmployee(record.employeeID),
+                  })
+                }
+                style={{ color: "#ff4d4f" }}
+              >
+                <AiFillDelete style={{ marginRight: 8 }} /> Delete
+              </span>
+            ),
+          },
+        ];
 
-          <Popconfirm
-            title="Delete this employee?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDeleteEmployee(record.employeeID)}
-            okText="Yes"
-            cancelText="No"
-            placement="topRight"
-          >
-            <AiFillDelete 
-              title="Delete" 
-              className="icon-mac icon-delete"
-              style={{ cursor: 'pointer' }}
-            />
-          </Popconfirm>
-        </Space>
-      ),
+        return (
+          <Dropdown menu={{ items }} trigger={["click"]}>
+            <MoreOutlined style={{ fontSize: 20, cursor: "pointer" }} />
+          </Dropdown>
+        );
+      },
     },
   ];
 
-  const onChange = (pagination, filters, sorter, extra) => {
+  const onChange = (pagination) => {
     fetchData(pagination.current, pagination.pageSize);
   };
 
-  return (
-    <Card
+  // Header with action buttons
+  const extraHeader = (
+    <div
       style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 16,
+        marginBottom: 16,
+        padding: "0 28px",
+        display: "flex",
+        justifyContent: "flex-start",
+        gap: 12,
       }}
     >
-      <Title
-        level={4}
-        style={{
-          textAlign: "center",
-          color: "#4f46e5",
-          fontWeight: 700,
-          letterSpacing: 0.5,
-        }}
-      >
-        Employee Details
-      </Title>
+      <Link to="/adduser">
+        <Button style={primaryActionBtn} icon={<BsFillPersonPlusFill />}>
+          Add Employee
+        </Button>
+      </Link>
+      <Link to="/addprospect">
+        <Button style={primaryActionBtn} icon={<AiOutlineUsergroupAdd />}>
+          Prospect Employee
+        </Button>
+      </Link>
+    </div>
+  );
 
-      <div
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 10,
-        }}
-      >
-        <Link to="/adduser">
-          <Button type="primary" icon={<BsFillPersonPlusFill />}>
-            Add Employee
-          </Button>
-        </Link>
-        <Link to="/addprospect">
-          <Button type="dashed" icon={<AiOutlineUsergroupAdd />}>
-            Prospect Employee
-          </Button>
-        </Link>
-      </div>
-
-      <Table
+  return (
+    <AnimatedPageWrapper>
+      <ReusableTable
+        title="Employee Details"
         columns={columns}
-        dataSource={users}
+        data={users}
         loading={loading}
+        total={total}
         onChange={onChange}
-        pagination={{
-          total,
-          showSizeChanger: true,
-          defaultPageSize: 10,
-        }}
-        bordered
+        pagination={true}
+        extraHeader={extraHeader}
       />
 
+      {/* File Download Modal */}
       <Modal
         title="Available Files"
         open={fileModalVisible}
@@ -333,6 +339,6 @@ export default function Employee() {
           <p>No files found.</p>
         )}
       </Modal>
-    </Card>
+    </AnimatedPageWrapper>
   );
 }

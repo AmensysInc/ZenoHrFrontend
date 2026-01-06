@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Card,
   Typography,
-  Space,
   Button,
   Modal,
   Form,
@@ -17,6 +15,8 @@ import {
 import { FiEdit2 } from "react-icons/fi";
 import { AiOutlineReload, AiOutlineSearch } from "react-icons/ai";
 import dayjs from "dayjs";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -211,82 +211,61 @@ export default function PurchaseOrders() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 1300,
-        margin: "0 auto",
-        padding: "20px 24px",
-      }}
-    >
-      <Card
-        style={{
-          borderRadius: 16,
-          boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-          border: "1px solid #f0f0f0",
-          padding: 24,
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <Title level={3} style={{ color: "#4f46e5", marginBottom: 4 }}>
-            Purchase Orders
-          </Title>
-          <Text type="secondary">
-            Manage, view, and update all employee purchase orders
-          </Text>
-        </div>
-
-        {/* Search + Refresh Section */}
-        <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
-          <Col xs={24} sm={16} md={12}>
-            <Input
-              prefix={<AiOutlineSearch style={{ color: "#4f46e5" }} />}
-              placeholder="Search by Employee Name"
-              value={searchText}
-              onChange={(e) => handleSearch(e.target.value)}
-              allowClear
-              style={{
-                borderRadius: 8,
-                height: 40,
-              }}
-            />
-          </Col>
-          <Col xs={24} sm={8} md={6} style={{ textAlign: "right", marginTop: 8 }}>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card
+          style={{
+            borderRadius: 16,
+            boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+            border: "1px solid #f0f0f0",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              Purchase Orders
+            </Title>
             <Button
               icon={<AiOutlineReload />}
               onClick={() => fetchOrders(1, pageSize)}
-              style={{
-                backgroundColor: "#4f46e5",
-                color: "#fff",
-                borderRadius: 8,
-                height: 40,
-                fontWeight: 500,
-              }}
+              type="primary"
             >
               Refresh
             </Button>
-          </Col>
-        </Row>
+          </div>
 
-        {/* Table */}
-        <Table
-          columns={columns}
-          dataSource={filteredOrders}
-          loading={loading}
-          pagination={{
-            current: page,
-            total,
-            showSizeChanger: true,
-            pageSize,
-          }}
-          bordered
-          size="middle"
-          onChange={handleTableChange}
-          locale={{ emptyText: "No purchase orders found." }}
-          style={{
-            borderRadius: 8,
-          }}
-        />
-      </Card>
+          {/* Search Section */}
+          <Row style={{ marginBottom: 20 }}>
+            <Col xs={24} sm={16} md={12}>
+              <Input
+                prefix={<AiOutlineSearch />}
+                placeholder="Search by Employee Name"
+                value={searchText}
+                onChange={(e) => handleSearch(e.target.value)}
+                allowClear
+                style={{ borderRadius: 8 }}
+              />
+            </Col>
+          </Row>
+
+          {/* Table */}
+          <ReusableTable
+            columns={columns}
+            data={filteredOrders}
+            rowKey="key"
+            loading={loading}
+            pagination={true}
+            total={total}
+            onChange={handleTableChange}
+          />
+        </Card>
+      </div>
 
       {/* Update Modal */}
       <Modal
@@ -354,6 +333,6 @@ export default function PurchaseOrders() {
           </Row>
         </Form>
       </Modal>
-    </div>
+    </AnimatedPageWrapper>
   );
 }

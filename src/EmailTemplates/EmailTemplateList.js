@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Button,
   Tag,
   Card,
@@ -9,10 +8,6 @@ import {
   Popconfirm,
   Typography,
   Tooltip,
-  Empty,
-  Layout,
-  Row,
-  Col,
 } from "antd";
 import {
   EditOutlined,
@@ -23,9 +18,10 @@ import {
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title, Text } = Typography;
-const { Content } = Layout;
 
 export default function EmailTemplateList() {
   const [templates, setTemplates] = useState([]);
@@ -142,50 +138,43 @@ export default function EmailTemplateList() {
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "#f5f6fa", padding: "24px" }}>
-      <Content>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
         <Card
           bordered={false}
           style={{
             borderRadius: 12,
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
           }}
-          title={
-            <Row justify="space-between" align="middle">
-              <Col>
-                <Space size="large">
-                  <MailOutlined style={{ fontSize: 26, color: "#1677ff" }} />
-                  <Title level={4} style={{ margin: 0 }}>
-                    Email Templates
-                  </Title>
-                </Space>
-              </Col>
-
-              <Col>
-                <Space>
-                  <Button
-                    icon={<ReloadOutlined />}
-                    onClick={fetchTemplates}
-                    type="default"
-                    shape="round"
-                  >
-                    Refresh
-                  </Button>
-
-                  <Link to="/email-template/create">
-                    <Button
-                      type="primary"
-                      icon={<PlusCircleOutlined />}
-                      shape="round"
-                    >
-                      Create New
-                    </Button>
-                  </Link>
-                </Space>
-              </Col>
-            </Row>
-          }
         >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Space>
+              <MailOutlined style={{ fontSize: 24, color: "#1677ff" }} />
+              <Title level={4} style={{ margin: 0 }}>
+                Email Templates
+              </Title>
+            </Space>
+
+            <Space>
+              <Button icon={<ReloadOutlined />} onClick={fetchTemplates}>
+                Refresh
+              </Button>
+
+              <Link to="/email-template/create">
+                <Button type="primary" icon={<PlusCircleOutlined />}>
+                  Create New
+                </Button>
+              </Link>
+            </Space>
+          </div>
+
           {error && (
             <Card
               size="small"
@@ -199,22 +188,16 @@ export default function EmailTemplateList() {
             </Card>
           )}
 
-          <Table
-            bordered
+          <ReusableTable
             columns={columns}
-            dataSource={filteredTemplates}
+            data={filteredTemplates}
             rowKey="id"
             loading={loading}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: false,
-            }}
-            locale={{
-              emptyText: <Empty description="No email templates found" />,
-            }}
+            pagination={true}
+            total={filteredTemplates.length}
           />
         </Card>
-      </Content>
-    </Layout>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

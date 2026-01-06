@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, Typography, Space, Button, Popconfirm, message } from "antd";
+import { Space, Button, Popconfirm, message } from "antd";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
+import { BsFillPersonPlusFill } from "react-icons/bs";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const { Title } = Typography;
+import ReusableTable from "../components/ReusableTable";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 export default function Contacts() {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ export default function Contacts() {
       const res = await axios.get(`${API_URL}/bulkmails/${recruiterId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setContacts(res.data);
+      setContacts(res.data.map((c) => ({ ...c, key: c.id })));
     } catch (error) {
       console.error("Error fetching contacts:", error);
       message.error("Failed to fetch contacts");
@@ -35,9 +37,7 @@ export default function Contacts() {
     if (recruiterId) fetchContacts();
   }, [recruiterId, token]);
 
-  const handleEdit = (id) => {
-    navigate(`/editcontact/${id}`);
-  };
+  const handleEdit = (id) => navigate(`/editcontact/${id}`);
 
   const handleDelete = async (id) => {
     try {
@@ -56,27 +56,32 @@ export default function Contacts() {
     {
       title: "Email",
       dataIndex: "email",
-      key: "email",
+      sorter: (a, b) => (a.email || "").localeCompare(b.email || ""),
     },
     {
       title: "Actions",
-      key: "actions",
       align: "center",
       render: (_, record) => (
         <Space size="middle">
           <FiEdit2
-            style={{ cursor: "pointer", fontSize: 18 }}
+            style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
             onClick={() => handleEdit(record.id)}
             title="Edit Contact"
           />
+
           <Popconfirm
-            title="Are you sure to delete this contact?"
-            onConfirm={() => handleDelete(record.id)}
+            title="Delete this contact?"
+            description="This action cannot be undone."
             okText="Yes"
             cancelText="No"
+            onConfirm={() => handleDelete(record.id)}
           >
             <AiFillDelete
-              style={{ cursor: "pointer", fontSize: 18, color: "red" }}
+              style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
               title="Delete Contact"
             />
           </Popconfirm>
@@ -85,25 +90,49 @@ export default function Contacts() {
     },
   ];
 
-  return (
-    <Card className="shadow-lg rounded-2xl">
-      <div className="flex justify-between items-center mb-4">
-        <Title level={3} style={{ margin: 0 }}>
-          Contacts List
-        </Title>
-        <Button type="primary" onClick={() => navigate("/addcontact")}>
-          Add Contact
-        </Button>
-      </div>
+  // Button style
+  const primaryActionBtn = {
+    backgroundColor: "#0D2A4D",
+    color: "#fff",
+    borderRadius: 8,
+    height: 40,
+    fontWeight: 500,
+    border: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  };
 
-      <Table
+  // Header with Add Contact button
+  const extraHeader = (
+    <div
+      style={{
+        marginBottom: 16,
+        padding: "0 28px",
+        display: "flex",
+        justifyContent: "flex-start",
+      }}
+    >
+      <Button
+        style={primaryActionBtn}
+        icon={<BsFillPersonPlusFill />}
+        onClick={() => navigate("/addcontact")}
+      >
+        Add Contact
+      </Button>
+    </div>
+  );
+
+  return (
+    <AnimatedPageWrapper>
+      <ReusableTable
+        title="Contacts List"
         columns={columns}
-        dataSource={contacts}
-        rowKey="id"
+        data={contacts}
         loading={loading}
-        bordered
         pagination={{ pageSize: 10 }}
+        extraHeader={extraHeader}
       />
-    </Card>
+    </AnimatedPageWrapper>
   );
 }

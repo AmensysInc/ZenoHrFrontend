@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Table, Button, Typography, Space, message } from "antd";
+import { Card, Button, Typography, Space, Tooltip, message } from "antd";
 import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { getUserDetails } from "../SharedComponents/services/OrderService";
 import { getProjectsForEmployee } from "../SharedComponents/services/ProjectHistoryService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function ProjectHistory() {
   const [projectHistory, setProjectHistory] = useState([]);
@@ -89,68 +91,58 @@ export default function ProjectHistory() {
       title: "Actions",
       key: "actions",
       align: "center",
-      render: (record) => (
-        <Space size="middle">
-          <FiEdit2
-            size={18}
-            title="Edit Project History"
-            style={{ cursor: "pointer", color: "#4f46e5" }}
+      render: (_, record) => (
+        <Tooltip title="Edit Project">
+          <Button
+            type="text"
+            icon={<FiEdit2 size={18} />}
             onClick={() => handleEditHistory(employeeId, record.projectId)}
           />
-        </Space>
+        </Tooltip>
       ),
     },
   ];
 
+  const handleTableChange = (pagination) => {
+    setCurrentPage(pagination.current - 1);
+    setPageSize(pagination.pageSize);
+  };
+
   return (
-    <Card
-      style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 20,
-      }}
-    >
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <Title level={4} style={{ color: "#4f46e5", marginBottom: 5 }}>
-          {employeeName || "Employee"}
-        </Title>
-        <Text type="secondary">Project History</Text>
-      </div>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered className="shadow-sm">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} className="m-0">
+              {employeeName || "Employee"} — Project History
+            </Title>
+            <Button
+              type="primary"
+              icon={<BiSolidAddToQueue size={16} />}
+              onClick={() => handleAddProject(employeeId)}
+            >
+              Add Project
+            </Button>
+          </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: 16,
-        }}
-      >
-        <Button
-          type="primary"
-          icon={<BiSolidAddToQueue size={16} />}
-          onClick={() => handleAddProject(employeeId)}
-        >
-          Add Project
-        </Button>
+          <ReusableTable
+            columns={columns}
+            data={projectHistory}
+            rowKey="projectId"
+            loading={loading}
+            total={totalPages * pageSize}
+            pagination={true}
+            onChange={handleTableChange}
+          />
+        </Card>
       </div>
-
-      <Table
-        bordered
-        columns={columns}
-        dataSource={projectHistory}
-        loading={loading}
-        pagination={{
-          current: currentPage + 1,
-          pageSize,
-          total: totalPages * pageSize,
-          onChange: (page) => setCurrentPage(page - 1),
-          showSizeChanger: true,
-          onShowSizeChange: (_, size) => setPageSize(size),
-        }}
-        locale={{
-          emptyText: "No project history found.",
-        }}
-        rowKey="projectId"
-      />
-    </Card>
+    </AnimatedPageWrapper>
   );
 }

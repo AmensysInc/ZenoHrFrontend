@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Card,
   Typography,
   Space,
@@ -15,6 +14,8 @@ import { AiFillDelete } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title } = Typography;
 
@@ -153,32 +154,38 @@ export default function UserRole() {
     },
   ];
 
-  // ==========================
-  // 🎨 RENDER
-  // ==========================
   return (
-    <Card
-      className="shadow-lg rounded-2xl"
-      title={
-        <Space style={{ justifyContent: "space-between", width: "100%" }}>
-          <Title level={4} style={{ margin: 0 }}>
-            User Role Information
-          </Title>
-          <Link to="/addcompanyrole">
-            <Button type="primary" icon={<BsFillPersonPlusFill />}>
-              Add Role
-            </Button>
-          </Link>
-        </Space>
-      }
-    >
-      <Table
-        columns={columns}
-        dataSource={roles}
-        rowKey="id"
-        loading={loading}
-        bordered
-      />
-    </Card>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card className="shadow-lg rounded-2xl">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              User Role Information
+            </Title>
+            <Link to="/addcompanyrole">
+              <Button type="primary" icon={<BsFillPersonPlusFill />}>
+                Add Role
+              </Button>
+            </Link>
+          </div>
+
+          <ReusableTable
+            columns={columns}
+            data={roles}
+            rowKey="id"
+            loading={loading}
+            pagination={true}
+            total={roles.length}
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

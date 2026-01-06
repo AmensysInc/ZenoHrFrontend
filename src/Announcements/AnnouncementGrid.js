@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Tag,
-  Spin,
   message as antdMessage,
   Badge,
   Button,
@@ -14,7 +12,6 @@ import {
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { motion } from "framer-motion";
 import {
   ReloadOutlined,
   PlusCircleOutlined,
@@ -23,6 +20,8 @@ import {
   CalendarOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title, Text } = Typography;
 
@@ -214,34 +213,28 @@ export default function EmployeeAnnouncement() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      style={{ padding: "30px" }}
-    >
-      <Card
-        bordered={false}
-        style={{
-          boxShadow: "0 4px 18px rgba(0,0,0,0.08)",
-          borderRadius: 12,
-          background: "#fff",
-        }}
-      >
-        {ActionsBar}
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card
+          bordered={false}
+          style={{
+            boxShadow: "0 4px 18px rgba(0,0,0,0.08)",
+            borderRadius: 12,
+            background: "#fff",
+          }}
+        >
+          {ActionsBar}
 
-        <Spin spinning={loading} tip="Loading announcements...">
-          <Table
+          <ReusableTable
             columns={columns}
-            dataSource={filteredData}
-            rowKey={(record) => record.id}
-            pagination={{ pageSize: 8 }}
-            bordered
-            size="middle"
-            style={{ borderRadius: 8 }}
+            data={filteredData}
+            rowKey="id"
+            loading={loading}
+            pagination={true}
+            total={filteredData.length}
           />
-        </Spin>
-      </Card>
-    </motion.div>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

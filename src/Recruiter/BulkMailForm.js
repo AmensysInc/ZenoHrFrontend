@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Form, Input, Typography, Select, message } from "antd";
+import { Button, Form, Input, Typography, Select, message, Card } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
+const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -132,112 +136,136 @@ const BulkMailForm = () => {
   ];
 
   return (
-    <div className="container" style={{ marginTop: "20px" }}>
-      <Typography.Title level={3}>Campaigns</Typography.Title>
-
-      <Button
-        type="primary"
-        style={{ marginBottom: "20px" }}
-        onClick={() => setShowCampaignForm(true)}
-      >
-        Add Campaign
-      </Button>
-
-      {showCampaignForm && (
-        <Form
-          layout="vertical"
-          onFinish={handleCampaignSubmit}
-          initialValues={campaignData}
-          style={{ marginBottom: "20px" }}
-        >
-          <Form.Item
-            label="Campaign Name"
-            name="name"
-            rules={[{ required: true, message: "Please input campaign name!" }]}
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
           >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Sender Email"
-            name="senderEmail"
-            rules={[{ required: true, message: "Please input sender email!" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Recipients"
-            name="recipients"
-            rules={[{ required: true, message: "Please select recipients!" }]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="Select or type recipients"
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                option.label.toLowerCase().includes(input.toLowerCase())
-              }
+            <Title level={4} style={{ margin: 0 }}>
+              Campaigns
+            </Title>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setShowCampaignForm(!showCampaignForm)}
             >
-              {contacts.map((contact) => (
-                <Option
-                  key={contact.id}
-                  value={contact.email}
-                  label={`${contact.firstName} ${contact.lastName} (${contact.email})`}
-                >
-                  {`${contact.firstName} ${contact.lastName} (${contact.email})`}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="BCC" name="bcc">
-            <Select
-              mode="multiple"
-              placeholder="Select or type BCC contacts"
-              optionFilterProp="label"
-              filterOption={(input, option) =>
-                option.label.toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {contacts.map((contact) => (
-                <Option
-                  key={contact.id}
-                  value={contact.email}
-                  label={`${contact.firstName} ${contact.lastName} (${contact.email})`}
-                >
-                  {`${contact.firstName} ${contact.lastName} (${contact.email})`}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Subject"
-            name="subject"
-            rules={[{ required: true, message: "Please input subject!" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Body"
-            name="body"
-            rules={[{ required: true, message: "Please input body!" }]}
-          >
-            <TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Save Campaign
+              {showCampaignForm ? "Cancel" : "Add Campaign"}
             </Button>
-          </Form.Item>
-        </Form>
-      )}
+          </div>
 
-      <Table columns={columns} dataSource={campaigns} rowKey="id" />
-    </div>
+          {showCampaignForm && (
+            <Card
+              size="small"
+              style={{ marginBottom: 20, background: "#fafafa" }}
+            >
+              <Form
+                layout="vertical"
+                onFinish={handleCampaignSubmit}
+                initialValues={campaignData}
+              >
+                <Form.Item
+                  label="Campaign Name"
+                  name="name"
+                  rules={[{ required: true, message: "Please input campaign name!" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Sender Email"
+                  name="senderEmail"
+                  rules={[{ required: true, message: "Please input sender email!" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Recipients"
+                  name="recipients"
+                  rules={[{ required: true, message: "Please select recipients!" }]}
+                >
+                  <Select
+                    mode="multiple"
+                    placeholder="Select or type recipients"
+                    optionFilterProp="label"
+                    filterOption={(input, option) =>
+                      option.label.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    {contacts.map((contact) => (
+                      <Option
+                        key={contact.id}
+                        value={contact.email}
+                        label={`${contact.firstName} ${contact.lastName} (${contact.email})`}
+                      >
+                        {`${contact.firstName} ${contact.lastName} (${contact.email})`}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item label="BCC" name="bcc">
+                  <Select
+                    mode="multiple"
+                    placeholder="Select or type BCC contacts"
+                    optionFilterProp="label"
+                    filterOption={(input, option) =>
+                      option.label.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    {contacts.map((contact) => (
+                      <Option
+                        key={contact.id}
+                        value={contact.email}
+                        label={`${contact.firstName} ${contact.lastName} (${contact.email})`}
+                      >
+                        {`${contact.firstName} ${contact.lastName} (${contact.email})`}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
+                  label="Subject"
+                  name="subject"
+                  rules={[{ required: true, message: "Please input subject!" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  label="Body"
+                  name="body"
+                  rules={[{ required: true, message: "Please input body!" }]}
+                >
+                  <TextArea rows={4} />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button type="primary" htmlType="submit">
+                    Save Campaign
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+          )}
+
+          <ReusableTable
+            columns={columns}
+            data={campaigns}
+            rowKey="id"
+            pagination={true}
+            total={campaigns.length}
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 };
 

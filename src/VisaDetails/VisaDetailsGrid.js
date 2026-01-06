@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Table, Card, Typography, Button, Space, Switch } from "antd";
+import { Card, Typography, Button, Space, Switch } from "antd";
 import { AiOutlineReload } from "react-icons/ai";
 import axios from "axios";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title } = Typography;
 
@@ -103,49 +105,50 @@ export default function VisaDetailsGrid() {
     },
   ];
 
-  return (
-    <Card>
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 10,
-        }}
-      >
-        <Title level={4} style={{ margin: 0 }}>
-          Visa Details (All Employees)
-        </Title>
-        <Space>
-          <span>Show Expired Visas</span>
-          <Switch checked={showExpired} onChange={setShowExpired} />
-          <Button
-            icon={<AiOutlineReload />}
-            onClick={() => fetchVisaDetails(1, size)}
-          >
-            Refresh
-          </Button>
-        </Space>
-      </div>
+  const handleTableChange = (pagination) => {
+    setPage(pagination.current);
+    setSize(pagination.pageSize);
+  };
 
-      {/* Table */}
-      <Table
-        columns={columns}
-        dataSource={visaDetails}
-        loading={loading}
-        pagination={{
-          current: page,
-          pageSize: size,
-          total: total,
-          showSizeChanger: true,
-          onChange: (p, ps) => {
-            setPage(p);
-            setSize(ps);
-          },
-        }}
-        bordered
-      />
-    </Card>
+  return (
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              Visa Details (All Employees)
+            </Title>
+            <Space>
+              <span>Show Expired Visas</span>
+              <Switch checked={showExpired} onChange={setShowExpired} />
+              <Button
+                icon={<AiOutlineReload />}
+                onClick={() => fetchVisaDetails(1, size)}
+                type="primary"
+              >
+                Refresh
+              </Button>
+            </Space>
+          </div>
+
+          <ReusableTable
+            columns={columns}
+            data={visaDetails}
+            rowKey="key"
+            loading={loading}
+            pagination={true}
+            total={total}
+            onChange={handleTableChange}
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }
