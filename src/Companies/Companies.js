@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Table,
-  Typography,
-  Space,
-  Button,
-  Popconfirm,
-  message,
-} from "antd";
-import { Link } from "react-router-dom";
-import { BsFillPersonPlusFill } from "react-icons/bs";
+import { Card, Table, Typography, Space, Popconfirm, message } from "antd";
+import { useNavigate } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { FiEdit2 } from "react-icons/fi";
-import { fetchCompanies, deleteCompanies } from "../SharedComponents/services/CompaniesServies";
+import {
+  fetchCompanies,
+  deleteCompanies,
+} from "../SharedComponents/services/CompaniesServies";
 
 const { Title } = Typography;
 
@@ -20,6 +14,7 @@ export default function Companies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData(1, 10);
@@ -53,8 +48,7 @@ export default function Companies() {
   };
 
   const handleEditCompany = (id) => {
-    // Navigate to edit screen (if exists)
-    window.location.href = `/editcompany/${id}`;
+    navigate(`/editcompany/${id}`);
   };
 
   const columns = [

@@ -68,6 +68,7 @@ import ContactForm from "./Contacts/ContactForm";
 import Files from "./Employee/Files";
 import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
 import WeekFileUploader from "./EmployeeAccess/WeekFileUploader";
+import EditCompany from "./Companies/EditCompany";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -253,6 +254,7 @@ function App() {
               element={<ContactForm mode="edit" />}
             />
             <Route path="/companies" element={<Companies />} />
+            <Route path="/editcompany/:companyId" element={<EditCompany />} />
             <Route path="/selectcompanies" element={<SelectCompany />} />
             <Route path="/email" element={<EmailForm />} />
             <Route path="/bulkemail" element={<BulkMailForm />} />
