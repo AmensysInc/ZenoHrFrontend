@@ -39,7 +39,6 @@ const styles = {
     overflowY: "hidden",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
     borderRadius: "16px",
     margin: "12px",
     boxShadow: "0 0px 18px rgba(0, 0, 0, 0.15)",
@@ -55,6 +54,7 @@ const styles = {
     alignItems: "center",
     gap: "0px",
     position: "relative",
+    flexShrink: 0,
   },
   logoIcon: {
     width: "40px",
@@ -103,12 +103,16 @@ const styles = {
     paddingTop: "0px",
     paddingLeft: "19px",
     paddingBottom: "6px",
+    overflowY: "auto",
+    scrollbarWidth: "none", // Firefox
+    msOverflowStyle: "none", // IE/Edge
   },
   logoutContainer: {
     padding: "6px 16px 12px 16px",
     borderTop: "1px solid #f0f0f0",
     display: "flex",
     justifyContent: "center",
+    flexShrink: 0,
   },
   logoutBtn: {
     color: "#6b7280",
