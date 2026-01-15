@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Table,
   Card,
   Button,
   Select,
@@ -14,6 +13,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { getUserDetails } from "../SharedComponents/services/OrderService";
 import { getVisaForEmployee } from "../SharedComponents/services/VisaDetailsService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title } = Typography;
 
@@ -65,7 +66,9 @@ export default function VisaDetails() {
   };
 
   const handleEditDetails = (employeeId, visaId) => {
-    navigate(`/editemployee/${employeeId}/visa-details/${visaId}/editvisadetails`);
+    navigate(
+      `/editemployee/${employeeId}/visa-details/${visaId}/editvisadetails`
+    );
   };
 
   const handleAddDetails = () => {
@@ -91,65 +94,24 @@ export default function VisaDetails() {
       width: 70,
       align: "center",
     },
-    {
-      title: "Visa Start Date",
-      dataIndex: "visaStartDate",
-      sorter: (a, b) => a.visaStartDate.localeCompare(b.visaStartDate),
-    },
-    {
-      title: "Visa Expiry Date",
-      dataIndex: "visaExpiryDate",
-      sorter: (a, b) => a.visaExpiryDate.localeCompare(b.visaExpiryDate),
-    },
-    {
-      title: "Visa Type",
-      dataIndex: "visaType",
-    },
-    {
-      title: "I94 Date",
-      dataIndex: "i94Date",
-    },
-    {
-      title: "LCA Number",
-      dataIndex: "lcaNumber",
-    },
-    {
-      title: "LCA Wage",
-      dataIndex: "lcaWage",
-    },
-    {
-      title: "Job Title",
-      dataIndex: "jobTitle",
-    },
-    {
-      title: "I140 Status",
-      dataIndex: "i140Status",
-    },
-    {
-      title: "GC Status",
-      dataIndex: "gcStatus",
-    },
-    {
-      title: "Attorney",
-      dataIndex: "attorney",
-    },
-    {
-      title: "Receipt",
-      dataIndex: "receipt",
-    },
-    {
-      title: "Residential Address",
-      dataIndex: "residentialAddress",
-    },
-    {
-      title: "Comments",
-      dataIndex: "comments",
-    },
+    { title: "Visa Start Date", dataIndex: "visaStartDate" },
+    { title: "Visa Expiry Date", dataIndex: "visaExpiryDate" },
+    { title: "Visa Type", dataIndex: "visaType" },
+    { title: "I94 Date", dataIndex: "i94Date" },
+    { title: "LCA Number", dataIndex: "lcaNumber" },
+    { title: "LCA Wage", dataIndex: "lcaWage" },
+    { title: "Job Title", dataIndex: "jobTitle" },
+    { title: "I140 Status", dataIndex: "i140Status" },
+    { title: "GC Status", dataIndex: "gcStatus" },
+    { title: "Attorney", dataIndex: "attorney" },
+    { title: "Receipt", dataIndex: "receipt" },
+    { title: "Residential Address", dataIndex: "residentialAddress" },
+    { title: "Comments", dataIndex: "comments" },
     {
       title: "Actions",
       key: "actions",
-      fixed: "right",
       width: 80,
+      align: "center",
       render: (_, record) => (
         <Tooltip title="Edit Visa Details">
           <Button
@@ -162,67 +124,46 @@ export default function VisaDetails() {
     },
   ];
 
-  const fieldOptions = [
-    { value: "", label: "Select Field" },
-    { value: "visaStartDate", label: "Visa Start Date" },
-    { value: "visaExpiryDate", label: "Visa End Date" },
-    { value: "visaType", label: "Visa Type" },
-    { value: "i94Date", label: "I94 Date" },
-    { value: "lcaNumber", label: "LCA Number" },
-    { value: "jobTitle", label: "Job Title" },
-    { value: "i140Status", label: "I140 Status" },
-    { value: "gcStatus", label: "GC Status" },
-    { value: "attorney", label: "Attorney" },
-    { value: "receipt", label: "Receipt" },
-    { value: "residentialAddress", label: "Residential Address" },
-    { value: "comments", label: "Comments" },
-  ];
+  const handleTableChange = (pagination) => {
+    setCurrentPage(pagination.current - 1);
+    setPageSize(pagination.pageSize);
+  };
 
   return (
-    <div className="p-4">
-      <Card bordered className="shadow-sm">
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-          }}
-        >
-          <Title level={4} className="m-0">
-            {userDetail.first} {userDetail.last} — Visa Details
-          </Title>
-          <Button
-            type="primary"
-            icon={<BiSolidAddToQueue size={16} />}
-            onClick={handleAddDetails}
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered className="shadow-sm">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
           >
-            Add Visa Details
-          </Button>
-        </div>
-        
-        {/* Visa Details Table */}
-        <Table
-          columns={columns}
-          dataSource={visaDetails}
-          rowKey="visaId"
-          loading={loading}
-          bordered
-          pagination={{
-            current: currentPage + 1,
-            total: totalPages * pageSize,
-            pageSize: pageSize,
-            onChange: (page, size) => {
-              setCurrentPage(page - 1);
-              setPageSize(size);
-            },
-            showSizeChanger: true,
-            pageSizeOptions: ["5", "10", "20", "50"],
-          }}
-          scroll={{ x: "max-content" }}
-        />
-      </Card>
-    </div>
+            <Title level={4} style={{ margin: 0 }}>
+              {userDetail.first} {userDetail.last} — Visa Details
+            </Title>
+            <Button
+              type="primary"
+              icon={<BiSolidAddToQueue size={16} />}
+              onClick={handleAddDetails}
+            >
+              Add Visa Details
+            </Button>
+          </div>
+
+          <ReusableTable
+            columns={columns}
+            data={visaDetails}
+            rowKey="visaId"
+            loading={loading}
+            total={totalPages * pageSize}
+            pagination={true}
+            onChange={handleTableChange}
+          />
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

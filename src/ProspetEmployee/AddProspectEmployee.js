@@ -11,8 +11,11 @@ import {
   Row,
   Col,
   message,
+  Card,
 } from "antd";
 import dayjs from "dayjs";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -62,12 +65,22 @@ export default function AddProspectEmployee() {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
-      <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
-        Add Prospect Employee
-      </Title>
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
+      >
+        <Title level={3} style={{ ...titleStyle, paddingBottom: 12 }}>
+          Add Prospect Employee
+        </Title>
 
-      <Form
+        <div style={{ padding: "0 28px" }}>
+          <Form
         form={form}
         layout="vertical"
         onFinish={onFinish}
@@ -149,14 +162,16 @@ export default function AddProspectEmployee() {
         </Form.Item>
       </Form>
 
-      <Modal
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        okText="OK"
-      >
-        <p>Prospect Employee added successfully!</p>
-      </Modal>
-    </div>
+          <Modal
+            open={isModalOpen}
+            onOk={handleOk}
+            onCancel={handleCancel}
+            okText="OK"
+          >
+            <p>Prospect Employee added successfully!</p>
+          </Modal>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

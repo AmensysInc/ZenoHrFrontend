@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Table, Card, Typography, Space, Button, Popconfirm, message } from "antd";
+import { Card, Typography, Space, Button, Popconfirm, message } from "antd";
 import { FiEdit2 } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
+import { BsFillPersonPlusFill } from "react-icons/bs";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -22,7 +28,7 @@ export default function Contacts() {
       const res = await axios.get(`${API_URL}/bulkmails/${recruiterId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setContacts(res.data);
+      setContacts(res.data.map((c) => ({ ...c, key: c.id })));
     } catch (error) {
       console.error("Error fetching contacts:", error);
       message.error("Failed to fetch contacts");
@@ -35,9 +41,7 @@ export default function Contacts() {
     if (recruiterId) fetchContacts();
   }, [recruiterId, token]);
 
-  const handleEdit = (id) => {
-    navigate(`/editcontact/${id}`);
-  };
+  const handleEdit = (id) => navigate(`/editcontact/${id}`);
 
   const handleDelete = async (id) => {
     try {
@@ -56,27 +60,30 @@ export default function Contacts() {
     {
       title: "Email",
       dataIndex: "email",
-      key: "email",
     },
     {
       title: "Actions",
-      key: "actions",
       align: "center",
       render: (_, record) => (
         <Space size="middle">
           <FiEdit2
-            style={{ cursor: "pointer", fontSize: 18 }}
+            style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
             onClick={() => handleEdit(record.id)}
             title="Edit Contact"
           />
+
           <Popconfirm
-            title="Are you sure to delete this contact?"
-            onConfirm={() => handleDelete(record.id)}
+            title="Delete this contact?"
             okText="Yes"
             cancelText="No"
+            onConfirm={() => handleDelete(record.id)}
           >
             <AiFillDelete
-              style={{ cursor: "pointer", fontSize: 18, color: "red" }}
+              style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
               title="Delete Contact"
             />
           </Popconfirm>
@@ -86,24 +93,57 @@ export default function Contacts() {
   ];
 
   return (
-    <Card className="shadow-lg rounded-2xl">
-      <div className="flex justify-between items-center mb-4">
-        <Title level={3} style={{ margin: 0 }}>
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
           Contacts List
         </Title>
-        <Button type="primary" onClick={() => navigate("/addcontact")}>
-          Add Contact
-        </Button>
-      </div>
 
-      <Table
-        columns={columns}
-        dataSource={contacts}
-        rowKey="id"
-        loading={loading}
-        bordered
-        pagination={{ pageSize: 10 }}
-      />
-    </Card>
+        <TableFilter />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            marginLeft: 30,
+          }}
+        >
+          <Button
+            icon={<BsFillPersonPlusFill />}
+            onClick={() => navigate("/addcontact")}
+            style={{
+              backgroundColor: "#0D2A4D",
+              color: "#fff",
+              borderRadius: 8,
+              height: 40,
+              fontWeight: 500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              border: "none",
+            }}
+          >
+            Add Contact
+          </Button>
+        </div>
+
+        <ReusableTable
+          columns={columns}
+          data={contacts}
+          loading={loading}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

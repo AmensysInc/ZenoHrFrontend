@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Table,
-  Typography,
-  Space,
-  Button,
-  Popconfirm,
-  message,
-} from "antd";
-import { Link } from "react-router-dom";
-import { BsFillPersonPlusFill } from "react-icons/bs";
+import { Card, Typography, Space, Popconfirm, message, Button, Tooltip } from "antd";
+import { useNavigate } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { FiEdit2 } from "react-icons/fi";
-import { fetchCompanies, deleteCompanies } from "../SharedComponents/services/CompaniesServies";
+import {
+  fetchCompanies,
+  deleteCompanies,
+} from "../SharedComponents/services/CompaniesServies";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
 const { Title } = Typography;
 
@@ -20,6 +16,7 @@ export default function Companies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData(1, 10);
@@ -53,8 +50,7 @@ export default function Companies() {
   };
 
   const handleEditCompany = (id) => {
-    // Navigate to edit screen (if exists)
-    window.location.href = `/editcompany/${id}`;
+    navigate(`/editcompany/${id}`);
   };
 
   const columns = [
@@ -75,79 +71,66 @@ export default function Companies() {
     {
       title: "Actions",
       align: "center",
-      render: (record) => (
+      render: (_, record) => (
         <Space size="middle">
-          <FiEdit2
-            title="Edit"
-            className="icon-mac icon-edit"
-            onClick={() => handleEditCompany(record.companyId)}
-          />
+          <Tooltip title="Edit">
+            <Button
+              type="text"
+              icon={<FiEdit2 size={18} />}
+              onClick={() => handleEditCompany(record.companyId)}
+            />
+          </Tooltip>
           <Popconfirm
             title="Delete this company?"
             onConfirm={() => handleDeleteCompany(record.companyId)}
+            okText="Yes"
+            cancelText="No"
           >
-            <AiFillDelete title="Delete" className="icon-mac icon-delete" />
+            <Tooltip title="Delete">
+              <Button
+                type="text"
+                danger
+                icon={<AiFillDelete size={18} />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const onChange = (pagination) => {
+  const handleTableChange = (pagination) => {
     fetchData(pagination.current, pagination.pageSize);
   };
 
   return (
-    <Card
-      style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 16,
-      }}
-    >
-      {/* Header Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <Title
-          level={4}
-          style={{
-            color: "#4f46e5",
-            fontWeight: 700,
-            letterSpacing: 0.5,
-            marginBottom: 0,
-          }}
-        >
-          Company Details
-        </Title>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              Company Details
+            </Title>
+          </div>
 
-        {/* <Space>
-          <Link to="/addcompany">
-            <Button type="primary" icon={<BsFillPersonPlusFill />}>
-              Add Company
-            </Button>
-          </Link>
-        </Space> */}
+          <ReusableTable
+            columns={columns}
+            data={companies}
+            rowKey="key"
+            loading={loading}
+            total={total}
+            pagination={true}
+            onChange={handleTableChange}
+          />
+        </Card>
       </div>
-
-      {/* Table Section */}
-      <Table
-        columns={columns}
-        dataSource={companies}
-        loading={loading}
-        onChange={onChange}
-        pagination={{
-          total,
-          showSizeChanger: true,
-        }}
-        bordered
-      />
-    </Card>
+    </AnimatedPageWrapper>
   );
 }

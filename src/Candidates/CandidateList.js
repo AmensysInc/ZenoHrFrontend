@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import CustomGrid from "../SharedComponents/CustomGrid";
 import { FiEdit2 } from "react-icons/fi";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { useNavigate, Link } from "react-router-dom";
-import Pagination from "../SharedComponents/Pagination";
-import { Select, Input, Button, Checkbox, InputNumber } from "antd";
+import { Select, Input, Button, Checkbox, InputNumber, Card, Typography, Space, Tooltip, Popconfirm } from "antd";
 import { AiFillDelete } from "react-icons/ai";
 import { deleteCandidate, fetchCandidates, fetchCandidatesWithoutPagination, fetchCandidatesWithMarketing, fetchCandidatesWithMarketingAndWithouPagination } from "../SharedComponents/services/CandidateService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
+
+const { Title } = Typography;
 
 export default function CandidateList({ inMarketing }) {
   const navigate = useNavigate();
@@ -67,41 +69,47 @@ export default function CandidateList({ inMarketing }) {
     setPageSize(value);
   };
 
-  const gridColumns = [
-    { field: "firstName", label: "First Name", resizable: true },
-    { field: "lastName", label: "Last Name" },
-    { field: "skills", label: "Skills" },
-    { field: "recruiterName", label: "Recruiter Name" },
-    { field: "phoneNo", label: "Phone Number" },
-    { field: "emailAddress", label: "Email" },
-    { field: "company", label: "Company" },
-    { field: "originalVisaStatus", label: "Visa Status" },
-    { field: "marketingVisaStatus", label: "Marketing Visa" },
-    { field: "comments", label: "Comments" },
-    { field: "candidateStatus", label: "CandidateStatus" },
-    { field: "reference", label: "Reference" }
-  ];
-
-  const customColumns = [
+  const columns = [
+    { title: "First Name", dataIndex: "firstName" },
+    { title: "Last Name", dataIndex: "lastName" },
+    { title: "Skills", dataIndex: "skills", ellipsis: true },
+    { title: "Recruiter", dataIndex: "recruiterName" },
+    { title: "Phone", dataIndex: "phoneNo" },
+    { title: "Email", dataIndex: "emailAddress", ellipsis: true },
+    { title: "Company", dataIndex: "company" },
+    { title: "Visa Status", dataIndex: "originalVisaStatus" },
+    { title: "Marketing Visa", dataIndex: "marketingVisaStatus" },
+    { title: "Status", dataIndex: "candidateStatus" },
     {
-      label: "",
-      field: "actions",
-      render: (params) => (
-        <>
-          <FiEdit2
-            onClick={() => handleEditCandidate(params.data.candidateID)}
-            size={20}
-            title="Edit Candidate"
-            style={{ cursor: "pointer", marginRight: "10px" }}
-          />
-          {!inMarketing ?
-            <AiFillDelete
-              onClick={() => handleDeleteCandidate(params.data.candidateID)}
-              size={20}
-              title="Delete"
-              style={{ cursor: "pointer" }}
-            /> : null}
-        </>
+      title: "Actions",
+      key: "actions",
+      align: "center",
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Edit">
+            <Button
+              type="text"
+              icon={<FiEdit2 size={18} />}
+              onClick={() => handleEditCandidate(record.candidateID)}
+            />
+          </Tooltip>
+          {!inMarketing && (
+            <Popconfirm
+              title="Are you sure you want to delete this candidate?"
+              onConfirm={() => handleDeleteCandidate(record.candidateID)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Tooltip title="Delete">
+                <Button
+                  type="text"
+                  danger
+                  icon={<AiFillDelete size={18} />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
+        </Space>
       ),
     },
   ];
@@ -109,6 +117,7 @@ export default function CandidateList({ inMarketing }) {
   const handleEditCandidate = (candidateID) => {
     navigate(`/editcandidate/${candidateID}`);
   };
+
   const handleDeleteCandidate = async (candidateID) => {
     const success = await deleteCandidate(candidateID);
     if (success) {
@@ -116,76 +125,89 @@ export default function CandidateList({ inMarketing }) {
     }
   };
 
-  return (
-    <>
-      {inMarketing ? <h2>InMarketing List</h2> : <h2>Candidates List</h2>}
-      <div className="d-flex justify-content-end">
-        <Link className="add-user-link" to="/addcandidate">
-          <BsFillPersonPlusFill size={25} title="Add Candidate" />
-        </Link>
-      </div>
-      <div className="search-container">
-        <div className="search-bar">
-          <Select
-            value={searchField}
-            onChange={(value) => setSearchField(value)}
-            style={{ width: 120 }}
-          >
-            <Select.Option value="">Select Field</Select.Option>
-            <Select.Option value="firstName">First Name</Select.Option>
-            <Select.Option value="lastName">Last Name</Select.Option>
-            <Select.Option value="emailAddress">Email Id</Select.Option>
-            <Select.Option value="company">Company</Select.Option>
-            <Select.Option value="phoneNo">Phone No</Select.Option>
-            <Select.Option value="recruiterName">
-              Recruiter Name
-            </Select.Option>
-            <Select.Option value="skills">Skills</Select.Option>
-            <Select.Option value="candidateStatus">
-              Candidate Status
-            </Select.Option>
-          </Select>
-          <Input.Search
-            placeholder="Search..."
-            onSearch={handleSearch}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            enterButton
-          />
-        </div>
-        <Button onClick={handleClearSearch}>Clear</Button>
-      </div>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : rowData.length === 0 ? (
-        <p>No candidates to display.</p>
-      ) : (
-        <CustomGrid
-          data={rowData}
-          columns={gridColumns}
-          customColumns={customColumns}
-        />
-      )}
+  const handleTableChange = (paginationInfo) => {
+    setCurrentPage(paginationInfo.current - 1);
+    setPageSize(paginationInfo.pageSize);
+  };
 
-      <div className="pagination-checkbox">
-        <Checkbox
-          checked={pagination}
-          onChange={(e) => setPagination(e.target.checked)}
-        >
-          Enable Pagination
-        </Checkbox>
-        {pagination ? (
-          <><span style={{ marginLeft: 16 }}>Page Size:</span><InputNumber
-            min={1}
-            value={pageSize}
-            onChange={handlePageSizeChange} /></>) : null}
+  return (
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              {inMarketing ? "In Marketing List" : "Candidates List"}
+            </Title>
+            <Link to="/addcandidate">
+              <Button type="primary" icon={<BsFillPersonPlusFill size={16} />}>
+                Add Candidate
+              </Button>
+            </Link>
+          </div>
+
+          <Space style={{ marginBottom: 16 }} wrap>
+            <Select
+              value={searchField}
+              onChange={(value) => setSearchField(value)}
+              style={{ width: 150 }}
+              placeholder="Select Field"
+            >
+              <Select.Option value="">All Fields</Select.Option>
+              <Select.Option value="firstName">First Name</Select.Option>
+              <Select.Option value="lastName">Last Name</Select.Option>
+              <Select.Option value="emailAddress">Email</Select.Option>
+              <Select.Option value="company">Company</Select.Option>
+              <Select.Option value="phoneNo">Phone No</Select.Option>
+              <Select.Option value="recruiterName">Recruiter</Select.Option>
+              <Select.Option value="skills">Skills</Select.Option>
+              <Select.Option value="candidateStatus">Status</Select.Option>
+            </Select>
+            <Input.Search
+              placeholder="Search..."
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              enterButton
+              style={{ width: 250 }}
+            />
+            <Button onClick={handleClearSearch}>Clear</Button>
+            <Checkbox
+              checked={pagination}
+              onChange={(e) => setPagination(e.target.checked)}
+            >
+              Enable Pagination
+            </Checkbox>
+            {pagination && (
+              <>
+                <span>Page Size:</span>
+                <InputNumber
+                  min={1}
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                  style={{ width: 70 }}
+                />
+              </>
+            )}
+          </Space>
+
+          <ReusableTable
+            columns={columns}
+            data={rowData || []}
+            rowKey="candidateID"
+            loading={isLoading}
+            pagination={pagination}
+            total={totalPages * pageSize}
+            onChange={handleTableChange}
+          />
+        </Card>
       </div>
-      {pagination ? (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />) : null}
-    </>
+    </AnimatedPageWrapper>
   );
 }

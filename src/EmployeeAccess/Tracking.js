@@ -16,6 +16,7 @@ import { MailOutlined, ReloadOutlined } from "@ant-design/icons";
 import FroalaEditor from "react-froala-wysiwyg";
 import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/js/plugins.pkgd.min.js";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 const { Title, Text } = Typography;
 
@@ -177,56 +178,53 @@ export default function Tracking() {
   ];
 
   return (
-    <Card
-      bordered={false}
-      style={{
-        margin: "2rem auto",
-        maxWidth: 1200,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-        borderRadius: 12,
-        background: "#fff",
-      }}
-    >
-      <Space direction="vertical" style={{ width: "100%" }} size="large">
-        <div className="d-flex justify-content-between align-items-center">
-          <Title level={3}>Tracking Details</Title>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered={false}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>Tracking Details</Title>
 
-          <Space>
-            <Tooltip title="Refresh">
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => fetchTrackings(abortControllerRef.current)}
-              />
-            </Tooltip>
+            <Space>
+              <Tooltip title="Refresh">
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => fetchTrackings(abortControllerRef.current)}
+                />
+              </Tooltip>
+              <Tooltip title="Send Email">
+                <Button
+                  type="primary"
+                  icon={<MailOutlined />}
+                  disabled={!employeeEmail}
+                  onClick={handleSendEmail}
+                >
+                  Send Email
+                </Button>
+              </Tooltip>
+            </Space>
+          </div>
 
-            <Tooltip title="Send Email">
-              <Button
-                type="primary"
-                icon={<MailOutlined />}
-                disabled={!employeeEmail}
-                onClick={handleSendEmail}
-              >
-                Send Email
-              </Button>
-            </Tooltip>
-          </Space>
-        </div>
+          <Spin spinning={loading} tip="Loading tracking data...">
+            <Table
+              columns={columns}
+              dataSource={trackings}
+              rowKey={(record, index) => index}
+              bordered
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 1000 }}
+            />
+          </Spin>
 
-        <Spin spinning={loading} tip="Loading tracking data...">
-          <Table
-            columns={columns}
-            dataSource={trackings}
-            rowKey={(record, index) => index}
-            bordered
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 1000 }}
-          />
-        </Spin>
-
-        <Text type="secondary">
-          Logged in as: <b>{employeeEmail || "N/A"}</b>
-        </Text>
-      </Space>
+          <Text type="secondary" style={{ marginTop: 16, display: "block" }}>
+            Logged in as: <b>{employeeEmail || "N/A"}</b>
+          </Text>
 
       {/* Email Modal */}
       <Modal
@@ -266,6 +264,8 @@ export default function Tracking() {
           />
         </Space>
       </Modal>
-    </Card>
+        </Card>
+      </div>
+    </AnimatedPageWrapper>
   );
 }

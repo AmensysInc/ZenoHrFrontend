@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./AddUserRole.css";
 import { useNavigate } from "react-router-dom";
+import { Form, Select, Radio, Button, Card, Typography, message } from "antd";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
+
+const { Title } = Typography;
+const { Option } = Select;
 
 const AddUserRole = () => {
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [employees, setEmployees] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [assignedCompanies, setAssignedCompanies] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const [userId, setUserId] = useState("");
-  const [companyId, setCompanyId] = useState("");
-  const [defaultCompany, setDefaultCompany] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const navigate = useNavigate();
   const API_URL = process.env.REACT_APP_API_URL;
   const token = sessionStorage.getItem("token");
 
@@ -21,9 +24,6 @@ const AddUserRole = () => {
     headers: { Authorization: `Bearer ${token}` },
   };
 
-  // ===============================
-  // 🔄 LOAD USERS & COMPANIES
-  // ===============================
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -32,7 +32,6 @@ const AddUserRole = () => {
           axios.get(`${API_URL}/companies?page=0&size=100`, config),
         ]);
 
-        // Filter out users with role 'EMPLOYEE' or 'PROSPECT'
         const filteredUsers = (userRes.data || []).filter(
           (user) =>
             user.role?.toUpperCase() !== "EMPLOYEE" &&
@@ -51,12 +50,9 @@ const AddUserRole = () => {
     fetchData();
   }, []);
 
-  // ===============================
-  // 📦 LOAD ASSIGNED COMPANIES FOR SELECTED USER
-  // ===============================
   useEffect(() => {
     const fetchAssignedCompanies = async () => {
-      if (!userId) {
+      if (!selectedUserId) {
         setAssignedCompanies([]);
         return;
       }
@@ -64,9 +60,8 @@ const AddUserRole = () => {
       try {
         const res = await axios.get(`${API_URL}/user-company`, config);
 
-        // Collect all companyIds where this userId matches
         const assigned = res.data
-          .filter((item) => item.userId === userId)
+          .filter((item) => item.userId === selectedUserId)
           .map((item) => item.companyId);
 
         setAssignedCompanies(assigned);
@@ -76,133 +71,143 @@ const AddUserRole = () => {
     };
 
     fetchAssignedCompanies();
-  }, [userId]);
+  }, [selectedUserId]);
 
-  // ===============================
-  // 🧮 FILTER COMPANIES (hide assigned)
-  // ===============================
   const availableCompanies = companies.filter(
     (comp) => !assignedCompanies.includes(comp.companyId)
   );
 
-  // ===============================
-  // 💾 SUBMIT HANDLER
-  // ===============================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!userId || !companyId || defaultCompany === "") {
-      alert("Please select all fields including Default Company.");
-      return;
-    }
-
+  const handleSubmit = async (values) => {
     const payload = {
-      userId,
-      companyId: parseInt(companyId),
-      defaultCompany,
+      userId: values.userId,
+      companyId: parseInt(values.companyId),
+      defaultCompany: values.defaultCompany,
       createdAt: new Date().toISOString().split("T")[0],
     };
 
     try {
-      setSubmitting(true);
+      setLoading(true);
       await axios.post(`${API_URL}/user-company`, payload, config);
-      alert("User role added successfully!");
-      setUserId("");
-      setCompanyId("");
-      setDefaultCompany("");
+      message.success("User role added successfully!");
+      form.resetFields();
+      setSelectedUserId(null);
       navigate("/companyrole");
     } catch (error) {
       console.error("Error adding user role", error);
-      alert("Failed to add user role.");
+      message.error("Failed to add user role");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // ===============================
-  // ✅ CHECKBOX HANDLER
-  // ===============================
-  const handleDefaultCheckboxChange = (value) => {
-    setDefaultCompany((prev) => (prev === value ? "" : value));
+  const handleUserChange = (value) => {
+    setSelectedUserId(value);
+    form.setFieldsValue({ companyId: undefined });
   };
 
-  // ===============================
-  // 🎨 RENDER FORM
-  // ===============================
   return (
-    <div className="add-user-role-container">
-      <h2>Add Company User Role</h2>
-      <form onSubmit={handleSubmit}>
-        {/* User Dropdown */}
-        <label>
-          User:
-          <select
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          maxWidth: 800,
+          margin: "0 auto",
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          Add Company User Role
+        </Title>
+
+        <div style={{ padding: "0 28px" }}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{
+              defaultCompany: "true",
+            }}
           >
-            <option value="">-- Select User --</option>
-            {employees?.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.firstname} {user.lastname}
-                {user.role ? ` – ${user.role}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+            <Form.Item
+              label="User"
+              name="userId"
+              rules={[{ required: true, message: "Please select a user" }]}
+            >
+              <Select
+                placeholder="Select User"
+                onChange={handleUserChange}
+                showSearch
+                optionFilterProp="children"
+              >
+                {employees.map((user) => (
+                  <Option key={user.id} value={user.id}>
+                    {user.firstname} {user.lastname}
+                    {user.role ? ` – ${user.role}` : ""}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
 
-        {/* Company Dropdown */}
-        <label>
-          Company:
-          <select
-            value={companyId}
-            onChange={(e) => setCompanyId(e.target.value)}
-            disabled={!userId}
-          >
-            <option value="">
-              {userId
-                ? "-- Select Company --"
-                : "-- Select User First --"}
-            </option>
-            {availableCompanies.length > 0 ? (
-              availableCompanies.map((comp) => (
-                <option key={comp.companyId} value={comp.companyId}>
-                  {comp.companyName}
-                </option>
-              ))
-            ) : (
-              userId && <option disabled>No available companies</option>
-            )}
-          </select>
-        </label>
+            <Form.Item
+              label="Company"
+              name="companyId"
+              rules={[{ required: true, message: "Please select a company" }]}
+            >
+              <Select
+                placeholder={
+                  selectedUserId
+                    ? "Select Company"
+                    : "Select User First"
+                }
+                disabled={!selectedUserId}
+                showSearch
+                optionFilterProp="children"
+              >
+                {availableCompanies.length > 0 ? (
+                  availableCompanies.map((comp) => (
+                    <Option key={comp.companyId} value={comp.companyId}>
+                      {comp.companyName}
+                    </Option>
+                  ))
+                ) : (
+                  selectedUserId && (
+                    <Option disabled value="">
+                      No available companies
+                    </Option>
+                  )
+                )}
+              </Select>
+            </Form.Item>
 
-        {/* Default Company Checkbox */}
-        <label>
-          Default Company:
-          <div style={{ display: "flex", gap: "20px", marginTop: "5px" }}>
-            <label>
-              <input
-                type="checkbox"
-                checked={defaultCompany === "true"}
-                onChange={() => handleDefaultCheckboxChange("true")}
-              />
-              True
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={defaultCompany === "false"}
-                onChange={() => handleDefaultCheckboxChange("false")}
-              />
-              False
-            </label>
-          </div>
-        </label>
+            <Form.Item
+              label="Default Company"
+              name="defaultCompany"
+              rules={[
+                { required: true, message: "Please select default company option" },
+              ]}
+            >
+              <Radio.Group>
+                <Radio value="true">True</Radio>
+                <Radio value="false">False</Radio>
+              </Radio.Group>
+            </Form.Item>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Submitting..." : "Add User Role"}
-        </button>
-      </form>
-    </div>
+            <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
+              <Button
+                onClick={() => navigate("/companyrole")}
+                style={{ marginRight: 8 }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Add User Role
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 };
 

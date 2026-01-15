@@ -11,6 +11,7 @@ import {
   Modal,
   message,
   Card,
+  Typography,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -19,7 +20,10 @@ import {
   fetchVisaDetails,
   fetchEmployeeDetails,
 } from "../SharedComponents/services/VisaDetailsService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
+const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -105,19 +109,31 @@ export default function VisaDetailsForm({ mode }) {
   };
 
   return (
-    <div className="p-4">
-      <Card bordered className="shadow-sm">
-        <h2 className="text-center mb-4">
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          maxWidth: 900,
+          margin: "0 auto",
+        }}
+      >
+        <Title level={4} style={{ ...titleStyle, paddingBottom: 12 }}>
           {isEditMode ? "Edit Visa Details" : "Add Visa Details"}
-        </h2>
+        </Title>
+        <p style={{ textAlign: "center", color: "#555", marginBottom: 20 }}>
+          {employeeDetails.firstName} {employeeDetails.lastName}
+        </p>
 
-        <Form
-          layout="vertical"
-          form={form}
-          onFinish={handleSubmit}
-          autoComplete="off"
-        >
-          <Row gutter={16}>
+        <div style={{ padding: "0 28px" }}>
+          <Form
+            layout="vertical"
+            form={form}
+            onFinish={handleSubmit}
+            autoComplete="off"
+          >
+            <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="First Name">
                 <Input value={employeeDetails.firstName} disabled />
@@ -249,20 +265,21 @@ export default function VisaDetailsForm({ mode }) {
               Cancel
             </Button>
           </div>
-        </Form>
-      </Card>
+          </Form>
 
-      <Modal
-        open={isModalOpen}
-        onOk={handleModalClose}
-        onCancel={handleModalClose}
-        title="Success"
-      >
-        <p>
-          Visa details {isEditMode ? "updated" : "added"} successfully for{" "}
-          {employeeDetails.firstName} {employeeDetails.lastName}.
-        </p>
-      </Modal>
-    </div>
+          <Modal
+            open={isModalOpen}
+            onOk={handleModalClose}
+            onCancel={handleModalClose}
+            title="Success"
+          >
+            <p>
+              Visa details {isEditMode ? "updated" : "added"} successfully for{" "}
+              {employeeDetails.firstName} {employeeDetails.lastName}.
+            </p>
+          </Modal>
+        </div>
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

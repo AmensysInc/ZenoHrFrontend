@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Table,
   Card,
   Typography,
   Space,
@@ -15,6 +14,11 @@ import { AiFillDelete } from "react-icons/ai";
 import { BsFillPersonPlusFill } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+
+import ReusableTable from "../components/ReusableTable";
+import TableFilter from "../components/TableFilter";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import { titleStyle } from "../constants/styles";
 
 const { Title } = Typography;
 
@@ -33,9 +37,6 @@ export default function UserRole() {
     },
   };
 
-  // ==========================
-  // 🔄 LOAD USERS & ROLES
-  // ==========================
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -55,9 +56,6 @@ export default function UserRole() {
     fetchData();
   }, [API_BASE_URL]);
 
-  // ==========================
-  // 🧩 HELPERS
-  // ==========================
   const getUserFullName = (userId) => {
     const user = users.find((u) => u.id === userId);
     return user ? `${user.firstname} ${user.lastname}` : "Unknown";
@@ -65,12 +63,7 @@ export default function UserRole() {
 
   const getUserRole = (userId) => {
     const user = users.find((u) => u.id === userId);
-    if (!user || !user.role) return "—";
-    return user.role;
-  };
-
-  const handleEdit = (role) => {
-    navigate(`/editcompanyrole/${role.id}`);
+    return user?.role || "—";
   };
 
   const handleDelete = async (roleId) => {
@@ -84,20 +77,14 @@ export default function UserRole() {
     }
   };
 
-  // ==========================
-  // 📋 TABLE COLUMNS
-  // ==========================
   const columns = [
     {
       title: "User",
       dataIndex: "userId",
-      key: "userId",
-      render: (userId) => getUserFullName(userId),
+      render: (id) => getUserFullName(id),
     },
     {
       title: "Role",
-      dataIndex: "role",
-      key: "role",
       render: (_, record) => {
         const role = getUserRole(record.userId);
         const colorMap = {
@@ -109,7 +96,7 @@ export default function UserRole() {
         };
         return (
           <Tag color={colorMap[role] || "default"} style={{ fontWeight: 500 }}>
-            {role || "—"}
+            {role}
           </Tag>
         );
       },
@@ -117,68 +104,95 @@ export default function UserRole() {
     {
       title: "Company",
       dataIndex: ["company", "companyName"],
-      key: "company",
-      render: (companyName) => companyName || "Unknown",
+      render: (name) => name || "Unknown",
     },
     {
       title: "Default",
       dataIndex: "defaultCompany",
-      key: "defaultCompany",
-      render: (defaultCompany) =>
-        defaultCompany === "true" || defaultCompany === true ? "✅ Yes" : "No",
+      render: (val) => (val === true || val === "true" ? "Yes" : "No"),
     },
     {
       title: "Actions",
-      key: "actions",
+      align: "center",
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit">
-            <FiEdit2
-              onClick={() => handleEdit(record)}
-              style={{ cursor: "pointer", color: "#1890ff" }}
-            />
-          </Tooltip>
+        <Space size="middle">
+          <FiEdit2
+            style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+            onClick={() => navigate(`/editcompanyrole/${record.id}`)}
+          />
+
           <Popconfirm
-            title="Are you sure to delete this role?"
-            onConfirm={() => handleDelete(record.id)}
+            title="Delete this role?"
             okText="Yes"
             cancelText="No"
+            onConfirm={() => handleDelete(record.id)}
           >
-            <Tooltip title="Delete">
-              <AiFillDelete style={{ cursor: "pointer", color: "red" }} />
-            </Tooltip>
+            <AiFillDelete
+              style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+            />
           </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  // ==========================
-  // 🎨 RENDER
-  // ==========================
   return (
-    <Card
-      className="shadow-lg rounded-2xl"
-      title={
-        <Space style={{ justifyContent: "space-between", width: "100%" }}>
-          <Title level={4} style={{ margin: 0 }}>
-            User Role Information
-          </Title>
-          <Link to="/addcompanyrole">
-            <Button type="primary" icon={<BsFillPersonPlusFill />}>
+    <AnimatedPageWrapper>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          padding: "16px 0 28px 0",
+          margin: "0 28px",
+        }}
+      >
+        <Title level={4} style={titleStyle}>
+          User Role Info
+        </Title>
+
+        <TableFilter />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            marginLeft: 30,
+          }}
+        >
+          <Link to="/addcompanyrole" style={{ textDecoration: "none" }}>
+            <Button
+              icon={<BsFillPersonPlusFill />}
+              style={{
+                backgroundColor: "#0D2A4D",
+                color: "#fff",
+                borderRadius: 8,
+                height: 40,
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                border: "none",
+              }}
+            >
               Add Role
             </Button>
           </Link>
-        </Space>
-      }
-    >
-      <Table
-        columns={columns}
-        dataSource={roles}
-        rowKey="id"
-        loading={loading}
-        bordered
-      />
-    </Card>
+        </div>
+
+        <ReusableTable
+          columns={columns}
+          data={roles}
+          loading={loading}
+          pagination={true}
+          rowKey="id"
+        />
+      </Card>
+    </AnimatedPageWrapper>
   );
 }

@@ -10,7 +10,6 @@ import {
   Modal,
   Pagination,
   Row,
-  Col,
   Input,
   message,
 } from "antd";
@@ -22,6 +21,7 @@ import {
 } from "@ant-design/icons";
 
 import JoditEditor from "jodit-react";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 
 import {
   getEmployeeDetails,
@@ -181,10 +181,12 @@ export default function WithHoldTracking() {
   const grouped = groupByProject(trackings);
 
   return (
-    <div style={{ maxWidth: 1200, margin: "auto", padding: "2rem" }}>
-      <Title level={3} style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-        {userDetail.first} {userDetail.last} — WithHold Details
-      </Title>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card>
+          <Title level={4} style={{ marginBottom: 20 }}>
+            {userDetail.first} {userDetail.last} — WithHold Details
+          </Title>
 
       <Space
         style={{
@@ -323,41 +325,44 @@ export default function WithHoldTracking() {
         </Collapse>
       )}
 
-      {/* ---------------- Email Modal -------------------- */}
-      <Modal
-        title="Send WithHold Email"
-        open={isEmailModalVisible}
-        onCancel={() => setIsEmailModalVisible(false)}
-        onOk={handleEmailSend}
-        confirmLoading={sendingEmail}
-        okText="Send Email"
-        cancelText="Cancel"
-        width={700}
-      >
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Text strong>To:</Text>
-          <Input value={userDetail.email} disabled />
+        </Card>
 
-          <Text strong>Subject:</Text>
-          <Input
-            placeholder="Enter subject"
-            value={emailSubject}
-            onChange={(e) => setEmailSubject(e.target.value)}
-          />
+        {/* Email Modal */}
+        <Modal
+          title="Send WithHold Email"
+          open={isEmailModalVisible}
+          onCancel={() => setIsEmailModalVisible(false)}
+          onOk={handleEmailSend}
+          confirmLoading={sendingEmail}
+          okText="Send Email"
+          cancelText="Cancel"
+          width={700}
+        >
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Text strong>To:</Text>
+            <Input value={userDetail.email} disabled />
 
-          <Text strong>Body:</Text>
-          <JoditEditor
-            ref={emailEditorRef}
-            value={emailBody}
-            config={{
-              readonly: false,
-              height: 250,
-            }}
-            onBlur={(newContent) => setEmailBody(newContent)}
-          />
-        </Space>
-      </Modal>
-    </div>
+            <Text strong>Subject:</Text>
+            <Input
+              placeholder="Enter subject"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+            />
+
+            <Text strong>Body:</Text>
+            <JoditEditor
+              ref={emailEditorRef}
+              value={emailBody}
+              config={{
+                readonly: false,
+                height: 250,
+              }}
+              onBlur={(newContent) => setEmailBody(newContent)}
+            />
+          </Space>
+        </Modal>
+      </div>
+    </AnimatedPageWrapper>
   );
 }
 

@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, Table, Typography, Button, Space, message } from "antd";
+import { Card, Typography, Button, Tooltip, message } from "antd";
 import { BiSolidAddToQueue } from "react-icons/bi";
 import { FiEdit2 } from "react-icons/fi";
 import { getOrdersForEmployee, getUserDetails } from "../SharedComponents/services/OrderService";
+import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
+import ReusableTable from "../components/ReusableTable";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function PurchaseOrder() {
   const [orders, setOrders] = useState([]);
@@ -88,72 +90,58 @@ export default function PurchaseOrder() {
     {
       title: "Actions",
       align: "center",
-      render: (record) => (
-        <Space size="middle">
-          <FiEdit2
+      render: (_, record) => (
+        <Tooltip title="Edit Order">
+          <Button
+            type="text"
+            icon={<FiEdit2 size={18} />}
             onClick={() => handleEditOrder(record.orderId)}
-            title="Edit Order"
-            style={{ cursor: "pointer", color: "#4f46e5" }}
           />
-        </Space>
+        </Tooltip>
       ),
     },
   ];
 
+  const handleTableChange = (pagination) => {
+    setCurrentPage(pagination.current - 1);
+    setPageSize(pagination.pageSize);
+  };
+
   return (
-    <Card
-      style={{
-        borderRadius: 12,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        padding: 24,
-      }}
-    >
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <Title level={4} style={{ color: "#4f46e5", marginBottom: 4 }}>
-          Purchase Orders
-        </Title>
-        <Text type="secondary">
-          {employeeName ? `Employee: ${employeeName}` : "Employee Details"}
-        </Text>
-      </div>
+    <AnimatedPageWrapper>
+      <div style={{ padding: "0 24px" }}>
+        <Card bordered className="shadow-sm">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={4} style={{ margin: 0 }}>
+              {employeeName ? `${employeeName} — Purchase Orders` : "Purchase Orders"}
+            </Title>
+            <Button
+              type="primary"
+              icon={<BiSolidAddToQueue size={16} />}
+              onClick={handleAddOrder}
+            >
+              Add Order
+            </Button>
+          </div>
 
-      {/* Add Button */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: 16,
-        }}
-      >
-        <Button
-          type="primary"
-          icon={<BiSolidAddToQueue size={16} />}
-          onClick={handleAddOrder}
-        >
-          Add Order
-        </Button>
+          <ReusableTable
+            columns={columns}
+            data={orders}
+            rowKey="orderId"
+            loading={loading}
+            total={totalPages * pageSize}
+            pagination={true}
+            onChange={handleTableChange}
+          />
+        </Card>
       </div>
-
-      {/* Orders Table */}
-      <Table
-        bordered
-        columns={columns}
-        dataSource={orders}
-        loading={loading}
-        rowKey="orderId"
-        pagination={{
-          current: currentPage + 1,
-          total: totalPages * pageSize,
-          pageSize,
-          showSizeChanger: true,
-          onChange: (page) => setCurrentPage(page - 1),
-          onShowSizeChange: (_, size) => setPageSize(size),
-        }}
-        locale={{
-          emptyText: "No purchase orders found.",
-        }}
-      />
-    </Card>
+    </AnimatedPageWrapper>
   );
 }
