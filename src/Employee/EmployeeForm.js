@@ -22,6 +22,7 @@ import {
   updateEmployee,
 } from "../SharedComponents/services/EmployeeServices";
 import { fetchCompanies } from "../SharedComponents/services/CompaniesServies";
+import { getVisaStatusOptions } from "../SharedComponents/services/VisaStatusService";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import { titleStyle } from "../constants/styles";
 
@@ -32,6 +33,7 @@ export default function EmployeeForm({ mode }) {
   const navigate = useNavigate();
   const { employeeId } = useParams();
   const [companies, setCompanies] = useState([]);
+  const [visaStatusOptions, setVisaStatusOptions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -51,6 +53,19 @@ export default function EmployeeForm({ mode }) {
       }
     };
     fetchData();
+  }, []);
+
+  // ✅ Fetch Visa Status Options
+  useEffect(() => {
+    const fetchVisaStatus = async () => {
+      try {
+        const options = await getVisaStatusOptions();
+        setVisaStatusOptions(options);
+      } catch (err) {
+        console.error("Error fetching visa status options:", err);
+      }
+    };
+    fetchVisaStatus();
   }, []);
 
   // ✅ Fetch Employee Data (Edit Mode)
@@ -290,6 +305,24 @@ const onFinish = async (values) => {
                 <Option value="OnProject">On Project</Option>
                 <Option value="OnVacation">On Vacation</Option>
                 <Option value="OnSick">On Sick</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* ================== Visa Status ================== */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="Visa Status"
+              name="visaStatus"
+            >
+              <Select placeholder="Select Visa Status" allowClear>
+                {visaStatusOptions.map((option) => (
+                  <Option key={option.value} value={option.value}>
+                    {option.displayName}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
           </Col>

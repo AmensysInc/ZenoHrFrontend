@@ -45,7 +45,7 @@ export const loginUser = async (email, password, onLogin, navigate) => {
 
       if (defaultCompany) {
         sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
-      } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT") {
+      } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT" && role !== "HR_MANAGER") {
         return "No default company assigned. Please contact admin.";
       }
     } else {

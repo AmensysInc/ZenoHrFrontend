@@ -64,7 +64,7 @@ export default function TimeSheets() {
   // 🎯 INITIAL LOAD
   // ==========================
   useEffect(() => {
-    if (role === "ADMIN") {
+    if (role === "ADMIN" || role === "SADMIN" || role === "HR_MANAGER") {
       get("/employees")
         .then((res) => {
           const filtered = res.data?.content?.filter(
@@ -427,7 +427,7 @@ const handleSubmit = async () => {
         >
           <Title level={4} style={{ marginBottom: 20 }}>Time Sheets</Title>
       <Space style={{ marginBottom: 20 }} wrap>
-        {role === "ADMIN" && (
+        {(role === "ADMIN" || role === "SADMIN" || role === "HR_MANAGER") && (
           <Select
             placeholder="Select Employee"
             style={{ width: 180 }}
@@ -535,7 +535,7 @@ const handleSubmit = async () => {
       </div>
 
       <Space style={{ marginTop: 30 }}>
-        {role === "ADMIN" && (
+        {(role === "ADMIN" || role === "SADMIN" || role === "HR_MANAGER") && (
           <Button
             type="primary"
             icon={<CheckCircleTwoTone twoToneColor="#52c41a" />}

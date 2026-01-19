@@ -249,6 +249,7 @@ export default function SideBar({
 
   const menuItemsByRole = {
     ADMIN: baseAdminMenu,
+    HR_MANAGER: baseAdminMenu,
     SADMIN: [
       ...baseAdminMenu,
       {
