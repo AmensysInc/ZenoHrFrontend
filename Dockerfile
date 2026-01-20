@@ -16,7 +16,7 @@ RUN npm ci --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Create .env file from build arg
+# Create .env file from build arg (Linux compatible)
 RUN echo "REACT_APP_API_URL=$REACT_APP_API_URL" > .env
 
 # Build the application
@@ -32,7 +32,7 @@ COPY --from=build /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
-EXPOSE 3000
+EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

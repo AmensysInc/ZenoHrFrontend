@@ -52,8 +52,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "copy .env.prod .env &&react-scripts build",
-    "build:dev": "copy .env.dev .env && react-scripts build",
+    "build": "react-scripts build",
+    "build:prod": "react-scripts build",
+    "build:dev": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
