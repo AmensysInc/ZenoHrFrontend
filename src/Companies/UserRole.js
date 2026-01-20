@@ -161,9 +161,29 @@ export default function UserRole() {
             display: "flex",
             justifyContent: "flex-start",
             alignItems: "center",
+            gap: 10,
             marginLeft: 30,
           }}
         >
+          <Link to="/addadmin" style={{ textDecoration: "none" }}>
+            <Button
+              icon={<BsFillPersonPlusFill />}
+              style={{
+                backgroundColor: "#52c41a",
+                color: "#fff",
+                borderRadius: 8,
+                height: 40,
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                border: "none",
+              }}
+            >
+              Create Admin
+            </Button>
+          </Link>
           <Link to="/addcompanyrole" style={{ textDecoration: "none" }}>
             <Button
               icon={<BsFillPersonPlusFill />}

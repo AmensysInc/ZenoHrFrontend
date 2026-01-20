@@ -44,6 +44,7 @@ import SelectCompany from "./Companies/SelectCompany";
 import UserRole from "./Companies/UserRole";
 import AddUserRole from "./Companies/AddUserRole";
 import EditUserRole from "./Companies/EditUserRole";
+import AddAdmin from "./Admin/AddAdmin";
 import CompanyContact from "./Companies/CompanyContact";
 import CompanyEmployees from "./Companies/CompanyEmployees";
 import EmailTemplateForm from "./EmailTemplates/EmailTemplateForm";
@@ -283,6 +284,7 @@ function App() {
                 <Route path="/companyrole" element={<UserRole />} />
                 <Route path="/addcompanyrole" element={<AddUserRole />} />
                 <Route path="/editcompanyrole/:id" element={<EditUserRole />} />
+                <Route path="/addadmin" element={<AddAdmin />} />
               </>
             )}
           </>
