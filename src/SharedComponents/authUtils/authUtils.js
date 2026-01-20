@@ -49,11 +49,18 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           if (role !== "SADMIN") {
             sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
           }
-        } else if (role === "ADMIN") {
-          // ADMIN must have a default company
-          return "No default company assigned. Please contact super admin.";
-        } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT" && role !== "HR_MANAGER") {
-          return "No default company assigned. Please contact admin.";
+        } else {
+          // No default company found in the response
+          if (role === "ADMIN") {
+            // ADMIN must have a default company
+            return "No default company assigned. Please contact super admin.";
+          } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
+            // These roles can login without default company (SADMIN doesn't need it, others might have it in Employee table)
+            console.log(`${role} login - no default company in UserCompanyRole, but allowing login`);
+          } else {
+            // For other roles, require company assignment
+            return "No default company assigned. Please contact admin.";
+          }
         }
       } else {
         // For SADMIN, no company is needed - allow login
