@@ -45,7 +45,9 @@ export default function EmployeeForm({ mode }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const companyData = await fetchCompanies(0, 10);
+        // Fetch more companies for dropdown (100 should be enough)
+        // Backend will filter based on role: ADMIN gets their companies, SADMIN gets all
+        const companyData = await fetchCompanies(0, 100);
         console.log("Fetched Companies:", companyData?.content);
         setCompanies(companyData?.content || []);
         

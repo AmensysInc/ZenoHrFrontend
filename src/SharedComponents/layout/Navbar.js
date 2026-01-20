@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BsBoxArrowInLeft } from "react-icons/bs";
 import { logoutUser } from "../authUtils/authUtils";
 import { fetchCompanies } from "../../SharedComponents/services/CompaniesServies";
+import CompanySelector from "../CompanySelector";
 
 const { Header } = Layout;
 
@@ -53,14 +54,19 @@ export default function Navbar({ setIsLoggedIn, setRole }) {
       </Link>
 
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        {companies.map(
-          (c) =>
-            c.companyId === defaultCompanyId && (
-              <span key={c.companyId} style={{ color: "#fff", fontWeight: 600 }}>
-                Company: {c.companyName}
-              </span>
-            )
-        )}
+        {/* Company Selector for Admins */}
+        <CompanySelector />
+        
+        {/* Show company name for SADMIN or if no selector */}
+        {sessionStorage.getItem("role") === "SADMIN" &&
+          companies.map(
+            (c) =>
+              c.companyId === defaultCompanyId && (
+                <span key={c.companyId} style={{ color: "#fff", fontWeight: 600 }}>
+                  {c.companyName}
+                </span>
+              )
+          )}
 
         <BsBoxArrowInLeft
           size={26}
