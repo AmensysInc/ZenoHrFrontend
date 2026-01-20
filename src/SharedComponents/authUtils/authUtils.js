@@ -61,7 +61,9 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           console.log("SADMIN login - no company assignment needed");
         } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
           // For EMPLOYEE, PROSPECT, and HR_MANAGER roles, allow login even if user-company fetch fails
+          // They might have a company assigned in Employee table but no UserCompanyRole yet
           console.warn("Could not fetch user-company roles, but allowing login for", role);
+          // Don't return error - allow them to login
         } else if (role === "ADMIN") {
           // ADMIN must have a company assignment
           return "No default company assigned. Please contact super admin.";
