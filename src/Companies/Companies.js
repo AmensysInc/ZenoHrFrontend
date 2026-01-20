@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, Typography, Space, Popconfirm, message, Button, Tooltip } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { AiFillDelete } from "react-icons/ai";
 import { FiEdit2 } from "react-icons/fi";
@@ -118,6 +119,13 @@ export default function Companies() {
             <Title level={4} style={{ margin: 0 }}>
               Company Details
             </Title>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/addcompany")}
+            >
+              Add Company
+            </Button>
           </div>
 
           <ReusableTable
