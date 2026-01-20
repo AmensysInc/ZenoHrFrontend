@@ -33,30 +33,52 @@ export const loginUser = async (email, password, onLogin, navigate) => {
 
     // ✅ Fetch user-company roles using userId
     const userId = id;
-    const companyResponse = await fetch(`${apiUrl}/user-company/user/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
+    try {
+      const companyResponse = await fetch(`${apiUrl}/user-company/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
 
-    if (companyResponse.ok) {
-      const companies = await companyResponse.json();
-      const defaultCompany = companies.find((item) => item.defaultCompany === "true");
+      if (companyResponse.ok) {
+        const companies = await companyResponse.json();
+        const defaultCompany = companies.find((item) => item.defaultCompany === "true");
 
-      if (defaultCompany) {
-        sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
-      } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT" && role !== "HR_MANAGER") {
-        return "No default company assigned. Please contact admin.";
+        if (defaultCompany) {
+          sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
+        } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT" && role !== "HR_MANAGER") {
+          return "No default company assigned. Please contact admin.";
+        }
+      } else {
+        // For EMPLOYEE, PROSPECT, and HR_MANAGER roles, allow login even if user-company fetch fails
+        if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
+          console.warn("Could not fetch user-company roles, but allowing login for", role);
+        } else if (role !== "SADMIN") {
+          // For other roles (except SADMIN), require company assignment
+          return "No default company assigned. Please contact admin.";
+        }
       }
-    } else {
-      console.warn("Could not fetch user-company roles.");
+    } catch (error) {
+      // If fetch fails completely, still allow EMPLOYEE, PROSPECT, HR_MANAGER, and SADMIN to login
+      if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "SADMIN") {
+        console.warn("Error fetching user-company roles, but allowing login for", role, error);
+      } else {
+        console.error("Error fetching user-company roles:", error);
+        return "Could not verify company assignment. Please contact admin.";
+      }
     }
+    // Set login state first, then navigate
+    onLogin(role);
+    
+    // Use setTimeout to ensure state is updated before navigation
     if (tempPassword === true) {
-      onLogin(role);
-      navigate(`/change-password/${id}`);
+      setTimeout(() => {
+        navigate(`/change-password/${id}`, { replace: true });
+      }, 100);
     } else {
-      onLogin(role);
-      navigate("/");
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     }
   } catch (error) {
     console.error("Error authenticating user:", error);
