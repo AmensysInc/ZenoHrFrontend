@@ -70,7 +70,6 @@ import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
 import WeekFileUploader from "./EmployeeAccess/WeekFileUploader";
 import EditCompany from "./Companies/EditCompany";
 import AddCompany from "./Companies/AddCompany";
-import AddCompany from "./Companies/AddCompany";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
