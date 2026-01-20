@@ -48,12 +48,23 @@ export default function EmployeeForm({ mode }) {
         const companyData = await fetchCompanies(0, 10);
         console.log("Fetched Companies:", companyData?.content);
         setCompanies(companyData?.content || []);
+        
+        // ✅ Auto-select Admin's default company when creating new employee
+        if (!isEditMode) {
+          const userRole = sessionStorage.getItem("role");
+          const defaultCompanyId = sessionStorage.getItem("defaultCompanyId");
+          
+          // If user is ADMIN (not SADMIN), auto-select their default company
+          if (userRole === "ADMIN" && defaultCompanyId) {
+            form.setFieldsValue({ company: defaultCompanyId });
+          }
+        }
       } catch (err) {
         console.error("Error fetching companies:", err);
       }
     };
     fetchData();
-  }, []);
+  }, [isEditMode, form]);
 
   // ✅ Fetch Visa Status Options
   useEffect(() => {

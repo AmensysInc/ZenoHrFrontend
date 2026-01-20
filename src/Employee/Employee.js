@@ -87,8 +87,30 @@ export default function Employee() {
 
       console.log("Employee fetch - Role:", userRole, "DefaultCompanyId:", defaultCompanyId, "Total employees:", content.length);
 
-      // ADMIN and SADMIN should see ALL employees, others see only their company's employees
-      if (userRole !== "ADMIN" && userRole !== "SADMIN") {
+      // SADMIN sees ALL employees, ADMIN sees only their company's employees, others see only their company's employees
+      if (userRole === "SADMIN") {
+        // SADMIN sees all employees - no filtering
+        console.log("SADMIN user - showing all employees");
+      } else if (userRole === "ADMIN") {
+        // ADMIN sees only employees from their default company
+        if (defaultCompanyId && !isNaN(defaultCompanyId)) {
+          filtered = content.filter(
+            (employee) => {
+              const hasCompany = employee.company && employee.company.companyId;
+              const matchesCompany = hasCompany && (
+                Number(employee.company.companyId) === defaultCompanyId ||
+                employee.company.companyId === defaultCompanyId ||
+                String(employee.company.companyId) === String(defaultCompanyId)
+              );
+              return matchesCompany;
+            }
+          );
+          console.log("ADMIN user - filtered employees for company:", defaultCompanyId, "Result:", filtered.length);
+        } else {
+          console.warn("ADMIN user has no defaultCompanyId set");
+        }
+      } else {
+        // Other roles (EMPLOYEE, etc.) see only their company's employees
         // If no defaultCompanyId is set, show all employees (fallback)
         if (defaultCompanyId && !isNaN(defaultCompanyId)) {
           filtered = content.filter(

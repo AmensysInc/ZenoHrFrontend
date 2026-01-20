@@ -45,16 +45,28 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         const defaultCompany = companies.find((item) => item.defaultCompany === "true");
 
         if (defaultCompany) {
-          sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
+          // Only set defaultCompanyId for roles that need it (not SADMIN)
+          if (role !== "SADMIN") {
+            sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
+          }
+        } else if (role === "ADMIN") {
+          // ADMIN must have a default company
+          return "No default company assigned. Please contact super admin.";
         } else if (role !== "SADMIN" && role !== "EMPLOYEE" && role !== "PROSPECT" && role !== "HR_MANAGER") {
           return "No default company assigned. Please contact admin.";
         }
       } else {
-        // For EMPLOYEE, PROSPECT, and HR_MANAGER roles, allow login even if user-company fetch fails
-        if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
+        // For SADMIN, no company is needed - allow login
+        if (role === "SADMIN") {
+          console.log("SADMIN login - no company assignment needed");
+        } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
+          // For EMPLOYEE, PROSPECT, and HR_MANAGER roles, allow login even if user-company fetch fails
           console.warn("Could not fetch user-company roles, but allowing login for", role);
-        } else if (role !== "SADMIN") {
-          // For other roles (except SADMIN), require company assignment
+        } else if (role === "ADMIN") {
+          // ADMIN must have a company assignment
+          return "No default company assigned. Please contact super admin.";
+        } else {
+          // For other roles, require company assignment
           return "No default company assigned. Please contact admin.";
         }
       }
