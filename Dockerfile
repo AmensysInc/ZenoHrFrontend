@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Set build argument as environment variable
 # Default to domain, can be overridden via docker-compose
-ARG REACT_APP_API_URL=https://zenopayhr.com:8085
+ARG REACT_APP_API_URL=https://zenopayhr.com/api
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 # Copy package files
