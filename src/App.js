@@ -190,6 +190,7 @@ function App() {
               path="/editemployee/:employeeId"
               element={<EmployeeForm mode="edit" />}
             />
+            <Route path="/addprospect" element={<AddProspectEmployee />} />
             <Route path="/purchase-orders" element={<PurchaseOrders />} />
             <Route path="/orders/:employeeId" element={<PurchaseOrder />} />
             <Route
@@ -279,7 +280,6 @@ function App() {
             <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
             {role === "SADMIN" && (
               <>
-                <Route path="/addprospect" element={<AddProspectEmployee />} />
                 <Route path="/companyrole" element={<UserRole />} />
                 <Route path="/addcompanyrole" element={<AddUserRole />} />
                 <Route path="/editcompanyrole/:id" element={<EditUserRole />} />

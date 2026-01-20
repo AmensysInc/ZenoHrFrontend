@@ -69,10 +69,11 @@ export default function Employee() {
     try {
       const { content, totalPages } = await fetchEmployees(page - 1, pageSize);
 
-      const loggedInUserId = sessionStorage.getItem("id");
+      const userRole = sessionStorage.getItem("role");
       let filtered = content;
 
-      if (loggedInUserId !== "admin_id") {
+      // ADMIN and SADMIN should see ALL employees, others see only their company's employees
+      if (userRole !== "ADMIN" && userRole !== "SADMIN") {
         filtered = content.filter(
           (employee) =>
             employee.company &&
