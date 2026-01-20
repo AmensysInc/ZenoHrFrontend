@@ -4,7 +4,8 @@ FROM node:18-alpine AS build
 WORKDIR /app
 
 # Set build argument as environment variable
-ARG REACT_APP_API_URL=http://204.12.199.212:8085
+# Default to domain, can be overridden via docker-compose
+ARG REACT_APP_API_URL=https://zenopayhr.com:8085
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 # Copy package files
