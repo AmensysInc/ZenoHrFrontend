@@ -129,8 +129,6 @@ export default function Employee() {
           // If no default company, show all employees for now
           console.warn("No defaultCompanyId set, showing all employees");
         }
-      } else {
-        console.log("ADMIN/SADMIN user - showing all employees");
       }
 
       setUsers(
