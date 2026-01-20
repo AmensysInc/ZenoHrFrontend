@@ -34,7 +34,6 @@ export default function Employee() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
   const apiUrl = process.env.REACT_APP_API_URL;
 
   // Button styles
@@ -61,7 +60,19 @@ export default function Employee() {
     };
 
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    
+    // Listen for storage changes to refresh when defaultCompanyId changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'defaultCompanyId') {
+        fetchData(1, 10);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const fetchData = async (page, pageSize) => {
@@ -70,15 +81,34 @@ export default function Employee() {
       const { content, totalPages } = await fetchEmployees(page - 1, pageSize);
 
       const userRole = sessionStorage.getItem("role");
+      // Read defaultCompanyId fresh each time to get the latest value
+      const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
       let filtered = content;
+
+      console.log("Employee fetch - Role:", userRole, "DefaultCompanyId:", defaultCompanyId, "Total employees:", content.length);
 
       // ADMIN and SADMIN should see ALL employees, others see only their company's employees
       if (userRole !== "ADMIN" && userRole !== "SADMIN") {
-        filtered = content.filter(
-          (employee) =>
-            employee.company &&
-            employee.company.companyId === defaultCompanyId
-        );
+        // If no defaultCompanyId is set, show all employees (fallback)
+        if (defaultCompanyId && !isNaN(defaultCompanyId)) {
+          filtered = content.filter(
+            (employee) => {
+              const hasCompany = employee.company && employee.company.companyId;
+              const matchesCompany = hasCompany && (
+                Number(employee.company.companyId) === defaultCompanyId ||
+                employee.company.companyId === defaultCompanyId ||
+                String(employee.company.companyId) === String(defaultCompanyId)
+              );
+              return matchesCompany;
+            }
+          );
+          console.log("Filtered employees for company:", defaultCompanyId, "Result:", filtered.length);
+        } else {
+          // If no default company, show all employees for now
+          console.warn("No defaultCompanyId set, showing all employees");
+        }
+      } else {
+        console.log("ADMIN/SADMIN user - showing all employees");
       }
 
       setUsers(
