@@ -199,67 +199,70 @@ export default function Employee() {
           {
             key: "edit",
             label: (
-              <span onClick={() => handleEditEmployee(record.employeeID)}>
+              <span>
                 <FiEdit2 style={{ marginRight: 8 }} /> Edit
               </span>
             ),
+            onClick: () => handleEditEmployee(record.employeeID),
           },
           {
             key: "leave",
             label: (
-              <span onClick={() => handleAddLeaveBalance(record.employeeID)}>
+              <span>
                 <IoIosPause style={{ marginRight: 8 }} /> Add Leave Balance
               </span>
             ),
+            onClick: () => handleAddLeaveBalance(record.employeeID),
           },
           {
             key: "tracking",
             label: (
-              <span onClick={() => handleViewTracking(record.employeeID)}>
+              <span>
                 <BiDollar style={{ marginRight: 8 }} /> Withhold Tracker
               </span>
             ),
+            onClick: () => handleViewTracking(record.employeeID),
           },
           {
             key: "download",
             label: (
-              <span onClick={() => handleDownloadFiles(record.employeeID)}>
+              <span>
                 <MdFileDownload style={{ marginRight: 8 }} /> Download Files
               </span>
             ),
+            onClick: () => handleDownloadFiles(record.employeeID),
           },
           {
             key: "profit",
             label: (
-              <span onClick={() => handleProfitAndLoss(record.employeeID)}>
+              <span>
                 <GiTakeMyMoney style={{ marginRight: 8 }} /> Profit & Loss
               </span>
             ),
+            onClick: () => handleProfitAndLoss(record.employeeID),
           },
           {
             key: "orders",
             label: (
-              <span onClick={() => handleViewPurchaseOrders(record.employeeID)}>
+              <span>
                 <IoCartSharp style={{ marginRight: 8 }} /> View Purchase Orders
               </span>
             ),
+            onClick: () => handleViewPurchaseOrders(record.employeeID),
           },
           {
             key: "delete",
             label: (
-              <span
-                onClick={() =>
-                  Modal.confirm({
-                    title: "Delete employee?",
-                    content: "This action cannot be undone.",
-                    onOk: () => handleDeleteEmployee(record.employeeID),
-                  })
-                }
-                style={{ color: "#ff4d4f" }}
-              >
+              <span style={{ color: "#ff4d4f" }}>
                 <AiFillDelete style={{ marginRight: 8 }} /> Delete
               </span>
             ),
+            onClick: () =>
+              Modal.confirm({
+                title: "Delete employee?",
+                content: "This action cannot be undone.",
+                onOk: () => handleDeleteEmployee(record.employeeID),
+              }),
           },
         ];
 
