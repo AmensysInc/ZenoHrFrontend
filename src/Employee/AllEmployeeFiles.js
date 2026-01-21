@@ -150,12 +150,44 @@ export default function AllEmployeesWeeklyFiles() {
   };
 
   /* =============================
+     VIEW FILE
+  ==============================*/
+  const handleViewFile = async (file) => {
+    try {
+      // Use the week from the file object, or fallback to activeWeek
+      const week = file.week || activeWeek;
+      const encodedFileName = encodeURIComponent(file.fileName);
+      
+      const res = await axios.get(
+        `${apiUrl}/employees/${file.employeeId}/files/week/${week}/${encodedFileName}`,
+        { headers: authHeader, responseType: "blob" }
+      );
+
+      const blob = new Blob([res.data], {
+        type: res.headers["content-type"] || "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+
+      setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      console.error("View file error:", err);
+      message.error("Failed to open file");
+    }
+  };
+
+  /* =============================
      DOWNLOAD
   ==============================*/
   const handleDownload = async (file) => {
     try {
+      // Use the week from the file object, or fallback to activeWeek
+      const week = file.week || activeWeek;
+      const encodedFileName = encodeURIComponent(file.fileName);
+      
       const res = await axios.get(
-        `${apiUrl}/employees/${file.employeeId}/download-weekly-file/${file.fileName}`,
+        `${apiUrl}/employees/${file.employeeId}/files/week/${week}/${encodedFileName}`,
         { headers: authHeader, responseType: "blob" }
       );
 
@@ -165,7 +197,9 @@ export default function AllEmployeesWeeklyFiles() {
       link.download = file.fileName;
       link.click();
       window.URL.revokeObjectURL(url);
-    } catch {
+      message.success("File downloaded successfully");
+    } catch (err) {
+      console.error("Download error:", err);
       message.error("Download failed");
     }
   };
@@ -305,6 +339,7 @@ export default function AllEmployeesWeeklyFiles() {
         title={`Files uploaded by ${selectedEmployee?.employeeName} (${activeWeek})`}
         onCancel={() => setViewModalOpen(false)}
         footer={null}
+        width={600}
       >
         {employeeFiles.length === 0 ? (
           <Text type="secondary">No files uploaded.</Text>
@@ -314,6 +349,13 @@ export default function AllEmployeesWeeklyFiles() {
             renderItem={(file) => (
               <List.Item
                 actions={[
+                  <Button
+                    type="link"
+                    icon={<EyeOutlined />}
+                    onClick={() => handleViewFile(file)}
+                  >
+                    View
+                  </Button>,
                   <Button
                     type="link"
                     icon={<DownloadOutlined />}

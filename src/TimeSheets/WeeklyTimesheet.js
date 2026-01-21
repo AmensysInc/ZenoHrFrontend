@@ -33,7 +33,7 @@ dayjs.extend(require("dayjs/plugin/weekOfYear"));
 const { Title, Text } = Typography;
 
 export default function WeeklyTimesheet() {
-  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8082";
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
   const [currentWeekStart, setCurrentWeekStart] = useState(
     dayjs().startOf("week")
   );
