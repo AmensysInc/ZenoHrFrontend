@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./SelectCompany.css";
 
 const SelectCompany = () => {
+  const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -21,7 +22,7 @@ const SelectCompany = () => {
         }
 
         const response = await fetch(
-          `http://localhost:8082/user-company/user/${userId}`,
+          `${apiUrl}/user-company/user/${userId}`,
           {
             method: "GET",
             headers: {
@@ -71,7 +72,7 @@ const SelectCompany = () => {
     try {
       // 1. Get all user-company roles for the current user
       const rolesResponse = await fetch(
-        `http://localhost:8082/user-company/user/${userId}`,
+        `${apiUrl}/user-company/user/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -94,7 +95,7 @@ const SelectCompany = () => {
           };
 
           const updateResponse = await fetch(
-            `http://localhost:8082/user-company/${role.id}`,
+            `${apiUrl}/user-company/${role.id}`,
             {
               method: "PUT",
               headers: {
@@ -129,7 +130,7 @@ const SelectCompany = () => {
         };
 
         const updateResponse = await fetch(
-          `http://localhost:8082/user-company/${selectedRole.id}`,
+          `${apiUrl}/user-company/${selectedRole.id}`,
           {
             method: "PUT",
             headers: {
@@ -153,7 +154,7 @@ const SelectCompany = () => {
         };
 
         const createResponse = await fetch(
-          "http://localhost:8082/user-company",
+          `${apiUrl}/user-company`,
           {
             method: "POST",
             headers: {

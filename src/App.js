@@ -69,6 +69,7 @@ import ContactForm from "./Contacts/ContactForm";
 import Files from "./Employee/Files";
 import EmployeeFilesGrid from "./Employee/EmployeeFilesGrid";
 import WeekFileUploader from "./EmployeeAccess/WeekFileUploader";
+import AllEmployeeFiles from "./Employee/AllEmployeeFiles";
 import EditCompany from "./Companies/EditCompany";
 import AddCompany from "./Companies/AddCompany";
 
@@ -279,6 +280,7 @@ function App() {
             <Route path="/timeSheets" element={<TimeSheets />} />
             <Route path="/alltimeSheets" element={<AllTimeSheets />} />
             <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
+            <Route path="/allemployeefiles" element={<AllEmployeeFiles />} />
             {role === "SADMIN" && (
               <>
                 <Route path="/companyrole" element={<UserRole />} />

@@ -193,6 +193,12 @@ const baseAdminMenu = [
     path: "/alltimeSheets",
   },
   {
+    key: "allemployeefiles",
+    label: "Employee Weekly Files",
+    icon: <FileOutlined />,
+    path: "/allemployeefiles",
+  },
+  {
     key: "email-templates",
     label: "Email Templates",
     icon: <MailOutlined />,

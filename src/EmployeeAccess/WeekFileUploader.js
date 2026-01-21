@@ -29,6 +29,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 export default function WeekFileUploader() {
+  const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
   /* =============================
      STATE
   ==============================*/
@@ -87,7 +88,7 @@ export default function WeekFileUploader() {
       const backendWeek = getBackendWeek();
 
       const res = await axios.get(
-        `http://localhost:8082/employees/${employeeId}/files/week/${backendWeek}`,
+        `${apiUrl}/employees/${employeeId}/files/week/${backendWeek}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -141,7 +142,7 @@ export default function WeekFileUploader() {
       setLoading(true);
 
       await axios.post(
-        `http://localhost:8082/employees/${employeeId}/uploadFiles`,
+        `${apiUrl}/employees/${employeeId}/uploadFiles`,
         formData,
         {
           headers: {
@@ -171,7 +172,7 @@ export default function WeekFileUploader() {
       const backendWeek = getBackendWeek();
 
       const res = await axios.get(
-        `http://localhost:8082/employees/${employeeId}/files/week/${backendWeek}/${encodeURIComponent(
+        `${apiUrl}/employees/${employeeId}/files/week/${backendWeek}/${encodeURIComponent(
           fileName
         )}`,
         {
@@ -207,7 +208,7 @@ export default function WeekFileUploader() {
       const backendWeek = getBackendWeek();
 
       await axios.delete(
-        `http://localhost:8082/employees/${employeeId}/files/week/${backendWeek}/${encodeURIComponent(
+        `${apiUrl}/employees/${employeeId}/files/week/${backendWeek}/${encodeURIComponent(
           fileName
         )}`,
         {
