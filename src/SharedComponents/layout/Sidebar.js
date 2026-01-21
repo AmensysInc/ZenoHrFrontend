@@ -295,11 +295,65 @@ export default function SideBar({
     fetchGroupAdminCompanies();
   }, [role, selectedCompanyId]);
 
-  const handleCompanyChange = (companyId) => {
-    setSelectedCompanyId(companyId);
-    sessionStorage.setItem("selectedCompanyId", companyId);
-    // Reload the page to refresh data with new company filter
-    window.location.reload();
+  const handleCompanyChange = async (companyId) => {
+    if (!companyId) return;
+    
+    const token = sessionStorage.getItem("token");
+    const userId = sessionStorage.getItem("id");
+    const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "");
+
+    try {
+      // Update the default company in user-company roles
+      const rolesResponse = await axios.get(
+        `${apiUrl}/user-company/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (rolesResponse.status !== 200) throw new Error("Failed to fetch user roles");
+      const roles = rolesResponse.data;
+
+      // Update all roles: set selected as default, others as false
+      await Promise.all(
+        roles.map(async (role) => {
+          const isSelected = Number(role.companyId) === Number(companyId);
+          const updateBody = {
+            id: role.id,
+            userId: role.userId,
+            companyId: role.companyId,
+            role: role.role,
+            defaultCompany: isSelected ? "true" : "false",
+            createdAt: new Date(role.createdAt).toISOString().split("T")[0],
+          };
+
+          const updateResponse = await axios.put(
+            `${apiUrl}/user-company/${role.id}`,
+            updateBody,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (updateResponse.status !== 200) throw new Error("Failed to update role");
+        })
+      );
+
+      // Update session storage
+      sessionStorage.setItem("selectedCompanyId", String(companyId));
+      sessionStorage.setItem("defaultCompanyId", companyId);
+      setSelectedCompanyId(String(companyId));
+      
+      // Reload the page to refresh data with new company filter
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating default company:", error);
+    }
   };
 
   const handleLogout = () => {

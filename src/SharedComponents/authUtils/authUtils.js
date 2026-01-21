@@ -48,6 +48,10 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           // Only set defaultCompanyId for roles that need it (not SADMIN)
           if (role !== "SADMIN") {
             sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
+            // For GROUP_ADMIN, also set selectedCompanyId to the default company
+            if (role === "GROUP_ADMIN") {
+              sessionStorage.setItem("selectedCompanyId", String(defaultCompany.companyId));
+            }
           }
         } else {
           // No default company found in the response
@@ -61,6 +65,8 @@ export const loginUser = async (email, password, onLogin, navigate) => {
               // Set first company as selected for GROUP_ADMIN if no default
               const firstCompany = companies[0];
               sessionStorage.setItem("selectedCompanyId", String(firstCompany.companyId));
+              // Also set it as defaultCompanyId for consistency
+              sessionStorage.setItem("defaultCompanyId", firstCompany.companyId);
             }
             console.log(`${role} login - no default company in UserCompanyRole, but allowing login`);
           } else {
@@ -72,9 +78,10 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         // For SADMIN, no company is needed - allow login
         if (role === "SADMIN") {
           console.log("SADMIN login - no company assignment needed");
-        } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
-          // For EMPLOYEE, PROSPECT, and HR_MANAGER roles, allow login even if user-company fetch fails
+        } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN") {
+          // For EMPLOYEE, PROSPECT, HR_MANAGER, and GROUP_ADMIN roles, allow login even if user-company fetch fails
           // They might have a company assigned in Employee table but no UserCompanyRole yet
+          // GROUP_ADMIN can select company after login
           console.warn("Could not fetch user-company roles, but allowing login for", role);
           // Don't return error - allow them to login
         } else if (role === "ADMIN") {
@@ -86,8 +93,8 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         }
       }
     } catch (error) {
-      // If fetch fails completely, still allow EMPLOYEE, PROSPECT, HR_MANAGER, and SADMIN to login
-      if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "SADMIN") {
+      // If fetch fails completely, still allow EMPLOYEE, PROSPECT, HR_MANAGER, GROUP_ADMIN, and SADMIN to login
+      if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "SADMIN") {
         console.warn("Error fetching user-company roles, but allowing login for", role, error);
       } else {
         console.error("Error fetching user-company roles:", error);
