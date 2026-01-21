@@ -44,8 +44,12 @@ export default function AddAdmin() {
         firstname: values.firstname,
         lastname: values.lastname,
         role: values.role || "ADMIN",
-        ...(values.companyId && { companyId: values.companyId }),
       });
+
+      // Only include companyId in params if it's provided (optional for GROUP_ADMIN)
+      if (values.companyId) {
+        params.append('companyId', values.companyId);
+      }
 
       const response = await axios.get(
         `${apiUrl}/admin/create-user?${params.toString()}`,
@@ -149,8 +153,7 @@ export default function AddAdmin() {
             dependencies={['role']}
             rules={[
               { 
-                required: true, 
-                message: "Please select a company",
+                required: false,
                 validator: (_, value) => {
                   const role = form.getFieldValue('role');
                   if (role === 'ADMIN' && !value) {
@@ -161,13 +164,14 @@ export default function AddAdmin() {
               },
             ]}
             help={(form.getFieldValue('role') === 'GROUP_ADMIN') 
-              ? "Group Admin can have multiple companies. Assign additional companies after creation using 'Add User Role' page." 
+              ? "Group Admin can have multiple companies. You can assign companies after creation using 'Add User Role' page, or select a company here to assign it now." 
               : "Admin must be assigned to a company"}
           >
             <Select
-              placeholder="Select a company"
+              placeholder={form.getFieldValue('role') === 'GROUP_ADMIN' ? "Optional - Select a company (or assign later)" : "Select a company"}
               showSearch
               optionFilterProp="children"
+              allowClear
             >
               {companies.map((company) => (
                 <Option key={company.companyId} value={company.companyId}>
