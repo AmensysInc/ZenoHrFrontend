@@ -27,10 +27,13 @@ const CustomBreadcrumb = () => {
         } catch (error) {
           console.error("Error fetching company name:", error);
         }
+      } else {
+        // Reset company name when not on editcompany route
+        setCompanyName(null);
       }
     };
     fetchCompanyName();
-  }, [pathnames, params.companyId]);
+  }, [pathnames.join("/"), params.companyId]);
 
   // Check if a string looks like a UUID
   const isUUID = (str) => {
@@ -65,11 +68,20 @@ const CustomBreadcrumb = () => {
       .map((name, index) => {
         if (isUUID(name)) return null;
         const isLast = index === pathnames.length - 1;
-        let displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
         
-        // Show company name instead of ID for editcompany route
-        if (name === "editcompany" && companyName) {
-          displayName = companyName;
+        // Check if we're on editcompany route and this is the companyId (numeric)
+        const isEditCompanyRoute = pathnames.includes("editcompany");
+        const prevPath = index > 0 ? pathnames[index - 1] : "";
+        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && !isNaN(name) && parseInt(name) > 0;
+        
+        let displayName;
+        if (isCompanyId) {
+          // Show company name instead of ID, or show ID if name not loaded yet
+          displayName = companyName || name;
+        } else if (name === "editcompany") {
+          displayName = "Editcompany";
+        } else {
+          displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
         }
 
         let to = `/${pathnames.slice(0, index + 1).join("/")}`;
