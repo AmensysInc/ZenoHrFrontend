@@ -314,7 +314,8 @@ const onFinish = async (values) => {
               rules={[{ required: true, message: "Please select status" }]}
             >
               <Select placeholder="Select Status">
-                <Option value="Working">On Bench</Option>
+                <Option value="On Bench">On Bench</Option>
+                <Option value="Working">Working</Option>
                 <Option value="OnProject">On Project</Option>
                 <Option value="OnVacation">On Vacation</Option>
                 <Option value="OnSick">On Sick</Option>
