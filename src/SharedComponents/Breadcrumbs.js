@@ -56,8 +56,8 @@ const CustomBreadcrumb = () => {
     "visa-details": "Visa Details",
   };
 
-  // Build breadcrumb items dynamically
-  const breadcrumbItems = [
+  // Build breadcrumb items dynamically - recalculate when companyName changes
+  const breadcrumbItems = React.useMemo(() => [
     {
       title: (
         <Link to="/" style={styles.link}>
@@ -74,7 +74,9 @@ const CustomBreadcrumb = () => {
         const isEditCompanyRoute = pathnames.includes("editcompany");
         const prevPath = index > 0 ? pathnames[index - 1] : "";
         // Match if this is the companyId parameter (after "editcompany" in the path)
-        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && params.companyId && name === String(params.companyId);
+        // Handle both string and number comparisons
+        const companyIdStr = params.companyId ? String(params.companyId) : null;
+        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && companyIdStr && name === companyIdStr;
         
         let displayName;
         if (isCompanyId) {
@@ -122,7 +124,7 @@ const CustomBreadcrumb = () => {
         };
       })
       .filter(Boolean),
-  ];
+  ], [pathnames, params, companyName, location.pathname]);
 
   return (
     <motion.div
