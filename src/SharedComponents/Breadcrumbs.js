@@ -23,6 +23,7 @@ const CustomBreadcrumb = () => {
           });
           if (response.data?.companyName) {
             setCompanyName(response.data.companyName);
+            console.log("Company name fetched:", response.data.companyName);
           }
         } catch (error) {
           console.error("Error fetching company name:", error);
@@ -33,7 +34,7 @@ const CustomBreadcrumb = () => {
       }
     };
     fetchCompanyName();
-  }, [pathnames.join("/"), params.companyId]);
+  }, [location.pathname, params.companyId]);
 
   // Check if a string looks like a UUID
   const isUUID = (str) => {
@@ -69,10 +70,11 @@ const CustomBreadcrumb = () => {
         if (isUUID(name)) return null;
         const isLast = index === pathnames.length - 1;
         
-        // Check if we're on editcompany route and this is the companyId (numeric)
+        // Check if we're on editcompany route and this is the companyId
         const isEditCompanyRoute = pathnames.includes("editcompany");
         const prevPath = index > 0 ? pathnames[index - 1] : "";
-        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && !isNaN(name) && parseInt(name) > 0;
+        // Match if this is the companyId parameter (after "editcompany" in the path)
+        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && params.companyId && name === String(params.companyId);
         
         let displayName;
         if (isCompanyId) {
@@ -130,6 +132,7 @@ const CustomBreadcrumb = () => {
       style={styles.wrapper}
     >
       <Breadcrumb
+        key={companyName || location.pathname}
         separator={<RightOutlined style={{ fontSize: 12, color: "#b3b3b3" }} />}
         items={breadcrumbItems}
       />
