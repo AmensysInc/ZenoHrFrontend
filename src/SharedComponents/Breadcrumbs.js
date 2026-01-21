@@ -1,13 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HomeOutlined, RightOutlined } from "@ant-design/icons";
 import { Breadcrumb } from "antd";
+import axios from "axios";
 
 const CustomBreadcrumb = () => {
   const location = useLocation();
   const params = useParams();
   const pathnames = location.pathname.split("/").filter((x) => x);
+  const [companyName, setCompanyName] = useState(null);
+  
+  // Fetch company name if on editcompany route
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      if (pathnames.includes("editcompany") && params.companyId) {
+        try {
+          const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
+          const token = sessionStorage.getItem("token");
+          const response = await axios.get(`${apiUrl}/companies/${params.companyId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.data?.companyName) {
+            setCompanyName(response.data.companyName);
+          }
+        } catch (error) {
+          console.error("Error fetching company name:", error);
+        }
+      }
+    };
+    fetchCompanyName();
+  }, [pathnames, params.companyId]);
 
   // Check if a string looks like a UUID
   const isUUID = (str) => {
@@ -42,7 +65,12 @@ const CustomBreadcrumb = () => {
       .map((name, index) => {
         if (isUUID(name)) return null;
         const isLast = index === pathnames.length - 1;
-        const displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
+        let displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
+        
+        // Show company name instead of ID for editcompany route
+        if (name === "editcompany" && companyName) {
+          displayName = companyName;
+        }
 
         let to = `/${pathnames.slice(0, index + 1).join("/")}`;
 

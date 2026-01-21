@@ -294,7 +294,7 @@ export default function AllEmployeesWeeklyFiles() {
     <AnimatedPageWrapper>
       <div style={{ padding: "0 24px" }}>
         <Card bordered={false}>
-          <Title level={4} style={{ marginBottom: 20 }}>All Employees – Weekly Uploaded Files</Title>
+          <Title level={4} style={{ marginBottom: 20 }}>Weekly Status Report Files</Title>
 
         <Space wrap style={{ marginBottom: 20 }}>
           <DatePicker

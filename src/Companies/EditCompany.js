@@ -248,7 +248,7 @@ export default function EditCompany() {
         {/* ==========================
             Upload New Document
            ========================== */}
-        <Form.Item label="Replace / Upload New Document">
+        <Form.Item label="Status Report Template">
           <Upload {...uploadProps}>
             <Button icon={<UploadOutlined />}>Select File</Button>
           </Upload>

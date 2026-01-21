@@ -197,7 +197,7 @@ const baseAdminMenu = [
   },
   {
     key: "allemployeefiles",
-    label: "Employee Weekly Files",
+    label: "Employee Status Report",
     icon: <FileOutlined />,
     path: "/allemployeefiles",
   },

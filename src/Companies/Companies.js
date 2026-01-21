@@ -18,15 +18,21 @@ export default function Companies() {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
+  
+  // Get user role and selected company ID for GROUP_ADMIN
+  const userRole = sessionStorage.getItem("role")?.replace(/"/g, "") || "";
+  const selectedCompanyId = sessionStorage.getItem("selectedCompanyId") || sessionStorage.getItem("defaultCompanyId");
 
   useEffect(() => {
     fetchData(1, 10);
-  }, []);
+  }, [selectedCompanyId]); // Refetch when company changes
 
   const fetchData = async (page, pageSize) => {
     setLoading(true);
     try {
-      const { content, totalPages } = await fetchCompanies(page - 1, pageSize);
+      // Pass companyId for GROUP_ADMIN filtering
+      const companyId = (userRole === "GROUP_ADMIN" && selectedCompanyId) ? Number(selectedCompanyId) : null;
+      const { content, totalPages } = await fetchCompanies(page - 1, pageSize, "", "", companyId);
       setCompanies(content.map((c) => ({ key: c.companyId, ...c })));
       setTotal(totalPages * pageSize);
     } catch (error) {

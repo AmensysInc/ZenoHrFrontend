@@ -1,7 +1,7 @@
 import { get, remove } from "../httpClient ";
 
 
-export async function fetchCompanies(currentPage, pageSize, searchQuery, searchField) {
+export async function fetchCompanies(currentPage, pageSize, searchQuery, searchField, companyId) {
     try {
       const searchParams = new URLSearchParams();
     searchParams.append("page", currentPage);
@@ -9,6 +9,10 @@ export async function fetchCompanies(currentPage, pageSize, searchQuery, searchF
     if (searchQuery) {
       searchParams.append("searchField", searchField);
       searchParams.append("searchString", searchQuery);
+    }
+    // Add companyId filter for GROUP_ADMIN
+    if (companyId) {
+      searchParams.append("companyId", companyId);
     }
       const response = await get(`/companies?${searchParams.toString()}`);
   
