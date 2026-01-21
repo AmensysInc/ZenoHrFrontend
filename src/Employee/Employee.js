@@ -87,10 +87,15 @@ export default function Employee() {
 
       console.log("Employee fetch - Role:", userRole, "DefaultCompanyId:", defaultCompanyId, "Total employees:", content.length);
 
-      // SADMIN sees ALL employees, ADMIN sees only their company's employees, others see only their company's employees
+      // SADMIN sees ALL employees, GROUP_ADMIN sees filtered by backend, ADMIN sees only their company's employees
       if (userRole === "SADMIN") {
-        // SADMIN sees all employees - no filtering
+        // SADMIN sees all employees - no filtering (backend handles it)
         console.log("SADMIN user - showing all employees");
+        filtered = content; // Backend already filtered correctly
+      } else if (userRole === "GROUP_ADMIN") {
+        // GROUP_ADMIN - backend already filters by selected company, no need for frontend filtering
+        console.log("GROUP_ADMIN user - backend filtered by selected company");
+        filtered = content;
       } else if (userRole === "ADMIN") {
         // ADMIN sees only employees from their default company
         if (defaultCompanyId && !isNaN(defaultCompanyId)) {

@@ -54,8 +54,14 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           if (role === "ADMIN") {
             // ADMIN must have a default company
             return "No default company assigned. Please contact super admin.";
-          } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER") {
+          } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN") {
             // These roles can login without default company (SADMIN doesn't need it, others might have it in Employee table)
+            // GROUP_ADMIN will select company after login from sidebar
+            if (role === "GROUP_ADMIN" && companies.length > 0) {
+              // Set first company as selected for GROUP_ADMIN if no default
+              const firstCompany = companies[0];
+              sessionStorage.setItem("selectedCompanyId", String(firstCompany.companyId));
+            }
             console.log(`${role} login - no default company in UserCompanyRole, but allowing login`);
           } else {
             // For other roles, require company assignment

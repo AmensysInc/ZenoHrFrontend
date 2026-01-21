@@ -1,6 +1,6 @@
 // sidebar
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Typography, Button } from "antd";
+import { Layout, Menu, Typography, Button, Select } from "antd";
 import {
   ApartmentOutlined,
   TeamOutlined,
@@ -23,7 +23,10 @@ import {
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { logoutUser } from "../authUtils/authUtils";
+import axios from "axios";
 import "./Sidebar.css";
+
+const { Option } = Select;
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -248,6 +251,56 @@ export default function SideBar({
   const [activeKey, setActiveKey] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const [groupAdminCompanies, setGroupAdminCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(
+    sessionStorage.getItem("selectedCompanyId") || null
+  );
+
+  // Fetch companies for GROUP_ADMIN
+  useEffect(() => {
+    const fetchGroupAdminCompanies = async () => {
+      if (role === "GROUP_ADMIN") {
+        try {
+          const token = sessionStorage.getItem("token");
+          const userId = sessionStorage.getItem("id");
+          const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "");
+
+          const response = await axios.get(
+            `${apiUrl}/user-company/user/${userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const companies = response.data.map((role) => role.company);
+          setGroupAdminCompanies(companies);
+
+          // Set default selected company if not already set
+          if (!selectedCompanyId && companies.length > 0) {
+            const defaultCompany = companies.find(
+              (c) => c.companyId === Number(sessionStorage.getItem("defaultCompanyId"))
+            ) || companies[0];
+            const companyId = String(defaultCompany.companyId);
+            setSelectedCompanyId(companyId);
+            sessionStorage.setItem("selectedCompanyId", companyId);
+          }
+        } catch (error) {
+          console.error("Error fetching group admin companies:", error);
+        }
+      }
+    };
+
+    fetchGroupAdminCompanies();
+  }, [role, selectedCompanyId]);
+
+  const handleCompanyChange = (companyId) => {
+    setSelectedCompanyId(companyId);
+    sessionStorage.setItem("selectedCompanyId", companyId);
+    // Reload the page to refresh data with new company filter
+    window.location.reload();
+  };
 
   const handleLogout = () => {
     logoutUser(setIsLoggedIn, setRole, navigate);
@@ -256,6 +309,7 @@ export default function SideBar({
   const menuItemsByRole = {
     ADMIN: baseAdminMenu,
     HR_MANAGER: baseAdminMenu,
+    GROUP_ADMIN: baseAdminMenu,
     SADMIN: [
       ...baseAdminMenu,
       {
@@ -376,6 +430,26 @@ export default function SideBar({
             />
           )}
         </div>
+
+        {role === "GROUP_ADMIN" && !collapsed && groupAdminCompanies.length > 0 && (
+          <div style={{ padding: "16px", borderBottom: "1px solid #f0f0f0" }}>
+            <Typography.Text strong style={{ display: "block", marginBottom: "8px", fontSize: "12px", color: "#6b7280" }}>
+              Select Company:
+            </Typography.Text>
+            <Select
+              value={selectedCompanyId}
+              onChange={handleCompanyChange}
+              style={{ width: "100%" }}
+              placeholder="Select Company"
+            >
+              {groupAdminCompanies.map((company) => (
+                <Option key={company.companyId} value={String(company.companyId)}>
+                  {company.companyName}
+                </Option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <Menu
           mode="inline"

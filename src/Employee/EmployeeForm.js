@@ -132,11 +132,11 @@ const onFinish = async (values) => {
     const payload = {
       ...values,
       dob: values.dob ? values.dob.format("YYYY-MM-DD") : null,
-      companyId: String(values.company), // ✅ Convert to string instead of Number
+      companyId: values.company ? parseInt(values.company) : null, // Convert to integer for backend
     };
 
     delete payload.company;
-    console.log("Submitting Payload:", payload); // Should show companyId: "1"
+    console.log("Submitting Payload:", payload); // Debug log
 
     const success = isEditMode
       ? await updateEmployee(employeeId, payload)

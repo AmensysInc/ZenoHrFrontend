@@ -9,10 +9,17 @@ export async function fetchEmployees(currentPage, pageSize, searchQuery, searchF
       searchParams.append("searchField", searchField);
       searchParams.append("searchString", searchQuery);
     }
-    // Add companyId filter if it exists
-    // if (companyId) {
-    //   searchParams.append("companyId", companyId);
-    // }
+    // Add company_id filter for GROUP_ADMIN
+    const role = sessionStorage.getItem("role")?.replace(/"/g, "");
+    if (role === "GROUP_ADMIN") {
+      const selectedCompanyId = sessionStorage.getItem("selectedCompanyId");
+      if (selectedCompanyId) {
+        searchParams.append("company_id", selectedCompanyId);
+      }
+    } else if (companyId) {
+      // For other roles, use provided companyId if available
+      searchParams.append("company_id", companyId);
+    }
     const response = await get(`/employees?${searchParams.toString()}`);
     if (response.status === 200) {
       const data = response.data;

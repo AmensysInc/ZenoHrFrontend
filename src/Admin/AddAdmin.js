@@ -37,13 +37,13 @@ export default function AddAdmin() {
   const onFinish = async (values) => {
     setSubmitting(true);
     try {
-      // Create Admin user via the backend endpoint
+      // Create Admin/Group Admin user via the backend endpoint
       const params = new URLSearchParams({
         email: values.email,
         password: values.password,
         firstname: values.firstname,
         lastname: values.lastname,
-        role: "ADMIN",
+        role: values.role || "ADMIN",
         ...(values.companyId && { companyId: values.companyId }),
       });
 
@@ -132,12 +132,37 @@ export default function AddAdmin() {
           </Form.Item>
 
           <Form.Item
+            label="Role"
+            name="role"
+            rules={[{ required: true, message: "Please select a role" }]}
+            initialValue="ADMIN"
+          >
+            <Select placeholder="Select role">
+              <Option value="ADMIN">ADMIN</Option>
+              <Option value="GROUP_ADMIN">GROUP_ADMIN</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
             label="Assign to Company"
             name="companyId"
+            dependencies={['role']}
             rules={[
-              { required: true, message: "Please select a company for the admin" },
+              { 
+                required: true, 
+                message: "Please select a company",
+                validator: (_, value) => {
+                  const role = form.getFieldValue('role');
+                  if (role === 'ADMIN' && !value) {
+                    return Promise.reject(new Error('Admin must be assigned to a company'));
+                  }
+                  return Promise.resolve();
+                }
+              },
             ]}
-            help="Admin must be assigned to a company"
+            help={(form.getFieldValue('role') === 'GROUP_ADMIN') 
+              ? "Group Admin can have multiple companies. Assign additional companies after creation using 'Add User Role' page." 
+              : "Admin must be assigned to a company"}
           >
             <Select
               placeholder="Select a company"
