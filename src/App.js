@@ -168,9 +168,10 @@ function App() {
   // ✅ Role-based routes
   function renderRoutes(role) {
     switch (role) {
-      // ---------------- ADMIN / SADMIN ----------------
+      // ---------------- ADMIN / SADMIN / GROUP_ADMIN ----------------
       case "ADMIN":
       case "SADMIN":
+      case "GROUP_ADMIN":
         return (
           <>
             <Route path="/" element={<Dashboard />} />

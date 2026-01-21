@@ -22,7 +22,10 @@ export const loginUser = async (email, password, onLogin, navigate) => {
     }
 
     const data = await response.json();
-    const { role, access_token, firstName, lastName, id, tempPassword } = data;
+    let { role, access_token, firstName, lastName, id, tempPassword } = data;
+    
+    // Clean role string to remove any quotes or extra whitespace
+    role = role ? role.replace(/^"|"$/g, "").trim() : role;
 
     sessionStorage.setItem("token", access_token);
     sessionStorage.setItem("firstName", firstName);
