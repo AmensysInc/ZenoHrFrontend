@@ -82,10 +82,16 @@ export default function AllEmployeesWeeklyFiles() {
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${apiUrl}/employees/files/all`,
-        { headers: authHeader }
-      );
+      // Get selected company ID for GROUP_ADMIN
+      const userRole = sessionStorage.getItem("role")?.replace(/"/g, "") || "";
+      const selectedCompanyId = sessionStorage.getItem("selectedCompanyId");
+      
+      let url = `${apiUrl}/employees/files/all`;
+      if (userRole === "GROUP_ADMIN" && selectedCompanyId) {
+        url += `?companyId=${selectedCompanyId}`;
+      }
+      
+      const res = await axios.get(url, { headers: authHeader });
 
       const data = res.data || [];
       setAllFiles(data);
