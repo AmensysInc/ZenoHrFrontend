@@ -367,6 +367,7 @@ function App() {
           <>
             <Route path="/" element={<Employee />} />
             <Route path="/employees" element={<Employee />} />
+            <Route path="/allemployeefiles" element={<AllEmployeeFiles />} />
           </>
         );
 

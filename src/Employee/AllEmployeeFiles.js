@@ -83,6 +83,7 @@ export default function AllEmployeesWeeklyFiles() {
     setLoading(true);
     try {
       // Get selected company ID for GROUP_ADMIN
+      // For REPORTING_MANAGER, filter by reportingManagerId (handled in backend)
       const userRole = sessionStorage.getItem("role")?.replace(/"/g, "") || "";
       const selectedCompanyId = sessionStorage.getItem("selectedCompanyId");
       
@@ -90,6 +91,7 @@ export default function AllEmployeesWeeklyFiles() {
       if (userRole === "GROUP_ADMIN" && selectedCompanyId) {
         url += `?companyId=${selectedCompanyId}`;
       }
+      // REPORTING_MANAGER filtering is handled in backend based on current user
       
       const res = await axios.get(url, { headers: authHeader });
 

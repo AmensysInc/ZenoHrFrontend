@@ -55,7 +55,20 @@ const EmployeeDetails = () => {
       if (response.data.reportingManagerId) {
         try {
           const managerResponse = await axios.get(`${apiUrl}/users/${response.data.reportingManagerId}`, config);
-          setReportingManager(managerResponse.data);
+          const managerData = managerResponse.data;
+          
+          // Try to get phone number from Employee table if Reporting Manager is also an Employee
+          try {
+            const employeeResponse = await axios.get(`${apiUrl}/employees/by-email/${managerData.email}`, config);
+            if (employeeResponse.data && employeeResponse.data.phoneNo) {
+              managerData.phoneNo = employeeResponse.data.phoneNo;
+            }
+          } catch (empErr) {
+            // Reporting Manager is not an Employee, phone number will be null
+            console.log("Reporting Manager is not an Employee, phone number not available");
+          }
+          
+          setReportingManager(managerData);
         } catch (err) {
           console.error("Error fetching reporting manager:", err);
         }
@@ -172,6 +185,13 @@ const EmployeeDetails = () => {
                 <MailOutlined style={{ marginRight: 8, color: "#1677ff" }} />
                 {reportingManager.email || "-"}
               </Descriptions.Item>
+
+              {reportingManager.phoneNo && (
+                <Descriptions.Item label="Reporting Manager Phone">
+                  <PhoneOutlined style={{ marginRight: 8, color: "#1677ff" }} />
+                  {reportingManager.phoneNo}
+                </Descriptions.Item>
+              )}
             </>
           )}
 

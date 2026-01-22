@@ -371,6 +371,12 @@ export default function SideBar({
         icon: <TeamOutlined />,
         path: "/employees",
       },
+      {
+        key: "allemployeefiles",
+        label: "Employee Status Report",
+        icon: <FileOutlined />,
+        path: "/allemployeefiles",
+      },
     ],
     SADMIN: [
       ...baseAdminMenu,
