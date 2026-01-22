@@ -51,6 +51,15 @@ const AddUserRole = () => {
     fetchData();
   }, []);
 
+  // Pre-fill userId from query params
+  useEffect(() => {
+    const userId = searchParams.get("userId");
+    if (userId) {
+      form.setFieldsValue({ userId });
+      setSelectedUserId(userId);
+    }
+  }, [searchParams, form]);
+
   useEffect(() => {
     const fetchAssignedCompanies = async () => {
       if (!selectedUserId) {
