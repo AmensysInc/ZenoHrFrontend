@@ -86,6 +86,7 @@ export async function createEmployee(employee) {
       securityGroup: employee.securityGroup,
       companyId: Number(employee.companyId),
       password: employee.password,
+      reportingManagerId: employee.reportingManagerId || null, // Added reportingManagerId
     };
 
     const response = await post(`/employees`, employeeDTO, {

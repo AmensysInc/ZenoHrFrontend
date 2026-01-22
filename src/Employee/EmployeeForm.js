@@ -113,6 +113,7 @@ export default function EmployeeForm({ mode }) {
                 : data.company?.id
                 ? String(data.company.id)
                 : "",
+              reportingManagerId: data.reportingManagerId || null, // Set reportingManagerId in form
             });
           }
         } catch (err) {
