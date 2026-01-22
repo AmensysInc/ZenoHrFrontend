@@ -27,6 +27,7 @@ const { Title, Text } = Typography;
 const EmployeeDetails = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
   const [employee, setEmployee] = useState(null);
+  const [reportingManager, setReportingManager] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +50,16 @@ const EmployeeDetails = () => {
 
       const response = await axios.get(`${apiUrl}/employees/${employeeId}`, config);
       setEmployee(response.data);
+      
+      // Fetch Reporting Manager details if assigned
+      if (response.data.reportingManagerId) {
+        try {
+          const managerResponse = await axios.get(`${apiUrl}/users/${response.data.reportingManagerId}`, config);
+          setReportingManager(managerResponse.data);
+        } catch (err) {
+          console.error("Error fetching reporting manager:", err);
+        }
+      }
     } catch (error) {
       console.error("Error fetching employee details:", error);
       message.error("Failed to load employee details.");
@@ -149,6 +160,20 @@ const EmployeeDetails = () => {
             <HomeOutlined style={{ marginRight: 8, color: "#1677ff" }} />
             {employee.company?.companyName || "N/A"}
           </Descriptions.Item>
+
+          {reportingManager && (
+            <>
+              <Descriptions.Item label="Reporting Manager Name">
+                <UserOutlined style={{ marginRight: 8, color: "#1677ff" }} />
+                {reportingManager.firstname} {reportingManager.lastname}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Reporting Manager Email">
+                <MailOutlined style={{ marginRight: 8, color: "#1677ff" }} />
+                {reportingManager.email || "-"}
+              </Descriptions.Item>
+            </>
+          )}
 
           <Descriptions.Item label="Working Status">
             {employee.onBench ? (

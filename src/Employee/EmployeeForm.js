@@ -33,6 +33,7 @@ export default function EmployeeForm({ mode }) {
   const navigate = useNavigate();
   const { employeeId } = useParams();
   const [companies, setCompanies] = useState([]);
+  const [reportingManagers, setReportingManagers] = useState([]);
   const [visaStatusOptions, setVisaStatusOptions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sendDetailsSuccess, setSendDetailsSuccess] = useState(false);
@@ -41,7 +42,7 @@ export default function EmployeeForm({ mode }) {
 
   const isEditMode = mode === "edit";
 
-  // ✅ Fetch Companies
+  // ✅ Fetch Companies and Reporting Managers
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -50,6 +51,22 @@ export default function EmployeeForm({ mode }) {
         const companyData = await fetchCompanies(0, 100);
         console.log("Fetched Companies:", companyData?.content);
         setCompanies(companyData?.content || []);
+        
+        // Fetch Reporting Managers
+        const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
+        const token = sessionStorage.getItem("token");
+        try {
+          const usersResponse = await fetch(`${apiUrl}/users`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (usersResponse.ok) {
+            const users = await usersResponse.json();
+            const reportingManagersList = users.filter(user => user.role === "REPORTING_MANAGER");
+            setReportingManagers(reportingManagersList);
+          }
+        } catch (err) {
+          console.error("Error fetching reporting managers:", err);
+        }
         
         // ✅ Auto-select Admin's default company when creating new employee
         if (!isEditMode) {
@@ -133,6 +150,7 @@ const onFinish = async (values) => {
       ...values,
       dob: values.dob ? values.dob.format("YYYY-MM-DD") : null,
       companyId: values.company ? parseInt(values.company) : null, // Convert to integer for backend
+      reportingManagerId: values.reportingManagerId || null,
     };
 
     delete payload.company;
@@ -319,6 +337,29 @@ const onFinish = async (values) => {
                 <Option value="OnProject">On Project</Option>
                 <Option value="OnVacation">On Vacation</Option>
                 <Option value="OnSick">On Sick</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* ================== Reporting Manager ================== */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="Reporting Manager"
+              name="reportingManagerId"
+            >
+              <Select
+                placeholder="Select Reporting Manager (Optional)"
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
+                {reportingManagers.map((manager) => (
+                  <Option key={manager.id} value={manager.id}>
+                    {manager.firstname} {manager.lastname} ({manager.email})
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
           </Col>

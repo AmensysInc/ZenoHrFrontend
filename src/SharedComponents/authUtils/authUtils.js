@@ -61,7 +61,7 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           if (role === "ADMIN") {
             // ADMIN must have a default company
             return "No default company assigned. Please contact super admin.";
-          } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN") {
+          } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") {
             // These roles can login without default company (SADMIN doesn't need it, others might have it in Employee table)
             // GROUP_ADMIN will select company after login from sidebar
             if (role === "GROUP_ADMIN" && companies.length > 0) {
@@ -81,8 +81,8 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         // For SADMIN, no company is needed - allow login
         if (role === "SADMIN") {
           console.log("SADMIN login - no company assignment needed");
-        } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN") {
-          // For EMPLOYEE, PROSPECT, HR_MANAGER, and GROUP_ADMIN roles, allow login even if user-company fetch fails
+        } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") {
+          // For EMPLOYEE, PROSPECT, HR_MANAGER, GROUP_ADMIN, and REPORTING_MANAGER roles, allow login even if user-company fetch fails
           // They might have a company assigned in Employee table but no UserCompanyRole yet
           // GROUP_ADMIN can select company after login
           console.warn("Could not fetch user-company roles, but allowing login for", role);
@@ -96,8 +96,8 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         }
       }
     } catch (error) {
-      // If fetch fails completely, still allow EMPLOYEE, PROSPECT, HR_MANAGER, GROUP_ADMIN, and SADMIN to login
-      if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "SADMIN") {
+      // If fetch fails completely, still allow EMPLOYEE, PROSPECT, HR_MANAGER, GROUP_ADMIN, REPORTING_MANAGER, and SADMIN to login
+      if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "REPORTING_MANAGER" || role === "SADMIN") {
         console.warn("Error fetching user-company roles, but allowing login for", role, error);
       } else {
         console.error("Error fetching user-company roles:", error);

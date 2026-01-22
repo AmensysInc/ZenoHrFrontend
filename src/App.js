@@ -361,6 +361,15 @@ function App() {
           </>
         );
 
+      // ---------------- REPORTING_MANAGER ----------------
+      case "REPORTING_MANAGER":
+        return (
+          <>
+            <Route path="/" element={<Employee />} />
+            <Route path="/employees" element={<Employee />} />
+          </>
+        );
+
       // ---------------- DEFAULT ----------------
       default:
         return <Route path="/*" element={<Navigate to="/login" />} />;

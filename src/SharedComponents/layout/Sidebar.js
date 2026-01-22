@@ -364,6 +364,14 @@ export default function SideBar({
     ADMIN: baseAdminMenu,
     HR_MANAGER: baseAdminMenu,
     GROUP_ADMIN: baseAdminMenu,
+    REPORTING_MANAGER: [
+      {
+        key: "employees",
+        label: "Employees",
+        icon: <TeamOutlined />,
+        path: "/employees",
+      },
+    ],
     SADMIN: [
       ...baseAdminMenu,
       {
