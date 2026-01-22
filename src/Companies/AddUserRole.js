@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Form, Select, Radio, Button, Card, Typography, message } from "antd";
 import AnimatedPageWrapper from "../components/AnimatedPageWrapper";
 import { titleStyle } from "../constants/styles";
@@ -10,6 +10,7 @@ const { Option } = Select;
 
 const AddUserRole = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [employees, setEmployees] = useState([]);
   const [companies, setCompanies] = useState([]);

@@ -41,11 +41,11 @@ export default function UserRole() {
     const fetchData = async () => {
       try {
         const [roleRes, userRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/user-company`, config),
+          axios.get(`${API_BASE_URL}/user-company`, config).catch(() => ({ data: [] })), // Handle 403 gracefully
           axios.get(`${API_BASE_URL}/users`, config),
         ]);
-        setRoles(roleRes.data);
-        setUsers(userRes.data);
+        setRoles(roleRes.data || []);
+        setUsers(userRes.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         message.error("Failed to load roles or users.");
@@ -77,6 +77,45 @@ export default function UserRole() {
     }
   };
 
+  // Combine users with their roles - show all users, even without UserCompanyRole entries
+  const combinedData = React.useMemo(() => {
+    // Create a map of userId -> UserCompanyRole entries
+    const roleMap = new Map();
+    roles.forEach(role => {
+      if (!roleMap.has(role.userId)) {
+        roleMap.set(role.userId, []);
+      }
+      roleMap.get(role.userId).push(role);
+    });
+
+    // Create combined list: users with roles, and users without roles
+    const result = [];
+    
+    // Add all UserCompanyRole entries (users with company assignments)
+    roles.forEach(role => {
+      result.push({
+        id: role.id,
+        userId: role.userId,
+        userCompanyRoleId: role.id,
+        hasCompanyRole: true,
+      });
+    });
+
+    // Add users without UserCompanyRole entries
+    users.forEach(user => {
+      if (!roleMap.has(user.id)) {
+        result.push({
+          id: `user-${user.id}`, // Unique ID for users without roles
+          userId: user.id,
+          userCompanyRoleId: null,
+          hasCompanyRole: false,
+        });
+      }
+    });
+
+    return result;
+  }, [roles, users]);
+
   const columns = [
     {
       title: "User",
@@ -93,6 +132,9 @@ export default function UserRole() {
           EMPLOYEE: "green",
           RECRUITER: "geekblue",
           PROSPECT: "gold",
+          GROUP_ADMIN: "blue",
+          REPORTING_MANAGER: "cyan",
+          HR_MANAGER: "orange",
         };
         return (
           <Tag color={colorMap[role] || "default"} style={{ fontWeight: 500 }}>
@@ -103,40 +145,67 @@ export default function UserRole() {
     },
     {
       title: "Company",
-      dataIndex: ["company", "companyName"],
-      render: (name) => name || "Unknown",
+      render: (_, record) => {
+        if (!record.hasCompanyRole) {
+          return <span style={{ color: "#999" }}>No Company</span>;
+        }
+        const roleEntry = roles.find(r => r.id === record.userCompanyRoleId);
+        return roleEntry?.company?.companyName || "Unknown";
+      },
     },
     {
       title: "Default",
-      dataIndex: "defaultCompany",
-      render: (val) => (val === true || val === "true" ? "Yes" : "No"),
+      render: (_, record) => {
+        if (!record.hasCompanyRole) {
+          return <span style={{ color: "#999" }}>—</span>;
+        }
+        const roleEntry = roles.find(r => r.id === record.userCompanyRoleId);
+        return (roleEntry?.defaultCompany === true || roleEntry?.defaultCompany === "true") ? "Yes" : "No";
+      },
     },
     {
       title: "Actions",
       align: "center",
-      render: (_, record) => (
-        <Space size="middle">
-          <FiEdit2
-            style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
-            onClick={() => navigate(`/editcompanyrole/${record.id}`)}
-          />
-
-          <Popconfirm
-            title="Delete this role?"
-            okText="Yes"
-            cancelText="No"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <AiFillDelete
+      render: (_, record) => {
+        if (!record.hasCompanyRole) {
+          return (
+            <Space size="middle">
+              <Tooltip title="Add company role">
+                <Button
+                  type="link"
+                  onClick={() => navigate(`/addcompanyrole?userId=${record.userId}`)}
+                  style={{ padding: 0 }}
+                >
+                  Add Role
+                </Button>
+              </Tooltip>
+            </Space>
+          );
+        }
+        return (
+          <Space size="middle">
+            <FiEdit2
               style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#2b2be8")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+              onClick={() => navigate(`/editcompanyrole/${record.userCompanyRoleId}`)}
             />
-          </Popconfirm>
-        </Space>
-      ),
+
+            <Popconfirm
+              title="Delete this role?"
+              okText="Yes"
+              cancelText="No"
+              onConfirm={() => handleDelete(record.userCompanyRoleId)}
+            >
+              <AiFillDelete
+                style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+              />
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -207,7 +276,7 @@ export default function UserRole() {
 
         <ReusableTable
           columns={columns}
-          data={roles}
+          data={combinedData}
           loading={loading}
           pagination={true}
           rowKey="id"
