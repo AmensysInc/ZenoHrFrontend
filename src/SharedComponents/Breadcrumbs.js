@@ -15,11 +15,23 @@ const CustomBreadcrumb = () => {
   useEffect(() => {
     const fetchCompanyName = async () => {
       const isEditCompanyRoute = location.pathname.includes("/editcompany/");
-      const companyId = params.companyId;
+      
+      // Try to get companyId from params first, fallback to extracting from pathname
+      let companyId = params.companyId;
+      
+      // If params.companyId is undefined, extract it from the pathname
+      if (!companyId && isEditCompanyRoute) {
+        const match = location.pathname.match(/\/editcompany\/(\d+)/);
+        if (match && match[1]) {
+          companyId = match[1];
+          console.log("Extracted companyId from pathname:", companyId);
+        }
+      }
       
       console.log("Breadcrumb useEffect triggered:", {
         pathname: location.pathname,
-        companyId: companyId,
+        paramsCompanyId: params.companyId,
+        extractedCompanyId: companyId,
         isEditCompanyRoute: isEditCompanyRoute,
         pathnames: pathnames
       });
@@ -104,7 +116,14 @@ const CustomBreadcrumb = () => {
         const prevPath = index > 0 ? pathnames[index - 1] : "";
         // Match if this is the companyId parameter (after "editcompany" in the path)
         // Handle both string and number comparisons
-        const companyIdStr = params.companyId ? String(params.companyId) : null;
+        // Try params first, fallback to extracting from pathname
+        let companyIdStr = params.companyId ? String(params.companyId) : null;
+        if (!companyIdStr && isEditCompanyRoute) {
+          const match = location.pathname.match(/\/editcompany\/(\d+)/);
+          if (match && match[1]) {
+            companyIdStr = match[1];
+          }
+        }
         const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && companyIdStr && String(name) === companyIdStr;
         
         // Debug log for company ID matching
