@@ -83,7 +83,7 @@ export default function AddAdmin() {
         title={
           <span>
             <UserAddOutlined style={{ marginRight: 8 }} />
-            Create New Admin
+            Create Admin / Group Admin / Reporting Manager
           </span>
         }
         style={{
@@ -144,6 +144,7 @@ export default function AddAdmin() {
             <Select placeholder="Select role">
               <Option value="ADMIN">ADMIN</Option>
               <Option value="GROUP_ADMIN">GROUP_ADMIN</Option>
+              <Option value="REPORTING_MANAGER">REPORTING_MANAGER</Option>
             </Select>
           </Form.Item>
 
@@ -164,14 +165,23 @@ export default function AddAdmin() {
               },
             ]}
             help={(form.getFieldValue('role') === 'GROUP_ADMIN') 
-              ? "Group Admin can have multiple companies. You can assign companies after creation using 'Add User Role' page, or select a company here to assign it now." 
+              ? "Group Admin can have multiple companies. You can assign companies after creation using 'Add User Role' page, or select a company here to assign it now."
+              : (form.getFieldValue('role') === 'REPORTING_MANAGER')
+              ? "Reporting Manager doesn't need company assignment. Employees can be assigned to this Reporting Manager during employee creation/editing."
               : "Admin must be assigned to a company"}
           >
             <Select
-              placeholder={form.getFieldValue('role') === 'GROUP_ADMIN' ? "Optional - Select a company (or assign later)" : "Select a company"}
+              placeholder={
+                form.getFieldValue('role') === 'GROUP_ADMIN' 
+                  ? "Optional - Select a company (or assign later)" 
+                  : form.getFieldValue('role') === 'REPORTING_MANAGER'
+                  ? "Not required for Reporting Manager"
+                  : "Select a company"
+              }
               showSearch
               optionFilterProp="children"
               allowClear
+              disabled={form.getFieldValue('role') === 'REPORTING_MANAGER'}
             >
               {companies.map((company) => (
                 <Option key={company.companyId} value={company.companyId}>
