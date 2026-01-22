@@ -68,22 +68,10 @@ export default function UserRole() {
 
   const handleDelete = async (roleId, userId, userRole) => {
     try {
-      const rolesRequiringCompany = ["ADMIN", "GROUP_ADMIN", "REPORTING_MANAGER", "HR_MANAGER"];
-      const requiresCompany = rolesRequiringCompany.includes(userRole);
-      
-      // If this is the only role for a user that requires company, delete the user completely
-      const userRoles = roles.filter(r => r.userId === userId);
-      const hasOtherRoles = userRoles.length > 1;
-      
-      if (requiresCompany && !hasOtherRoles) {
-        // Delete user completely (this will also delete all UserCompanyRole entries and update employees)
-        await axios.delete(`${API_BASE_URL}/users/${userId}`, config);
-        message.success("User deleted successfully. All associated roles and employee assignments have been removed.");
-      } else {
-        // Just delete this specific role
-        await axios.delete(`${API_BASE_URL}/user-company/${roleId}`, config);
-        message.success("Role deleted successfully");
-      }
+      // Always delete the user completely, not just the role
+      // This ensures complete deletion for all roles (ADMIN, GROUP_ADMIN, REPORTING_MANAGER, EMPLOYEE, etc.)
+      await axios.delete(`${API_BASE_URL}/users/${userId}`, config);
+      message.success("User deleted successfully. All associated roles, employee records, and assignments have been removed.");
       
       // Refresh data to update the list
       const [roleRes, userRes] = await Promise.all([
@@ -217,14 +205,8 @@ export default function UserRole() {
             />
 
             <Popconfirm
-              title={requiresCompany && roles.filter(r => r.userId === record.userId).length === 1 
-                ? "Delete this user completely?" 
-                : "Delete this role assignment?"}
-              description={requiresCompany && roles.filter(r => r.userId === record.userId).length === 1
-                ? "This will delete the user completely, including all roles and remove their assignment from employees."
-                : requiresCompany 
-                  ? "This role requires a company. You can assign a different company instead." 
-                  : "Are you sure you want to delete this role?"}
+              title="Delete this user completely?"
+              description="This will delete the user completely, including all roles, employee records (if applicable), and remove their assignments from employees."
               okText="Yes"
               cancelText="No"
               onConfirm={() => handleDelete(record.userCompanyRoleId, record.userId, userRole)}
