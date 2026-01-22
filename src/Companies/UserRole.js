@@ -181,6 +181,7 @@ export default function UserRole() {
         const requiresCompany = rolesRequiringCompany.includes(userRole);
         
         if (!record.hasCompanyRole) {
+          const isSystemRole = userRole === "SADMIN"; // SADMIN cannot be deleted
           return (
             <Space size="middle">
               <Tooltip title={requiresCompany ? "This role requires a company assignment" : "Add company role"}>
@@ -188,10 +189,26 @@ export default function UserRole() {
                   type={requiresCompany ? "primary" : "link"}
                   onClick={() => navigate(`/addcompanyrole?userId=${record.userId}`)}
                   style={requiresCompany ? { padding: "4px 8px" } : { padding: 0 }}
+                  disabled={isSystemRole}
                 >
                   {requiresCompany ? "Assign Company" : "Add Role"}
                 </Button>
               </Tooltip>
+              {!isSystemRole && (
+                <Popconfirm
+                  title="Delete this user completely?"
+                  description="This will delete the user completely, including all roles, employee records (if applicable), and remove their assignments from employees."
+                  okText="Yes"
+                  cancelText="No"
+                  onConfirm={() => handleDelete(null, record.userId, userRole)}
+                >
+                  <AiFillDelete
+                    style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+                  />
+                </Popconfirm>
+              )}
             </Space>
           );
         }
