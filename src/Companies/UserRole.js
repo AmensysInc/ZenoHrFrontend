@@ -66,11 +66,19 @@ export default function UserRole() {
     return user?.role || "—";
   };
 
-  const handleDelete = async (roleId) => {
+  const handleDelete = async (roleId, userId) => {
     try {
       await axios.delete(`${API_BASE_URL}/user-company/${roleId}`, config);
       setRoles((prev) => prev.filter((r) => r.id !== roleId));
       message.success("Role deleted successfully");
+      
+      // Refresh data to update the list
+      const [roleRes, userRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/user-company`, config).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE_URL}/users`, config),
+      ]);
+      setRoles(roleRes.data || []);
+      setUsers(userRes.data || []);
     } catch (error) {
       console.error("Delete failed:", error);
       message.error("Failed to delete role");
@@ -167,16 +175,20 @@ export default function UserRole() {
       title: "Actions",
       align: "center",
       render: (_, record) => {
+        const userRole = getUserRole(record.userId);
+        const rolesRequiringCompany = ["ADMIN", "GROUP_ADMIN", "REPORTING_MANAGER", "HR_MANAGER"];
+        const requiresCompany = rolesRequiringCompany.includes(userRole);
+        
         if (!record.hasCompanyRole) {
           return (
             <Space size="middle">
-              <Tooltip title="Add company role">
+              <Tooltip title={requiresCompany ? "This role requires a company assignment" : "Add company role"}>
                 <Button
-                  type="link"
+                  type={requiresCompany ? "primary" : "link"}
                   onClick={() => navigate(`/addcompanyrole?userId=${record.userId}`)}
-                  style={{ padding: 0 }}
+                  style={requiresCompany ? { padding: "4px 8px" } : { padding: 0 }}
                 >
-                  Add Role
+                  {requiresCompany ? "Assign Company" : "Add Role"}
                 </Button>
               </Tooltip>
             </Space>
@@ -192,10 +204,11 @@ export default function UserRole() {
             />
 
             <Popconfirm
-              title="Delete this role?"
+              title="Delete this role assignment?"
+              description={requiresCompany ? "This role requires a company. You can assign a different company instead." : "Are you sure you want to delete this role?"}
               okText="Yes"
               cancelText="No"
-              onConfirm={() => handleDelete(record.userCompanyRoleId)}
+              onConfirm={() => handleDelete(record.userCompanyRoleId, record.userId)}
             >
               <AiFillDelete
                 style={{ cursor: "pointer", fontSize: 18, color: "#000" }}
