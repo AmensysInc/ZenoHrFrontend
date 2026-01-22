@@ -11,30 +11,41 @@ const CustomBreadcrumb = () => {
   const pathnames = location.pathname.split("/").filter((x) => x);
   const [companyName, setCompanyName] = useState(null);
   
-  // Fetch company name if on editcompany route
-  useEffect(() => {
-    const fetchCompanyName = async () => {
-      if (pathnames.includes("editcompany") && params.companyId) {
-        try {
-          const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
-          const token = sessionStorage.getItem("token");
-          const response = await axios.get(`${apiUrl}/companies/${params.companyId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.data?.companyName) {
-            setCompanyName(response.data.companyName);
-            console.log("Company name fetched:", response.data.companyName);
+      // Fetch company name if on editcompany route
+      useEffect(() => {
+        const fetchCompanyName = async () => {
+          if (pathnames.includes("editcompany") && params.companyId) {
+            try {
+              const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
+              const token = sessionStorage.getItem("token");
+              const response = await axios.get(`${apiUrl}/companies/${params.companyId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              
+              // Log the full response to debug
+              console.log("Company API response:", response.data);
+              
+              // Try both companyName and name fields (handle different response structures)
+              const name = response.data?.companyName || response.data?.name;
+              if (name) {
+                setCompanyName(name);
+                console.log("Company name fetched:", name);
+              } else {
+                console.warn("Company name not found in response:", response.data);
+              }
+            } catch (error) {
+              console.error("Error fetching company name:", error);
+              if (error.response) {
+                console.error("Error response data:", error.response.data);
+              }
+            }
+          } else {
+            // Reset company name when not on editcompany route
+            setCompanyName(null);
           }
-        } catch (error) {
-          console.error("Error fetching company name:", error);
-        }
-      } else {
-        // Reset company name when not on editcompany route
-        setCompanyName(null);
-      }
-    };
-    fetchCompanyName();
-  }, [location.pathname, params.companyId]);
+        };
+        fetchCompanyName();
+      }, [location.pathname, params.companyId, pathnames]);
 
   // Check if a string looks like a UUID
   const isUUID = (str) => {
