@@ -128,6 +128,16 @@ export default function EmailTemplateEdit() {
                 label="Body"
                 name="body"
                 rules={[{ required: true, message: "Please enter body" }]}
+                help={
+                  form.getFieldValue("category") &&
+                  ["FORGOT_PASSWORD", "LOGIN_DETAILS", "CHANGE_PASSWORD"].includes(
+                    form.getFieldValue("category")
+                  )
+                    ? "Available placeholders: {email_address}, {temp_password}"
+                    : form.getFieldValue("category") === "WELCOME"
+                    ? "Available placeholders: {email_address}"
+                    : null
+                }
               >
                 <TextArea rows={6} placeholder="Email Body" />
               </Form.Item>
@@ -135,8 +145,24 @@ export default function EmailTemplateEdit() {
               <Form.Item
                 label="Category"
                 name="category"
+                help={
+                  form.getFieldValue("category") &&
+                  ["FORGOT_PASSWORD", "LOGIN_DETAILS", "CHANGE_PASSWORD", "WELCOME"].includes(
+                    form.getFieldValue("category")
+                  )
+                    ? "This is a system template. Category cannot be changed."
+                    : null
+                }
               >
-                <Input placeholder="Category" />
+                <Input 
+                  placeholder="Category" 
+                  disabled={
+                    form.getFieldValue("category") &&
+                    ["FORGOT_PASSWORD", "LOGIN_DETAILS", "CHANGE_PASSWORD", "WELCOME"].includes(
+                      form.getFieldValue("category")
+                    )
+                  }
+                />
               </Form.Item>
 
               <Form.Item

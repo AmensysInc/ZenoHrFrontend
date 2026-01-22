@@ -7,6 +7,7 @@ import {
   Typography,
   Empty,
   Card,
+  Tag,
 } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -20,6 +21,9 @@ import { titleStyle } from "../constants/styles";
 
 const { Title, Text } = Typography;
 
+// System template categories that should be shown prominently
+const SYSTEM_CATEGORIES = ["FORGOT_PASSWORD", "LOGIN_DETAILS", "CHANGE_PASSWORD", "WELCOME"];
+
 export default function EmailTemplateList() {
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
@@ -29,18 +33,44 @@ export default function EmailTemplateList() {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    fetchTemplates();
+    initializeAndFetchTemplates();
   }, []);
 
-  const fetchTemplates = async () => {
+  const initializeAndFetchTemplates = async () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token");
+      
+      // Initialize default templates if they don't exist
+      try {
+        await axios.post(
+          `${API_URL}/messages/initialize-defaults`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } catch (initErr) {
+        // Ignore errors if templates already exist
+        console.log("Default templates may already exist");
+      }
+      
+      // Fetch all templates
       const response = await axios.get(`${API_URL}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTemplates(response.data);
-      setFilteredTemplates(response.data);
+      
+      // Sort templates: system templates first, then others
+      const sortedTemplates = response.data.sort((a, b) => {
+        const aIsSystem = SYSTEM_CATEGORIES.includes(a.category);
+        const bIsSystem = SYSTEM_CATEGORIES.includes(b.category);
+        if (aIsSystem && !bIsSystem) return -1;
+        if (!aIsSystem && bIsSystem) return 1;
+        return 0;
+      });
+      
+      setTemplates(sortedTemplates);
+      setFilteredTemplates(sortedTemplates);
     } catch (err) {
       console.error("Error fetching templates:", err);
       setError("Failed to load templates.");
@@ -49,7 +79,13 @@ export default function EmailTemplateList() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, category) => {
+    // Check if it's a system template
+    if (SYSTEM_CATEGORIES.includes(category)) {
+      message.warning("System templates cannot be deleted. You can edit them instead.");
+      return;
+    }
+    
     try {
       const token = sessionStorage.getItem("token");
       await axios.delete(`${API_URL}/messages/${id}`, {
@@ -65,7 +101,18 @@ export default function EmailTemplateList() {
   };
 
   const columns = [
-    { title: "Name", dataIndex: "name" },
+    { 
+      title: "Name", 
+      dataIndex: "name",
+      render: (name, record) => (
+        <Space>
+          <span>{name}</span>
+          {SYSTEM_CATEGORIES.includes(record.category) && (
+            <Tag color="blue">System</Tag>
+          )}
+        </Space>
+      ),
+    },
     {
       title: "Subject",
       dataIndex: "subject",
@@ -76,7 +123,9 @@ export default function EmailTemplateList() {
       title: "Category",
       dataIndex: "category",
       render: (category) => (
-        <span style={{ color: "#000000" }}>{category || "-"}</span>
+        <Tag color={SYSTEM_CATEGORIES.includes(category) ? "blue" : "default"}>
+          {category || "-"}
+        </Tag>
       ),
     },
     {
@@ -98,16 +147,23 @@ export default function EmailTemplateList() {
             onClick={() => navigate(`/email-template/edit/${record.id}`)}
           />
 
-          <Popconfirm
-            title="Delete this template?"
-            onConfirm={() => handleDelete(record.id)}
-          >
+          {SYSTEM_CATEGORIES.includes(record.category) ? (
             <AiFillDelete
-              style={{ color: "#000", cursor: "pointer" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+              style={{ color: "#ccc", cursor: "not-allowed" }}
+              title="System templates cannot be deleted"
             />
-          </Popconfirm>
+          ) : (
+            <Popconfirm
+              title="Delete this template?"
+              onConfirm={() => handleDelete(record.id, record.category)}
+            >
+              <AiFillDelete
+                style={{ color: "#000", cursor: "pointer" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#DC2626")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#000")}
+              />
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
