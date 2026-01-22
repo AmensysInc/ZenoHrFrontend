@@ -11,41 +11,59 @@ const CustomBreadcrumb = () => {
   const pathnames = location.pathname.split("/").filter((x) => x);
   const [companyName, setCompanyName] = useState(null);
   
-      // Fetch company name if on editcompany route
-      useEffect(() => {
-        const fetchCompanyName = async () => {
-          if (pathnames.includes("editcompany") && params.companyId) {
-            try {
-              const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
-              const token = sessionStorage.getItem("token");
-              const response = await axios.get(`${apiUrl}/companies/${params.companyId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              
-              // Log the full response to debug
-              console.log("Company API response:", response.data);
-              
-              // Try both companyName and name fields (handle different response structures)
-              const name = response.data?.companyName || response.data?.name;
-              if (name) {
-                setCompanyName(name);
-                console.log("Company name fetched:", name);
-              } else {
-                console.warn("Company name not found in response:", response.data);
-              }
-            } catch (error) {
-              console.error("Error fetching company name:", error);
-              if (error.response) {
-                console.error("Error response data:", error.response.data);
-              }
-            }
+  // Fetch company name if on editcompany route
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      const isEditCompanyRoute = location.pathname.includes("/editcompany/");
+      const companyId = params.companyId;
+      
+      console.log("Breadcrumb useEffect triggered:", {
+        pathname: location.pathname,
+        companyId: companyId,
+        isEditCompanyRoute: isEditCompanyRoute,
+        pathnames: pathnames
+      });
+      
+      if (isEditCompanyRoute && companyId) {
+        try {
+          const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "";
+          const token = sessionStorage.getItem("token");
+          const url = `${apiUrl}/companies/${companyId}`;
+          
+          console.log("Fetching company from:", url);
+          
+          const response = await axios.get(url, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          // Log the full response to debug
+          console.log("Company API response:", response.data);
+          
+          // Try both companyName and name fields (handle different response structures)
+          const name = response.data?.companyName || response.data?.name;
+          if (name) {
+            console.log("Setting company name to:", name);
+            setCompanyName(name);
           } else {
-            // Reset company name when not on editcompany route
-            setCompanyName(null);
+            console.warn("Company name not found in response:", response.data);
           }
-        };
-        fetchCompanyName();
-      }, [location.pathname, params.companyId, pathnames]);
+        } catch (error) {
+          console.error("Error fetching company name:", error);
+          if (error.response) {
+            console.error("Error response status:", error.response.status);
+            console.error("Error response data:", error.response.data);
+          }
+        }
+      } else {
+        // Reset company name when not on editcompany route
+        if (companyName) {
+          console.log("Resetting company name (not on editcompany route)");
+          setCompanyName(null);
+        }
+      }
+    };
+    fetchCompanyName();
+  }, [location.pathname, params.companyId]);
 
   // Check if a string looks like a UUID
   const isUUID = (str) => {
@@ -87,14 +105,26 @@ const CustomBreadcrumb = () => {
         // Match if this is the companyId parameter (after "editcompany" in the path)
         // Handle both string and number comparisons
         const companyIdStr = params.companyId ? String(params.companyId) : null;
-        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && companyIdStr && name === companyIdStr;
+        const isCompanyId = isEditCompanyRoute && prevPath === "editcompany" && companyIdStr && String(name) === companyIdStr;
+        
+        // Debug log for company ID matching
+        if (isEditCompanyRoute && name === companyIdStr) {
+          console.log("Breadcrumb matching company ID:", {
+            name,
+            companyIdStr,
+            companyName,
+            isCompanyId,
+            prevPath
+          });
+        }
         
         let displayName;
         if (isCompanyId) {
           // Show company name instead of ID, or show ID if name not loaded yet
           displayName = companyName || name;
+          console.log("Display name for company ID:", displayName);
         } else if (name === "editcompany") {
-          displayName = "Editcompany";
+          displayName = "Edit Company";
         } else {
           displayName = nameMap[name.toLowerCase()] || capitalizeFirstLetter(params[name] || name);
         }
