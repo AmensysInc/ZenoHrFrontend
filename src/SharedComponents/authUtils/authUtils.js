@@ -51,8 +51,8 @@ export const loginUser = async (email, password, onLogin, navigate) => {
           // Only set defaultCompanyId for roles that need it (not SADMIN)
           if (role !== "SADMIN") {
             sessionStorage.setItem("defaultCompanyId", defaultCompany.companyId);
-            // For GROUP_ADMIN, also set selectedCompanyId to the default company
-            if (role === "GROUP_ADMIN") {
+            // For GROUP_ADMIN and REPORTING_MANAGER, also set selectedCompanyId to the default company
+            if (role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") {
               sessionStorage.setItem("selectedCompanyId", String(defaultCompany.companyId));
             }
           }
