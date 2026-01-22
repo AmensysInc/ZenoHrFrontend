@@ -63,9 +63,9 @@ export const loginUser = async (email, password, onLogin, navigate) => {
             return "No default company assigned. Please contact super admin.";
           } else if (role === "SADMIN" || role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") {
             // These roles can login without default company (SADMIN doesn't need it, others might have it in Employee table)
-            // GROUP_ADMIN will select company after login from sidebar
-            if (role === "GROUP_ADMIN" && companies.length > 0) {
-              // Set first company as selected for GROUP_ADMIN if no default
+            // GROUP_ADMIN and REPORTING_MANAGER will select company after login from sidebar
+            if ((role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") && companies.length > 0) {
+              // Set first company as selected for GROUP_ADMIN/REPORTING_MANAGER if no default
               const firstCompany = companies[0];
               sessionStorage.setItem("selectedCompanyId", String(firstCompany.companyId));
               // Also set it as defaultCompanyId for consistency
@@ -84,7 +84,7 @@ export const loginUser = async (email, password, onLogin, navigate) => {
         } else if (role === "EMPLOYEE" || role === "PROSPECT" || role === "HR_MANAGER" || role === "GROUP_ADMIN" || role === "REPORTING_MANAGER") {
           // For EMPLOYEE, PROSPECT, HR_MANAGER, GROUP_ADMIN, and REPORTING_MANAGER roles, allow login even if user-company fetch fails
           // They might have a company assigned in Employee table but no UserCompanyRole yet
-          // GROUP_ADMIN can select company after login
+          // GROUP_ADMIN and REPORTING_MANAGER can select company after login
           console.warn("Could not fetch user-company roles, but allowing login for", role);
           // Don't return error - allow them to login
         } else if (role === "ADMIN") {
