@@ -84,9 +84,18 @@ function App() {
 
   // ✅ Handle login and session restore
   const handleLogin = (userRole) => {
-    if (sessionStorage.getItem("token")) {
+    // Normalize role to ensure consistency
+    const normalizedRole = typeof userRole === 'string' 
+      ? userRole.replace(/^"|"$/g, "").trim() 
+      : String(userRole || "").replace(/^"|"$/g, "").trim();
+    
+    // Check if token exists (it should be set by loginUser before calling onLogin)
+    const token = sessionStorage.getItem("token");
+    if (token) {
       setIsLoggedIn(true);
-      setRole(userRole);
+      setRole(normalizedRole);
+    } else {
+      console.warn("Login attempted but no token found in sessionStorage");
     }
   };
 

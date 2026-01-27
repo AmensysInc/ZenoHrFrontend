@@ -1,8 +1,13 @@
 export const logoutUser = (setIsLoggedIn, setRole, navigate) => {
+  // Clear sessionStorage first
   sessionStorage.clear();
+  // Reset state managed by useSessionStorage
   setIsLoggedIn(false);
   setRole("");
-  navigate("/login", { replace: true });
+  // Force a small delay to ensure state updates before navigation
+  setTimeout(() => {
+    navigate("/login", { replace: true });
+  }, 50);
 };
 
 export const loginUser = async (email, password, onLogin, navigate) => {
@@ -105,17 +110,18 @@ export const loginUser = async (email, password, onLogin, navigate) => {
       }
     }
     // Set login state first, then navigate
+    // Ensure state is updated before navigation
     onLogin(role);
     
-    // Use setTimeout to ensure state is updated before navigation
+    // Wait a bit longer to ensure useSessionStorage hook has synced with sessionStorage
     if (tempPassword === true) {
       setTimeout(() => {
         navigate(`/change-password/${id}`, { replace: true });
-      }, 100);
+      }, 200);
     } else {
       setTimeout(() => {
         navigate("/", { replace: true });
-      }, 100);
+      }, 200);
     }
   } catch (error) {
     console.error("Error authenticating user:", error);
