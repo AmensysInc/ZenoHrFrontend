@@ -16,7 +16,16 @@ export default function Paystubs() {
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedCheckDate, setSelectedCheckDate] = useState("All");
   const apiUrl = process.env.REACT_APP_API_URL?.replace(/\/$/, "");
-  const employeeId = sessionStorage.getItem("id");
+  // Parse id from sessionStorage (stored as JSON)
+  const getIdFromStorage = () => {
+    try {
+      const id = sessionStorage.getItem("id");
+      return id ? JSON.parse(id) : null;
+    } catch {
+      return sessionStorage.getItem("id"); // Fallback for non-JSON values
+    }
+  };
+  const employeeId = getIdFromStorage();
 
   useEffect(() => {
     fetchPaystubs();

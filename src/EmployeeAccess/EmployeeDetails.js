@@ -36,7 +36,15 @@ const EmployeeDetails = () => {
 
   const fetchEmployeeDetails = async () => {
     try {
-      const employeeId = sessionStorage.getItem("id");
+      // Parse id from sessionStorage (stored as JSON)
+      let employeeId = null;
+      try {
+        const idStr = sessionStorage.getItem("id");
+        employeeId = idStr ? JSON.parse(idStr) : null;
+      } catch {
+        employeeId = sessionStorage.getItem("id"); // Fallback for non-JSON values
+      }
+      
       const token = sessionStorage.getItem("token");
 
       if (!employeeId || !token) {
@@ -49,10 +57,12 @@ const EmployeeDetails = () => {
       };
 
       const response = await axios.get(`${apiUrl}/employees/${employeeId}`, config);
-      setEmployee(response.data);
+      const employeeData = response.data;
+      setEmployee(employeeData);
       
-      // Fetch Reporting Manager details if assigned
-      if (response.data.reportingManagerId) {
+      // Always show employee info - it's already set above
+      // Fetch Reporting Manager details if assigned (optional)
+      if (employeeData && employeeData.reportingManagerId) {
         try {
           const managerResponse = await axios.get(`${apiUrl}/users/${response.data.reportingManagerId}`, config);
           const managerData = managerResponse.data;

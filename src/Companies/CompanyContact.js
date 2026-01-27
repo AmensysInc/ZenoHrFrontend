@@ -40,7 +40,14 @@ export default function CompanyContact() {
   const fetchCompanyDetails = async () => {
     try {
       setLoading(true);
-      const employeeId = sessionStorage.getItem("id");
+      // Parse id from sessionStorage (stored as JSON)
+      let employeeId = null;
+      try {
+        const idStr = sessionStorage.getItem("id");
+        employeeId = idStr ? JSON.parse(idStr) : null;
+      } catch {
+        employeeId = sessionStorage.getItem("id"); // Fallback for non-JSON values
+      }
 
       const response = await axios.get(
         `${apiUrl}/employees/${employeeId}`,
