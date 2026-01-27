@@ -196,8 +196,20 @@ const EmployeeDetails = () => {
           )}
 
           <Descriptions.Item label="Working Status">
-            {employee.onBench ? (
+            {employee.onBench === "On Bench" ? (
               <Tag color="red">On Bench</Tag>
+            ) : employee.onBench === "Working" ? (
+              <Tag icon={<CheckCircleOutlined />} color="green">
+                Working
+              </Tag>
+            ) : employee.onBench === "OnProject" ? (
+              <Tag color="blue">On Project</Tag>
+            ) : employee.onBench === "OnVacation" ? (
+              <Tag color="orange">On Vacation</Tag>
+            ) : employee.onBench === "OnSick" ? (
+              <Tag color="purple">On Sick</Tag>
+            ) : employee.onBench ? (
+              <Tag>{employee.onBench}</Tag>
             ) : (
               <Tag icon={<CheckCircleOutlined />} color="green">
                 Active
