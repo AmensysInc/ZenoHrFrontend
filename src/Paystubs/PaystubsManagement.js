@@ -163,7 +163,7 @@ export default function PaystubsManagement() {
 
   const columns = [
     {
-      title: "Employee",
+      title: "Employee Name",
       key: "employee",
       render: (_, record) => getEmployeeName(record.employee?.employeeID),
     },
