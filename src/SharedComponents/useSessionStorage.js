@@ -28,34 +28,36 @@ const useSessionStorage = (key, defaultValue) => {
   }, [value, key]);
 
   // Re-read from sessionStorage when key changes (e.g., after logout/login)
+  // This helps detect when sessionStorage.clear() is called externally
   useEffect(() => {
     const checkStorage = () => {
       try {
         const stored = sessionStorage.getItem(key);
         if (stored === null) {
-          if (value !== defaultValue) {
-            setValue(defaultValue);
-          }
+          // If storage is cleared but state still has a value, reset it
+          setValue((currentValue) => {
+            return currentValue !== defaultValue ? defaultValue : currentValue;
+          });
         } else {
           const parsed = JSON.parse(stored);
           // Only update if the parsed value is different from current state
-          if (JSON.stringify(parsed) !== JSON.stringify(value)) {
-            setValue(parsed);
-          }
+          setValue((currentValue) => {
+            return JSON.stringify(parsed) !== JSON.stringify(currentValue) ? parsed : currentValue;
+          });
         }
       } catch (error) {
-        if (value !== defaultValue) {
-          setValue(defaultValue);
-        }
+        setValue((currentValue) => {
+          return currentValue !== defaultValue ? defaultValue : currentValue;
+        });
       }
     };
 
-    // Check storage periodically (every 100ms) to catch external clears
+    // Check storage periodically (every 200ms) to catch external clears
     // This is a workaround since storage events don't fire in the same tab
-    const interval = setInterval(checkStorage, 100);
+    const interval = setInterval(checkStorage, 200);
     
     return () => clearInterval(interval);
-  }, [key, defaultValue, value]);
+  }, [key, defaultValue]);
 
   return [value, setValue];
 };
