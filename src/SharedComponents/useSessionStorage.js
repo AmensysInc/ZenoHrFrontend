@@ -27,30 +27,35 @@ const useSessionStorage = (key, defaultValue) => {
     }
   }, [value, key]);
 
-  // Listen for storage events (e.g., when sessionStorage.clear() is called)
+  // Re-read from sessionStorage when key changes (e.g., after logout/login)
   useEffect(() => {
-    const handleStorageChange = () => {
+    const checkStorage = () => {
       try {
         const stored = sessionStorage.getItem(key);
         if (stored === null) {
-          setValue(defaultValue);
+          if (value !== defaultValue) {
+            setValue(defaultValue);
+          }
         } else {
           const parsed = JSON.parse(stored);
-          if (parsed !== value) {
+          // Only update if the parsed value is different from current state
+          if (JSON.stringify(parsed) !== JSON.stringify(value)) {
             setValue(parsed);
           }
         }
       } catch (error) {
-        setValue(defaultValue);
+        if (value !== defaultValue) {
+          setValue(defaultValue);
+        }
       }
     };
 
-    // Check on mount and when key changes
-    handleStorageChange();
+    // Check storage periodically (every 100ms) to catch external clears
+    // This is a workaround since storage events don't fire in the same tab
+    const interval = setInterval(checkStorage, 100);
     
-    // Note: storage events only fire in other tabs/windows, not the same tab
-    // So we'll rely on the component re-reading on mount
-  }, [key, defaultValue]);
+    return () => clearInterval(interval);
+  }, [key, defaultValue, value]);
 
   return [value, setValue];
 };
