@@ -247,7 +247,14 @@ export default function SideBar({
   setRole,
 }) {
   const roleFromStorage = sessionStorage.getItem("role") || "";
-  const role = roleFromStorage.replace(/"/g, "");
+  // Parse JSON if stored as JSON, otherwise use as-is and remove quotes
+  let role = "";
+  try {
+    role = JSON.parse(roleFromStorage) || "";
+  } catch (e) {
+    role = roleFromStorage.replace(/"/g, "");
+  }
+  role = String(role).replace(/^"|"$/g, "").trim(); // Final cleanup
 
   const firstNameFromStorage = sessionStorage.getItem("firstName") || "";
   const firstName = firstNameFromStorage.replace(/"/g, "");
