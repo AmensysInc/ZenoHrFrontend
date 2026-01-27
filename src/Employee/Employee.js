@@ -80,7 +80,16 @@ export default function Employee() {
     try {
       const { content, totalPages } = await fetchEmployees(page - 1, pageSize);
 
-      const userRole = sessionStorage.getItem("role");
+      // Parse role from sessionStorage (stored as JSON)
+      let userRole = "";
+      try {
+        const roleStr = sessionStorage.getItem("role");
+        userRole = roleStr ? JSON.parse(roleStr) : "";
+      } catch {
+        userRole = sessionStorage.getItem("role") || "";
+      }
+      userRole = String(userRole).replace(/^"|"$/g, "").trim(); // Clean up role string
+      
       // Read defaultCompanyId fresh each time to get the latest value
       const defaultCompanyId = Number(sessionStorage.getItem("defaultCompanyId"));
       let filtered = content;
