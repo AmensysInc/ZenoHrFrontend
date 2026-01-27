@@ -28,11 +28,11 @@ export const loginUser = async (email, password, onLogin, navigate) => {
     role = role ? role.replace(/^"|"$/g, "").trim() : role;
 
     sessionStorage.setItem("token", access_token);
-    sessionStorage.setItem("firstName", firstName);
-    sessionStorage.setItem("lastName", lastName);
-    sessionStorage.setItem("role", role);
-    sessionStorage.setItem("id", id);
-    sessionStorage.setItem("tempPassword", tempPassword);
+    sessionStorage.setItem("firstName", JSON.stringify(firstName));
+    sessionStorage.setItem("lastName", JSON.stringify(lastName));
+    sessionStorage.setItem("role", JSON.stringify(role)); // Store as JSON for useSessionStorage hook
+    sessionStorage.setItem("id", JSON.stringify(id));
+    sessionStorage.setItem("tempPassword", JSON.stringify(tempPassword));
 
     // ✅ Fetch user-company roles using userId
     const userId = id;

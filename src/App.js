@@ -169,7 +169,12 @@ function App() {
 
   // ✅ Role-based routes
   function renderRoutes(role) {
-    switch (role) {
+    // Normalize role - remove quotes and trim, handle both string and JSON-parsed values
+    const normalizedRole = typeof role === 'string' 
+      ? role.replace(/^"|"$/g, "").trim() 
+      : String(role || "").replace(/^"|"$/g, "").trim();
+    
+    switch (normalizedRole) {
       // ---------------- ADMIN / SADMIN / GROUP_ADMIN ----------------
       case "ADMIN":
       case "SADMIN":
@@ -298,6 +303,7 @@ function App() {
 
       // ---------------- EMPLOYEE ----------------
       case "EMPLOYEE":
+      case '"EMPLOYEE"': // Handle quoted role from sessionStorage
         return (
           <>
             <Route path="/" element={<EmployeeDetails />} />
