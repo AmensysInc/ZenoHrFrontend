@@ -72,6 +72,8 @@ import WeekFileUploader from "./EmployeeAccess/WeekFileUploader";
 import AllEmployeeFiles from "./Employee/AllEmployeeFiles";
 import EditCompany from "./Companies/EditCompany";
 import AddCompany from "./Companies/AddCompany";
+import Paystubs from "./Paystubs/Paystubs";
+import PaystubsManagement from "./Paystubs/PaystubsManagement";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useSessionStorage("isLoggedIn", false);
@@ -282,6 +284,7 @@ function App() {
             <Route path="/alltimeSheets" element={<AllTimeSheets />} />
             <Route path="/weeklytimeSheets" element={<WeeklyTimesheet />} />
             <Route path="/allemployeefiles" element={<AllEmployeeFiles />} />
+            <Route path="/paystubs" element={<PaystubsManagement />} />
             {role === "SADMIN" && (
               <>
                 <Route path="/companyrole" element={<UserRole />} />
@@ -306,6 +309,7 @@ function App() {
             <Route path="/myfiles" element={<Files />} />
             <Route path="/announcements" element={<AnnouncementGrid />} />
             <Route path="/uploads" element={<WeekFileUploader />} />
+            <Route path="/paystubs" element={<Paystubs />} />
           </>
         );
 

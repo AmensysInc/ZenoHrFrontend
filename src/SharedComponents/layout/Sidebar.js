@@ -19,6 +19,7 @@ import {
   AppstoreOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -200,6 +201,12 @@ const baseAdminMenu = [
     label: "Employee Status Report",
     icon: <FileOutlined />,
     path: "/allemployeefiles",
+  },
+  {
+    key: "paystubs",
+    label: "Paystubs",
+    icon: <DollarOutlined />,
+    path: "/paystubs",
   },
   {
     key: "email-templates",
@@ -441,6 +448,12 @@ export default function SideBar({
         label: "Contact Us",
         icon: <ContactsOutlined />,
         path: "/contactus",
+      },
+      {
+        key: "paystubs",
+        label: "Paystubs",
+        icon: <DollarOutlined />,
+        path: "/paystubs",
       },
     ],
   };
