@@ -204,7 +204,7 @@ const baseAdminMenu = [
   },
   {
     key: "paystubs",
-    label: "Paystubs",
+    label: "Pay Stubs",
     icon: <DollarOutlined />,
     path: "/paystubs",
   },

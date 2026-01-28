@@ -138,7 +138,7 @@ export default function PaystubsManagement() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    return dayjs(dateString).format("MMM DD, YYYY");
+    return dayjs(dateString).format("MM/DD/YYYY");
   };
 
   const getEmployeeName = (employeeId) => {
@@ -191,7 +191,7 @@ export default function PaystubsManagement() {
       },
     },
     {
-      title: "Gross Pay",
+      title: "Gross earnings",
       dataIndex: "grossPay",
       render: (amount) => (
         <Space>
@@ -262,7 +262,7 @@ export default function PaystubsManagement() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <Title level={4} style={{ margin: 0 }}>
-            Paystubs Management
+            Pay Stubs Management
           </Title>
           <Button
             type="primary"
@@ -273,7 +273,7 @@ export default function PaystubsManagement() {
               borderColor: "#52c41a",
             }}
           >
-            Upload Paystub
+            Upload Pay Stub
           </Button>
         </div>
 
@@ -290,7 +290,7 @@ export default function PaystubsManagement() {
         />
 
         <Modal
-          title="Upload Paystub"
+          title="Upload Pay Stub"
           open={uploadModalVisible}
           onCancel={() => {
             setUploadModalVisible(false);
@@ -356,7 +356,7 @@ export default function PaystubsManagement() {
             </Form.Item>
 
             <Form.Item
-              label="Gross Pay"
+              label="Gross earnings"
               name="grossPay"
             >
               <InputNumber
