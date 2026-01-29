@@ -58,8 +58,15 @@ export default function PaystubsManagement() {
         return;
       }
 
+      // Get the file - it might be in originFileObj or directly in the file object
+      const fileToUpload = fileList[0].originFileObj || fileList[0];
+      if (!fileToUpload) {
+        message.error("File is not available. Please select a file again.");
+        return;
+      }
+
       formData.append("employeeId", values.employeeId);
-      formData.append("file", fileList[0].originFileObj);
+      formData.append("file", fileToUpload);
       formData.append("year", values.year.toString());
       formData.append("payPeriodStart", values.payPeriodStart.format("YYYY-MM-DD"));
       formData.append("payPeriodEnd", values.payPeriodEnd.format("YYYY-MM-DD"));
@@ -74,7 +81,6 @@ export default function PaystubsManagement() {
       await axios.post(`${apiUrl}/paystubs/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
         },
       });
 
