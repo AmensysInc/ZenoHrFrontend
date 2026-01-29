@@ -344,7 +344,7 @@ export default function PaystubsManagement() {
               name="payPeriodStart"
               rules={[{ required: true, message: "Please select pay period start date" }]}
             >
-              <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+              <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
             </Form.Item>
 
             <Form.Item
@@ -352,7 +352,7 @@ export default function PaystubsManagement() {
               name="payPeriodEnd"
               rules={[{ required: true, message: "Please select pay period end date" }]}
             >
-              <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+              <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
             </Form.Item>
 
             <Form.Item
