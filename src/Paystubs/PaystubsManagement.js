@@ -74,6 +74,10 @@ export default function PaystubsManagement() {
       formData.append("payPeriodStart", values.payPeriodStart.format("YYYY-MM-DD"));
       formData.append("payPeriodEnd", values.payPeriodEnd.format("YYYY-MM-DD"));
       
+      if (values.checkDate) {
+        formData.append("checkDate", values.checkDate.format("YYYY-MM-DD"));
+      }
+      
       if (values.grossPay) {
         formData.append("grossPay", values.grossPay.toString());
       }
@@ -191,6 +195,15 @@ export default function PaystubsManagement() {
       render: (_, record) => (
         <span>
           {formatDate(record.payPeriodStart)} - {formatDate(record.payPeriodEnd)}
+        </span>
+      ),
+    },
+    {
+      title: "Check Date",
+      key: "checkDate",
+      render: (_, record) => (
+        <span>
+          {record.checkDate ? formatDate(record.checkDate) : "-"}
         </span>
       ),
     },
@@ -360,6 +373,13 @@ export default function PaystubsManagement() {
               rules={[{ required: true, message: "Please select pay period end date" }]}
             >
               <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
+            </Form.Item>
+
+            <Form.Item
+              label="Check Date"
+              name="checkDate"
+            >
+              <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" placeholder="Select check date" />
             </Form.Item>
 
             <Form.Item
