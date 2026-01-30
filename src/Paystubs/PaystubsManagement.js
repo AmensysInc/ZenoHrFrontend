@@ -297,6 +297,7 @@ export default function PaystubsManagement() {
           dataSource={paystubs}
           loading={loading}
           rowKey="id"
+          scroll={{ x: "max-content", y: 400 }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
