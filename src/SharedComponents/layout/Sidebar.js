@@ -458,7 +458,7 @@ export default function SideBar({
       },
       {
         key: "paystubs",
-        label: "Paystubs",
+        label: "Pay Stubs",
         icon: <DollarOutlined />,
         path: "/paystubs",
       },

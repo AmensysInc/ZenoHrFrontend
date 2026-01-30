@@ -65,9 +65,12 @@ export default function PaystubsManagement() {
         return;
       }
 
+      // Derive year from payPeriodStart date
+      const year = values.payPeriodStart.year();
+      
       formData.append("employeeId", values.employeeId);
       formData.append("file", fileToUpload);
-      formData.append("year", values.year.toString());
+      formData.append("year", year.toString());
       formData.append("payPeriodStart", values.payPeriodStart.format("YYYY-MM-DD"));
       formData.append("payPeriodEnd", values.payPeriodEnd.format("YYYY-MM-DD"));
       
@@ -192,17 +195,10 @@ export default function PaystubsManagement() {
       ),
     },
     {
-      title: "Month/Year",
-      key: "monthYear",
+      title: "Company Name",
+      key: "companyName",
       render: (_, record) => {
-        if (record.month && record.year) {
-          const monthNames = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-          ];
-          return `${monthNames[record.month - 1]} ${record.year}`;
-        }
-        return "-";
+        return record.employee?.company?.companyName || "-";
       },
     },
     {
@@ -344,19 +340,6 @@ export default function PaystubsManagement() {
                   );
                 })}
               </Select>
-            </Form.Item>
-
-            <Form.Item
-              label="Year"
-              name="year"
-              rules={[{ required: true, message: "Please select year" }]}
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                min={2000}
-                max={2100}
-                placeholder="Enter year (e.g., 2025)"
-              />
             </Form.Item>
 
             <Form.Item
