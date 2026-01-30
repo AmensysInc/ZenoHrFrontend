@@ -328,16 +328,20 @@ export default function PaystubsManagement() {
               <Select
                 placeholder="Select Employee"
                 showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.children ?? "").toLowerCase().includes(input.toLowerCase())
-                }
+                optionFilterProp="label"
+                filterOption={(input, option) => {
+                  const label = option?.label || option?.children || "";
+                  return String(label).toLowerCase().includes(input.toLowerCase());
+                }}
               >
-                {employees.map((emp) => (
-                  <Option key={emp.employeeID} value={emp.employeeID}>
-                    {emp.firstName} {emp.lastName} ({emp.emailID}) - {emp.company?.companyName || 'No Company'}
-                  </Option>
-                ))}
+                {employees.map((emp) => {
+                  const displayText = `${emp.firstName} ${emp.lastName} (${emp.emailID}) - ${emp.company?.companyName || 'No Company'}`;
+                  return (
+                    <Option key={emp.employeeID} value={emp.employeeID} label={displayText}>
+                      {displayText}
+                    </Option>
+                  );
+                })}
               </Select>
             </Form.Item>
 
