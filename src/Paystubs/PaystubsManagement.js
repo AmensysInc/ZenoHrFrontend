@@ -326,7 +326,7 @@ export default function PaystubsManagement() {
               >
                 {employees.map((emp) => (
                   <Option key={emp.employeeID} value={emp.employeeID}>
-                    {emp.firstName} {emp.lastName} ({emp.emailID})
+                    {emp.firstName} {emp.lastName} ({emp.emailID}) - {emp.company?.companyName || 'No Company'}
                   </Option>
                 ))}
               </Select>
