@@ -144,7 +144,16 @@ export default function PaystubsManagement() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    return dayjs(dateString).format("MM/DD/YYYY");
+    const date = dayjs(dateString);
+    if (!date.isValid()) return "-";
+    return date.format("MM/DD/YYYY");
+  };
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "-";
+    const dateTime = dayjs(dateTimeString);
+    if (!dateTime.isValid()) return "-";
+    return dateTime.format("MM/DD/YYYY HH:mm");
   };
 
   const getEmployeeName = (employeeId) => {
@@ -224,7 +233,7 @@ export default function PaystubsManagement() {
     {
       title: "Uploaded",
       dataIndex: "uploadedAt",
-      render: (date) => formatDate(date),
+      render: (date) => formatDateTime(date),
     },
     {
       title: "Actions",
