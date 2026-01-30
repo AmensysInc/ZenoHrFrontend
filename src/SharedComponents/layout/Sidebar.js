@@ -118,16 +118,11 @@ const styles = {
     borderBottom: "1px solid #f0f0f0",
     display: "flex",
     alignItems: "center",
-    justifyContent: collapsed ? "center" : "flex-start",
     flexShrink: 0,
     cursor: "pointer",
     transition: "background-color 0.2s",
   },
-  profileContainerHover: {
-    backgroundColor: "#f5f5f5",
-  },
   profileName: {
-    marginLeft: collapsed ? 0 : "12px",
     color: "#333",
     fontWeight: 500,
     fontSize: "14px",
@@ -602,13 +597,16 @@ export default function SideBar({
         </Menu>
 
         <div 
-          style={styles.profileContainer}
+          style={{
+            ...styles.profileContainer,
+            justifyContent: collapsed ? "center" : "flex-start",
+          }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
         >
           <UserOutlined style={{ color: "#6b7280", fontSize: "16px" }} />
           {!collapsed && (
-            <span style={styles.profileName}>{fullName}</span>
+            <span style={{ ...styles.profileName, marginLeft: "12px" }}>{fullName}</span>
           )}
         </div>
 
