@@ -15,6 +15,7 @@ import {
   ClockCircleOutlined,
   FundOutlined,
   UserSwitchOutlined,
+  UserOutlined,
   PoweroffOutlined,
   AppstoreOutlined,
   MenuFoldOutlined,
@@ -111,9 +112,28 @@ const styles = {
     scrollbarWidth: "none", // Firefox
     msOverflowStyle: "none", // IE/Edge
   },
+  profileContainer: {
+    padding: "8px 16px",
+    borderTop: "1px solid #f0f0f0",
+    borderBottom: "1px solid #f0f0f0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: collapsed ? "center" : "flex-start",
+    flexShrink: 0,
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+  },
+  profileContainerHover: {
+    backgroundColor: "#f5f5f5",
+  },
+  profileName: {
+    marginLeft: collapsed ? 0 : "12px",
+    color: "#333",
+    fontWeight: 500,
+    fontSize: "14px",
+  },
   logoutContainer: {
     padding: "6px 16px 12px 16px",
-    borderTop: "1px solid #f0f0f0",
     display: "flex",
     justifyContent: "center",
     flexShrink: 0,
@@ -256,11 +276,27 @@ export default function SideBar({
   }
   role = String(role).replace(/^"|"$/g, "").trim(); // Final cleanup
 
+  // Get firstName and lastName from sessionStorage
   const firstNameFromStorage = sessionStorage.getItem("firstName") || "";
-  const firstName = firstNameFromStorage.replace(/"/g, "");
+  let firstName = "";
+  try {
+    firstName = JSON.parse(firstNameFromStorage) || "";
+  } catch (e) {
+    firstName = firstNameFromStorage.replace(/"/g, "");
+  }
+  firstName = String(firstName).replace(/^"|"$/g, "").trim();
 
   const lastNameFromStorage = sessionStorage.getItem("lastName") || "";
-  const lastName = lastNameFromStorage.replace(/"/g, "");
+  let lastName = "";
+  try {
+    lastName = JSON.parse(lastNameFromStorage) || "";
+  } catch (e) {
+    lastName = lastNameFromStorage.replace(/"/g, "");
+  }
+  lastName = String(lastName).replace(/^"|"$/g, "").trim();
+
+  // Get full name for profile display
+  const fullName = `${firstName} ${lastName}`.trim() || "User";
 
   const [activeKey, setActiveKey] = useState("");
   const navigate = useNavigate();
@@ -564,6 +600,17 @@ export default function SideBar({
             </Menu.Item>
           ))}
         </Menu>
+
+        <div 
+          style={styles.profileContainer}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+        >
+          <UserOutlined style={{ color: "#6b7280", fontSize: "16px" }} />
+          {!collapsed && (
+            <span style={styles.profileName}>{fullName}</span>
+          )}
+        </div>
 
         <div style={styles.logoutContainer}>
           <Button
