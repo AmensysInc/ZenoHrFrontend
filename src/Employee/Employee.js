@@ -27,11 +27,14 @@ const { Title } = Typography;
 
 export default function Employee() {
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // Store all users for filtering
   const [total, setTotal] = useState(0);
   const [fileList, setFileList] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [fileModalVisible, setFileModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [filters, setFilters] = useState([]);
 
   const navigate = useNavigate();
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -147,12 +150,13 @@ export default function Employee() {
         }
       }
 
-      setUsers(
-        filtered.map((e) => ({
-          key: e.employeeID,
-          ...e,
-        }))
-      );
+      const mappedUsers = filtered.map((e) => ({
+        key: e.employeeID,
+        ...e,
+      }));
+      
+      setAllUsers(mappedUsers); // Store all users
+      applySearchAndFilters(mappedUsers); // Apply current search/filters
       setTotal(totalPages * pageSize);
     } catch (err) {
       console.error("Error fetching employees:", err);
@@ -161,6 +165,98 @@ export default function Employee() {
       setLoading(false);
     }
   };
+
+  // Apply search and filters to users
+  const applySearchAndFilters = (userList = allUsers) => {
+    let filtered = [...userList];
+
+    // Apply search
+    if (searchValue && searchValue.trim()) {
+      const searchLower = searchValue.toLowerCase().trim();
+      filtered = filtered.filter((user) => {
+        const firstName = (user.firstName || "").toLowerCase();
+        const lastName = (user.lastName || "").toLowerCase();
+        const email = (user.emailID || "").toLowerCase();
+        const phone = (user.phoneNo || "").toLowerCase();
+        const companyName = (user.company?.companyName || "").toLowerCase();
+        
+        return (
+          firstName.includes(searchLower) ||
+          lastName.includes(searchLower) ||
+          email.includes(searchLower) ||
+          phone.includes(searchLower) ||
+          companyName.includes(searchLower) ||
+          `${firstName} ${lastName}`.includes(searchLower)
+        );
+      });
+    }
+
+    // Apply filters
+    if (filters && filters.length > 0) {
+      filters.forEach((filter) => {
+        const { field, operator, value } = filter;
+        
+        filtered = filtered.filter((user) => {
+          let fieldValue = "";
+          
+          switch (field) {
+            case "Name":
+              fieldValue = `${user.firstName || ""} ${user.lastName || ""}`.trim().toLowerCase();
+              break;
+            case "Email":
+              fieldValue = (user.emailID || "").toLowerCase();
+              break;
+            case "Phone":
+              fieldValue = (user.phoneNo || "").toLowerCase();
+              break;
+            case "Company":
+              fieldValue = (user.company?.companyName || "").toLowerCase();
+              break;
+            case "Status":
+              fieldValue = (user.workingStatus || "").toLowerCase();
+              break;
+            default:
+              return true;
+          }
+          
+          const filterValue = (value || "").toLowerCase();
+          
+          switch (operator) {
+            case "is":
+              return fieldValue === filterValue;
+            case "is not":
+              return fieldValue !== filterValue;
+            case "contains":
+              return fieldValue.includes(filterValue);
+            case "has any value":
+              return fieldValue.length > 0;
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    setUsers(filtered);
+  };
+
+  // Handle search change
+  const handleSearch = (value) => {
+    setSearchValue(value);
+  };
+
+  // Handle filters change
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  // Apply search and filters when they change
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      applySearchAndFilters(allUsers);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue, filters, allUsers]);
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
@@ -360,7 +456,12 @@ export default function Employee() {
           Employee Details
         </Title>
 
-        <TableFilter />
+        <TableFilter 
+          onSearch={handleSearch}
+          onFiltersChange={handleFiltersChange}
+          fieldOptions={["Name", "Email", "Phone", "Company", "Status"]}
+          searchPlaceholder="Search by name, email, phone, or company..."
+        />
 
         {/* Top Buttons - on opposite sides */}
         <div

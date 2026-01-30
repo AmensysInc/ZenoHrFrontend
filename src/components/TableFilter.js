@@ -22,22 +22,16 @@ import { AiOutlineReload } from "react-icons/ai";
 
 const { Option } = Select;
 
-// DEFAULT FILTERS (USED FOR RESET)
-const defaultFilters = [
-  { id: 1, field: "Order #", operator: "is greater than", value: "1000" },
-  { id: 2, field: "Email", operator: "contains", value: "gmail" },
-  {
-    id: 3,
-    field: "Revenue",
-    operator: "is between",
-    value: "$9 and $199",
-  },
-  { id: 4, field: "Purchased", operator: "is", value: "Splashify 2.0" },
-  { id: 5, field: "Status", operator: "is", value: "Paid" },
-];
+// DEFAULT FILTERS (USED FOR RESET) - Empty by default
+const defaultFilters = [];
 
-export default function TableFilter() {
-  const [filters, setFilters] = useState(defaultFilters);
+export default function TableFilter({ 
+  onSearch, 
+  onFiltersChange, 
+  fieldOptions: customFieldOptions,
+  searchPlaceholder = "Search by name, email, or other fields...",
+}) {
+  const [filters, setFilters] = useState([]);
   const [searchValue, setSearchValue] = useState("");
 
   const [popupOpen, setPopupOpen] = useState(false);
@@ -70,15 +64,16 @@ export default function TableFilter() {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
 
-  const fieldOptions = [
-    "Order #",
-    "Date",
-    "Status",
+  const defaultFieldOptions = [
+    "Name",
     "Email",
-    "Customer",
-    "Purchased",
-    "Revenue",
+    "Status",
+    "Date",
+    "Phone",
+    "Company",
   ];
+
+  const fieldOptions = customFieldOptions || defaultFieldOptions;
 
   const operatorOptions = [
     "is",
@@ -112,6 +107,69 @@ export default function TableFilter() {
       console.error("Failed to save presets", e);
     }
   }, [savedFilters]);
+
+  // Notify parent when filters change
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange(filters);
+    }
+  }, [filters, onFiltersChange]);
+
+  // Handle search value changes
+  useEffect(() => {
+    if (onSearch) {
+      onSearch(searchValue);
+    }
+  }, [searchValue, onSearch]);
+
+  // Click outside handlers for popups
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close + popup
+      if (popupOpen) {
+        const popupElement = document.querySelector('[data-popup="add-filter"]');
+        const isClickInsidePopup = popupElement && popupElement.contains(event.target);
+        const isClickOnButton = plusButtonRef.current && plusButtonRef.current.contains(event.target);
+        
+        if (!isClickInsidePopup && !isClickOnButton) {
+          closePopup();
+        }
+      }
+
+      // Close filters popup
+      if (filtersPopupOpen) {
+        const filtersPopupElement = document.querySelector('[data-popup="filters"]');
+        const isClickInsidePopup = filtersPopupElement && filtersPopupElement.contains(event.target);
+        const isClickOnButton = filtersButtonRef.current && filtersButtonRef.current.contains(event.target);
+        
+        if (!isClickInsidePopup && !isClickOnButton) {
+          setFiltersPopupOpen(false);
+        }
+      }
+
+      // Close chip edit popup
+      if (editingFilter) {
+        const chipPopupElement = document.querySelector('[data-popup="chip-edit"]');
+        const isClickInsidePopup = chipPopupElement && chipPopupElement.contains(event.target);
+        const clickedTag = event.target.closest('.ant-tag');
+        
+        if (!isClickInsidePopup && !clickedTag) {
+          setEditingFilter(null);
+        }
+      }
+    };
+
+    if (popupOpen || filtersPopupOpen || editingFilter) {
+      // Use setTimeout to avoid immediate closure when opening
+      setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 100);
+      
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [popupOpen, filtersPopupOpen, editingFilter]);
 
   const removeFilter = (id) => {
     setFilters((prev) => prev.filter((f) => f.id !== id));
@@ -349,7 +407,7 @@ export default function TableFilter() {
           <Input
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Search by order #, name or email..."
+            placeholder={searchPlaceholder}
             prefix={<SearchOutlined style={{ color: "#aaa" }} />}
             style={{ borderRadius: 8, height: 38 }}
           />
@@ -496,6 +554,7 @@ export default function TableFilter() {
       {/* + Popup */}
       {popupOpen && (
         <div
+          data-popup="add-filter"
           style={{
             position: "absolute",
             top: popupPos.top,
@@ -670,6 +729,7 @@ export default function TableFilter() {
       {/* CHIP EDIT POPUP */}
       {editingFilter && (
         <div
+          data-popup="chip-edit"
           style={{
             position: "absolute",
             top: chipPopupPos.top,
@@ -810,6 +870,7 @@ export default function TableFilter() {
       {/* FILTERS POPUP */}
       {filtersPopupOpen && (
         <div
+          data-popup="filters"
           style={{
             position: "absolute",
             top: filtersPopupPos.top,
