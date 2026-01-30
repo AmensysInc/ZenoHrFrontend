@@ -202,8 +202,9 @@ export default function PaystubsManagement() {
       },
     },
     {
-      title: "Gross earnings",
+      title: "Gross Earnings",
       dataIndex: "grossPay",
+      width: 150,
       render: (amount) => (
         <Space>
           <DollarOutlined style={{ color: "#52c41a" }} />
@@ -234,10 +235,12 @@ export default function PaystubsManagement() {
     {
       title: "Actions",
       key: "actions",
+      width: 150,
       render: (_, record) => (
-        <Space>
+        <Space size="small">
           <Button
             type="primary"
+            size="small"
             icon={<DownloadOutlined />}
             onClick={() => handleDownload(record.id, record.fileName)}
           >
@@ -245,6 +248,7 @@ export default function PaystubsManagement() {
           </Button>
           <Button
             danger
+            size="small"
             icon={<DeleteOutlined />}
             onClick={() => {
               Modal.confirm({

@@ -96,6 +96,7 @@ const CustomBreadcrumb = () => {
     "purchase-orders": "Purchase Orders",
     "visa-details": "Visa Details",
     adduser: "Add Employee",
+    paystubs: "Pay Stubs",
   };
 
   // Build breadcrumb items dynamically - recalculate when companyName changes
