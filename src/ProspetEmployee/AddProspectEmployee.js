@@ -122,7 +122,7 @@ export default function AddProspectEmployee() {
           name="dob"
           rules={[{ required: true, message: "Please select date of birth" }]}
         >
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
         </Form.Item>
 
         <Form.Item

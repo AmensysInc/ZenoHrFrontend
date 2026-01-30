@@ -136,7 +136,7 @@ export default function ProspectEmployee() {
 
             <Col span={8}>
               <Form.Item label="Date of Birth" name="dob" rules={[{ required: true }]}>
-                <DatePicker style={{ width: "100%" }} />
+                <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
               </Form.Item>
             </Col>
 

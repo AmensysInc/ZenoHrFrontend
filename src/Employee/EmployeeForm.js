@@ -290,7 +290,7 @@ const onFinish = async (values) => {
               name="dob"
               rules={[{ required: true, message: "Please select DOB" }]}
             >
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker style={{ width: "100%" }} format="MM/DD/YYYY" />
             </Form.Item>
           </Col>
           <Col span={12}>
