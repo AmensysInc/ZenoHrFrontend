@@ -441,7 +441,7 @@ export default function SideBar({
       },
             {
         key: "Uploads",
-        label: "Uploads",
+        label: "Weekly Status Reports",
         icon: <AppstoreOutlined />,
         path: "/uploads",
       },
@@ -483,7 +483,7 @@ export default function SideBar({
       // },
       {
         key: "contactus",
-        label: "Contact Us",
+        label: "Get in Touch",
         icon: <ContactsOutlined />,
         path: "/contactus",
       },

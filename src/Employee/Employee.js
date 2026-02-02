@@ -456,12 +456,31 @@ export default function Employee() {
           Employee Details
         </Title>
 
-        <TableFilter 
-          onSearch={handleSearch}
-          onFiltersChange={handleFiltersChange}
-          fieldOptions={["Name", "Email", "Phone", "Company", "Status"]}
-          searchPlaceholder="Search by name, email, phone, or company..."
-        />
+        {(() => {
+          // Parse role from sessionStorage (stored as JSON)
+          let userRole = "";
+          try {
+            const roleStr = sessionStorage.getItem("role");
+            userRole = roleStr ? JSON.parse(roleStr) : "";
+          } catch {
+            userRole = sessionStorage.getItem("role") || "";
+          }
+          userRole = String(userRole).replace(/^"|"$/g, "").trim(); // Clean up role string
+          
+          // Hide filter options for EMPLOYEE role
+          if (userRole === "EMPLOYEE" || userRole === '"EMPLOYEE"') {
+            return null;
+          }
+          
+          return (
+            <TableFilter 
+              onSearch={handleSearch}
+              onFiltersChange={handleFiltersChange}
+              fieldOptions={["Name", "Email", "Phone", "Company", "Status"]}
+              searchPlaceholder="Search by name, email, phone, or company..."
+            />
+          );
+        })()}
 
         {/* Top Buttons - on opposite sides */}
         <div

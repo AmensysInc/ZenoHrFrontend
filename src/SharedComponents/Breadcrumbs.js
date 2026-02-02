@@ -97,6 +97,7 @@ const CustomBreadcrumb = () => {
     "visa-details": "Visa Details",
     adduser: "Add Employee",
     paystubs: "Pay Stubs",
+    editemployee: "Edit Employee",
   };
 
   // Build breadcrumb items dynamically - recalculate when companyName changes

@@ -232,40 +232,59 @@ const EmployeeDetails = () => {
           </Descriptions.Item>
         </Descriptions>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: 30,
-            gap: 20,
-          }}
-        >
-          <Link to="/trackings">
-            <Button
-              type="primary"
+        {(() => {
+          // Parse role from sessionStorage (stored as JSON)
+          let userRole = "";
+          try {
+            const roleStr = sessionStorage.getItem("role");
+            userRole = roleStr ? JSON.parse(roleStr) : "";
+          } catch {
+            userRole = sessionStorage.getItem("role") || "";
+          }
+          userRole = String(userRole).replace(/^"|"$/g, "").trim(); // Clean up role string
+          
+          // Hide buttons for EMPLOYEE role
+          if (userRole === "EMPLOYEE" || userRole === '"EMPLOYEE"') {
+            return null;
+          }
+          
+          return (
+            <div
               style={{
-                background: "linear-gradient(90deg, #667eea, #764ba2)",
-                border: "none",
-                borderRadius: 8,
+                display: "flex",
+                justifyContent: "center",
+                marginTop: 30,
+                gap: 20,
               }}
             >
-              View WithHold Tracking
-            </Button>
-          </Link>
+              <Link to="/trackings">
+                <Button
+                  type="primary"
+                  style={{
+                    background: "linear-gradient(90deg, #667eea, #764ba2)",
+                    border: "none",
+                    borderRadius: 8,
+                  }}
+                >
+                  View WithHold Tracking
+                </Button>
+              </Link>
 
-          <Link to="/withholdSheet">
-            <Button
-              style={{
-                background: "linear-gradient(90deg, #36d1dc, #5b86e5)",
-                color: "white",
-                border: "none",
-                borderRadius: 8,
-              }}
-            >
-              View WithHold Sheet
-            </Button>
-          </Link>
-        </div>
+              <Link to="/withholdSheet">
+                <Button
+                  style={{
+                    background: "linear-gradient(90deg, #36d1dc, #5b86e5)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 8,
+                  }}
+                >
+                  View WithHold Sheet
+                </Button>
+              </Link>
+            </div>
+          );
+        })()}
       </Card>
     </motion.div>
   );

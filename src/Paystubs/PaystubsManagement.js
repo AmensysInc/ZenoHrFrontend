@@ -201,11 +201,12 @@ export default function PaystubsManagement() {
     {
       title: "Check Date",
       key: "checkDate",
-      render: (_, record) => (
-        <span>
-          {record.checkDate ? formatDate(record.checkDate) : "-"}
-        </span>
-      ),
+      width: 150,
+      render: (_, record) => {
+        // Always fetch check date from database field
+        const checkDate = record.checkDate;
+        return checkDate ? formatDate(checkDate) : "-";
+      },
     },
     {
       title: "Company Name",
@@ -241,9 +242,23 @@ export default function PaystubsManagement() {
       ellipsis: true,
     },
     {
-      title: "Uploaded",
-      dataIndex: "uploadedAt",
-      render: (date) => formatDateTime(date),
+      title: "Check Date/Time",
+      key: "checkDateTime",
+      width: 180,
+      render: (_, record) => {
+        // Show check date/time instead of uploaded date/time
+        const checkDate = record.checkDate;
+        if (checkDate) {
+          // If checkDate is a date string, format it with time if available
+          const dateTime = dayjs(checkDate);
+          if (dateTime.isValid()) {
+            // If there's a time component in the data, show it, otherwise just show date
+            return dateTime.format("MM/DD/YYYY HH:mm");
+          }
+          return formatDate(checkDate);
+        }
+        return "-";
+      },
     },
     {
       title: "Actions",
