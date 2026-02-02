@@ -114,6 +114,7 @@ export default function EmployeeForm({ mode }) {
                 ? String(data.company.id)
                 : "",
               reportingManagerId: data.reportingManagerId || null, // Set reportingManagerId in form
+              visaStatus: data.employeeDetails?.visaStatus || data.visaStatus || null, // Extract visaStatus from employeeDetails
             });
           }
         } catch (err) {
