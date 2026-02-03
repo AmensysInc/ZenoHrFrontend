@@ -439,12 +439,12 @@ export default function SideBar({
         icon: <AppstoreOutlined />,
         path: "/",
       },
-            {
-        key: "Uploads",
-        label: "Weekly Status Reports",
-        icon: <AppstoreOutlined />,
-        path: "/uploads",
-      },
+      // {
+      //   key: "Uploads",
+      //   label: "Weekly Status Reports",
+      //   icon: <AppstoreOutlined />,
+      //   path: "/uploads",
+      // },
       // {
       //   key: "timeSheets",
       //   label: "Monthly Time Sheets",
