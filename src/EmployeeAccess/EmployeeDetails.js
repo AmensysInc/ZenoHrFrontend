@@ -21,6 +21,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -176,7 +177,7 @@ const EmployeeDetails = () => {
 
           <Descriptions.Item label="Date of Birth">
             <CalendarOutlined style={{ marginRight: 8, color: "#1677ff" }} />
-            {employee.dob || "-"}
+            {employee.dob ? dayjs(employee.dob).format("MM/DD/YYYY") : "-"}
           </Descriptions.Item>
 
           <Descriptions.Item label="Company">
@@ -228,7 +229,7 @@ const EmployeeDetails = () => {
           </Descriptions.Item>
 
           <Descriptions.Item label="Joining Date">
-            {employee.joiningDate || "-"}
+            {employee.joiningDate ? dayjs(employee.joiningDate).format("MM/DD/YYYY") : "-"}
           </Descriptions.Item>
         </Descriptions>
 

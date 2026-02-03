@@ -183,6 +183,18 @@ export default function Paystubs() {
     },
   ];
 
+  // Get user role to determine if employee
+  const getUserRole = () => {
+    try {
+      const role = sessionStorage.getItem("role");
+      return role ? role.replace(/"/g, "").trim() : "";
+    } catch {
+      return sessionStorage.getItem("role")?.replace(/"/g, "").trim() || "";
+    }
+  };
+  const userRole = getUserRole();
+  const isEmployee = userRole === "EMPLOYEE";
+
   const columns = [
     {
       title: "Employee",
@@ -219,6 +231,22 @@ export default function Paystubs() {
       ),
       sorter: (a, b) => (a.grossPay || 0) - (b.grossPay || 0),
     },
+    // Add download action column for employees
+    ...(isEmployee ? [{
+      title: "Actions",
+      key: "actions",
+      width: 120,
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<DownloadOutlined />}
+          onClick={() => handleDownload(record.id, record.fileName)}
+        >
+          Download
+        </Button>
+      ),
+    }] : []),
   ];
 
   return (
@@ -238,83 +266,85 @@ export default function Paystubs() {
           </Title>
         </div>
 
-        {/* Filters */}
-        <div style={{ 
-          display: "flex", 
-          gap: 16, 
-          marginBottom: 24, 
-          flexWrap: "wrap",
-          alignItems: "center"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontWeight: 500 }}>Employee:</span>
-            <span style={{ color: "#1890ff" }}>{filteredPaystubs.length}</span>
-          </div>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontWeight: 500 }}>Year:</span>
-            <Select
-              value={selectedYear}
-              onChange={setSelectedYear}
-              style={{ width: 120 }}
-            >
-              <Option value="All">All</Option>
-              {availableYears.map(year => (
-                <Option key={year} value={year.toString()}>{year}</Option>
-              ))}
-            </Select>
-          </div>
+        {/* Filters - Hide for employees */}
+        {!isEmployee && (
+          <div style={{ 
+            display: "flex", 
+            gap: 16, 
+            marginBottom: 24, 
+            flexWrap: "wrap",
+            alignItems: "center"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Employee:</span>
+              <span style={{ color: "#1890ff" }}>{filteredPaystubs.length}</span>
+            </div>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Year:</span>
+              <Select
+                value={selectedYear}
+                onChange={setSelectedYear}
+                style={{ width: 120 }}
+              >
+                <Option value="All">All</Option>
+                {availableYears.map(year => (
+                  <Option key={year} value={year.toString()}>{year}</Option>
+                ))}
+              </Select>
+            </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontWeight: 500 }}>Check date:</span>
-            <Select
-              value={selectedCheckDate}
-              onChange={setSelectedCheckDate}
-              style={{ width: 150 }}
-            >
-              <Option value="All">All</Option>
-              {availableCheckDates.map(date => (
-                <Option key={date} value={date}>
-                  {formatCheckDate(date)}
-                </Option>
-              ))}
-            </Select>
-          </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Check date:</span>
+              <Select
+                value={selectedCheckDate}
+                onChange={setSelectedCheckDate}
+                style={{ width: 150 }}
+              >
+                <Option value="All">All</Option>
+                {availableCheckDates.map(date => (
+                  <Option key={date} value={date}>
+                    {formatCheckDate(date)}
+                  </Option>
+                ))}
+              </Select>
+            </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontWeight: 500 }}>Pay frequency:</span>
-            <Select value="All" style={{ width: 120 }} disabled>
-              <Option value="All">All</Option>
-            </Select>
-          </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Pay frequency:</span>
+              <Select value="All" style={{ width: 120 }} disabled>
+                <Option value="All">All</Option>
+              </Select>
+            </div>
 
-          <Button 
-            icon={<EditOutlined />} 
-            style={{ marginLeft: "auto" }}
-            onClick={() => {
-              // Edit functionality can be added here
-              message.info("Edit functionality coming soon");
-            }}
-          >
-            Edit
-          </Button>
-
-          <Dropdown
-            menu={{ items: downloadMenuItems }}
-            trigger={["click"]}
-          >
             <Button 
-              type="primary" 
-              icon={<DownloadOutlined />}
-              disabled={selectedRowKeys.length === 0}
+              icon={<EditOutlined />} 
+              style={{ marginLeft: "auto" }}
+              onClick={() => {
+                // Edit functionality can be added here
+                message.info("Edit functionality coming soon");
+              }}
             >
-              Download
+              Edit
             </Button>
-          </Dropdown>
-        </div>
+
+            <Dropdown
+              menu={{ items: downloadMenuItems }}
+              trigger={["click"]}
+            >
+              <Button 
+                type="primary" 
+                icon={<DownloadOutlined />}
+                disabled={selectedRowKeys.length === 0}
+              >
+                Download
+              </Button>
+            </Dropdown>
+          </div>
+        )}
 
         <Table
-          rowSelection={rowSelection}
+          rowSelection={!isEmployee ? rowSelection : undefined}
           columns={columns}
           dataSource={filteredPaystubs}
           loading={loading}
